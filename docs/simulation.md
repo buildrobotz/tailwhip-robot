@@ -92,8 +92,9 @@ What this says, plainly:
   shoves better than the hand-tuned PID, which only balances.
 - **It is weak at three things:** lying down on command (it tends to stay up), following a speed command (it
   creeps at about half the commanded speed), and hard **forward** shoves: it drives forward to catch them and
-  sometimes goes over its feet. A better reward and longer training should improve all three; a fine-tuned
-  version is in progress and this page will be updated if it scores better.
+  sometimes goes over its feet. A first attempt at fixing them (more lie-down episodes, a stronger speed
+  reward, 8 M more steps) made lying down better (34 %) but rearing up and balancing worse (66 %, 34 %), so v1
+  stays. That trade-off is a good exercise: see "Things to try" below.
 - These are simulation numbers on a deliberately pessimistic model. The real robot will differ; milestone 4 of the
   build plan is about closing that gap.
 

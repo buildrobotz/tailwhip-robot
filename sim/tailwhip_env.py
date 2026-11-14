@@ -227,7 +227,7 @@ class TailwhipEnv(gym.Env):
             self.np_random = np.random.default_rng(seed)
         self._set_params(nominal=not self.randomize)
         r = self.np_random
-        kind = self.force_start or r.choice(['rest', 'upright', 'shove', 'feet', 'lie'], p=[0.3, 0.2, 0.15, 0.1, 0.25])
+        kind = self.force_start or r.choice(['rest', 'upright', 'shove', 'feet', 'lie'], p=[0.35, 0.2, 0.15, 0.15, 0.15])
         self.kind = kind
         yaw = r.uniform(-np.pi, np.pi)
         if kind == 'rest':
@@ -290,7 +290,7 @@ class TailwhipEnv(gym.Env):
         # battery sags with current [E]
         self.vbat = self.vbat0 - 0.25 * float(self.motor_current.sum()) - 0.0001 * self.k
         if self.randomize and self.np_random.random() < 0.004:             # occasionally change the command
-            self.cmd = self._new_command('lie' if self.np_random.random() < 0.3 else 'stand')
+            self.cmd = self._new_command('lie' if self.np_random.random() < 0.1 else 'stand')
         f = self._frame(self.cmd)
         self.frames = [f] + self.frames[:-1]
         pitch, roll = self.pitch(), self.roll()
@@ -302,14 +302,13 @@ class TailwhipEnv(gym.Env):
         if self.cmd[0] > 0.5:
             v = self.forward_speed()
             r = (1.0 * up
-                 + 1.0 * up * np.exp(-((v - self.cmd[1]) / 0.10) ** 2)
+                 + 0.5 * up * np.exp(-((v - self.cmd[1]) / 0.12) ** 2)
                  + 0.3 * up * np.exp(-((rates[2] - self.cmd[2]) / 0.6) ** 2)
                  - 0.25 * up * float(foot)                                  # lift the tail once it is up
                  - 0.04 * rates[1] ** 2 * up)
         else:
             near = np.exp(-((pitch - REST_PITCH) / 0.12) ** 2)
-            r = 1.5 * near + 0.5 * near * float(foot) + 0.5 * (1 - np.exp(-(pitch / 0.3) ** 2)) * float(pitch < 0) \
-                - 0.05 * abs(rates[1]) - 0.3 * effort * near
+            r = 1.0 * near + 0.5 * near * float(foot) - 0.05 * abs(rates[1]) - 0.3 * effort * near
         r -= 0.03 * effort + 0.15 * da
         r -= 0.002 * max(0.0, leaf_rate - 8.0)                              # hard landings on the tail
         tail_deg = TAIL_C + TAIL_S * a[2]
