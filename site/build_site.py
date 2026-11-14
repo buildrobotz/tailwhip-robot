@@ -172,34 +172,45 @@ def p_index():
 def money(x):
     return '' if x is None else f'${x:,.2f}'
 
+GROUPS = [('core', 'Core robot', 'Everything the robot needs to rear up and balance.'),
+          ('optional', 'Optional', 'The camera head (milestone 6) and spare metal-gear servos.'),
+          ('shop', 'Shop tools', 'Bought once, used for many robots. Skip what you already have.')]
+
+def bom_row(it):
+    q = it.get('qty_per_robot_num', it.get('qty_per_robot'))
+    a, alts = it.get('amazon') or {}, [x for x in (it.get('alt'), it.get('alt2')) if x]
+    qs = re.match(r'[\d.]+', str(q))
+    qn = float(q) if isinstance(q, (int, float)) else (float(qs.group()) if qs else 1.0)
+    au = a.get('unit_usd'); best = min([x for x in alts if x.get('unit_usd') is not None], key=lambda x: x['unit_usd'], default=None)
+    line = au * qn if au is not None else (best['unit_usd'] * qn if best else None)
+    cheapest = min([v for v in (au, best and best['unit_usd']) if v is not None], default=None)
+    acell = (f'<a href="{a["url"]}" rel="noopener">{html.escape((a.get("title") or "Amazon listing")[:70])}</a><br>'
+             f'{(("about " + money(a.get("price_usd"))) if a.get("price_usd") else "")}{(" / pack of " + str(a["pack_qty"])) if a.get("price_usd") and a.get("pack_qty") else ""}') if a.get('url') else (
+             f'about {money(a.get("price_usd"))}' if a.get('price_usd') else '&ndash;')
+    ccell = '<br>'.join((f'<a href="{x["url"]}" rel="noopener">{html.escape(x.get("vendor", "Vendor"))}</a>' if x.get('url') else html.escape(x.get('vendor', 'Vendor')))
+                        + f': {money(x.get("price_usd"))}{(" / " + str(x["pack_qty"])) if x.get("pack_qty") else ""}' for x in alts) or '&ndash;'
+    note = html.escape(it.get('build_note') or a.get('notes') or '')
+    row = (f'<tr><td data-label="#">{it.get("id", "")}</td><td data-label="Part" class="lead"><b>{html.escape(it["name"])}</b><br><span style="color:var(--muted);font-size:.85rem">{note}</span></td>'
+           f'<td class="num" data-label="Per robot">{html.escape(str(q))}</td><td data-label="Amazon">{acell}</td><td data-label="Other sources">{ccell}</td><td class="num" data-label="Line">{money(line)}</td></tr>')
+    return row, (line or 0.0), (cheapest or 0.0) * qn
+
 def p_parts():
     bom = json.loads((ROOT / 'docs' / 'bom.json').read_text())
-    rows, tot_a, tot_c, unpriced = '', 0.0, 0.0, []
-    for it in bom:
-        q = it.get('qty_per_robot_num', it.get('qty_per_robot'))
-        a, alts = it.get('amazon') or {}, [x for x in (it.get('alt'), it.get('alt2')) if x]
-        qs = re.match(r'[\d.]+', str(q))
-        qn = float(q) if isinstance(q, (int, float)) else (float(qs.group()) if qs else 1.0)
-        au = a.get('unit_usd'); best = min([x for x in alts if x.get('unit_usd') is not None], key=lambda x: x['unit_usd'], default=None)
-        line_a = au * qn if au is not None else None
-        cheapest = min([v for v in (au, best and best['unit_usd']) if v is not None], default=None)
-        if line_a is not None: tot_a += line_a
-        elif best: tot_a += best['unit_usd'] * qn
-        if cheapest is not None: tot_c += cheapest * qn
-        else: unpriced.append(it['name'])
-        acell = (f'<a href="{a["url"]}" rel="noopener">{html.escape((a.get("title") or "Amazon listing")[:70])}</a><br>'
-                 f'{(("about " + money(a.get("price_usd"))) if a.get("price_usd") else "")}{(" / pack of " + str(a["pack_qty"])) if a.get("price_usd") and a.get("pack_qty") else ""}') if a.get('url') else (
-                 f'about {money(a.get("price_usd"))}' if a.get('price_usd') else '&ndash;')
-        ccell = '<br>'.join((f'<a href="{x["url"]}" rel="noopener">{html.escape(x.get("vendor", "Vendor"))}</a>' if x.get('url') else html.escape(x.get('vendor', 'Vendor')))
-                            + f': {money(x.get("price_usd"))}{(" / " + str(x["pack_qty"])) if x.get("pack_qty") else ""}' for x in alts) or '&ndash;'
-        note = html.escape(it.get('build_note') or a.get('notes') or '')
-        rows += (f'<tr><td data-label="#">{it.get("id", "")}</td><td data-label="Part" class="lead"><b>{html.escape(it["name"])}</b><br><span style="color:var(--muted);font-size:.85rem">{note}</span></td>'
-                 f'<td class="num" data-label="Per robot">{html.escape(str(q))}</td><td data-label="Amazon">{acell}</td><td data-label="Other sources">{ccell}</td><td class="num" data-label="Line">{money(line_a if line_a is not None else (best["unit_usd"] * qn if best else None))}</td></tr>')
+    tables, totals = '', {}
+    for g, label, blurb in GROUPS:
+        items = [it for it in bom if it.get('group', 'core') == g]
+        rows = [bom_row(it) for it in items]
+        totals[g] = (sum(r[1] for r in rows), sum(r[2] for r in rows))
+        tables += (f'<section class="prose"><h2 id="{g}">{label}: about {money(totals[g][0])} per robot</h2><p>{blurb}</p></section>'
+                   f'<div class="tablewrap wide"><table class="stack"><thead><tr><th>#</th><th>Part</th><th class="num">Per robot</th><th>Amazon</th>'
+                   f'<th>Other sources</th><th class="num">Line</th></tr></thead><tbody>{"".join(r[0] for r in rows)}</tbody></table></div>')
     return f'''
-<div class="note"><b>About the prices</b>Prices are typical listing prices and they move, so click through and check before you order. "Per robot" counts only what one robot uses; packs leave you spares. Many builders already own the motors, servos and ESP32s: the table says so.</div>
-<dl class="facts"><div><dt>Per robot, Amazon</dt><dd>{money(tot_a)}</dd></div><div><dt>Per robot, cheapest source per line</dt><dd>{money(tot_c)}</dd></div></dl>
-<div class="tablewrap wide"><table class="stack"><thead><tr><th>#</th><th>Part</th><th class="num">Per robot</th><th>Amazon</th><th>Other sources</th><th class="num">Line</th></tr></thead><tbody>{rows}</tbody></table></div>
-<section class="prose">{md(doc('parts.md'))}{('<h2>Sourcing notes</h2>' + md(doc('bom-sources.md'))) if doc('bom-sources.md') else ''}</section>'''
+<div class="note"><b>About the prices</b>Prices are typical listing prices and they move, so click through and check before you order. "Per robot" counts only what one robot uses, at the per-unit price inside each pack; packs leave you spares. Many builders already own the motors, servos and ESP32s: the table says so.</div>
+<dl class="facts"><div><dt>Core robot</dt><dd>{money(totals['core'][0])}</dd></div><div><dt>Core, cheapest source per line</dt><dd>{money(totals['core'][1])}</dd></div>
+<div><dt>Optional</dt><dd>{money(totals['optional'][0])}</dd></div><div><dt>Shop tools</dt><dd>{money(totals['shop'][0])}</dd></div></dl>
+<section class="prose">{md(doc('parts.md'))}</section>
+{tables}
+{('<section class="prose"><h2>Sourcing notes</h2>' + md(doc('bom-sources.md')) + '</section>') if doc('bom-sources.md') else ''}'''
 
 def p_mechanical():
     out = ROOT / 'cad' / 'out'

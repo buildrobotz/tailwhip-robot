@@ -1,12 +1,24 @@
-Every bought part for one Tailwhip is in the table above, including the parts many builders already have (marked "Often already in a robotics parts drawer"), so that you can build one from this page. The list is AI-generated and unbuilt: check each listing before you order.
+Every bought part for one Tailwhip is in the tables below, including the parts many builders already have (marked "Often already in a robotics parts drawer"), so that you can build one from this page. The list is AI-generated and unbuilt: check each listing before you order.
 
 ## What it costs
 
-Most of these parts come in packs, so the price per robot depends on whether you share the packs.
+The table is split into three groups, because a single total mixes up what the robot needs with what is optional
+and what is a workshop tool.
 
-- **If you already have the common parts**, the five extra purchases (two MG90S, the 2S BMS, the 18650 holder, the power switch, the polyfuse): **about $15 per robot** at the per-unit price of shared packs, or **about $38** buying each Amazon pack once. The cheapest single units (Waveshare servos, ShillehTek BMS, SparkFun holder, Pololu switch, DigiKey fuse) come to about $19 plus shipping.
-- **Everything marked BUY** (adds the charger, charge jack, capacitor, resistors, screws, wire, connectors, perfboard and heat-shrink): about **$54 per robot** with packs shared, about **$172** buying every pack once. Most of that is kits (an M3 screw kit, heat-shrink, wire) that last for many robots.
-- **A complete robot from nothing**, including the common parts: about **$114** from Amazon packs shared across builds, about **$107** taking the cheapest source per line.
+| Group | Per robot | What is in it |
+|---|---|---|
+| **Core robot** | **about $62** | Everything the robot needs to rear up and balance: two ESP32s (robot and radio bridge), MPU6050, MX1508, two TT motors and wheels, two SG-90s, two IR modules, two bucks, two 18650 cells, holder, BMS, fuse, switch, charge jack, wiring, the screws it uses and filament |
+| Core, if you have the usual parts drawer | about $26 | The same, without the ESP32s, MPU6050, MX1508, TT motors, wheels, SG-90s, IR modules and bucks |
+| Optional | about $22 | ESP32-CAM (milestone 6, the camera head) and two MG90S (only if the tail SG-90 strips its gears) |
+| Shop tools | about $30 | A 2S 8.4 V charger, an M3 screw kit and a heat-shrink kit: bought once, used for many robots |
+
+"Per robot" uses the per-unit price inside each pack. Most parts come in packs of 2 to 10, so buying every pack new
+for a single robot costs far more up front (about $250 for the core packs) but leaves the parts for several more
+robots: it is the right way to think about a class or a club, not one build.
+
+**Compared with Ouro ($87):** the robot itself is cheaper, mostly because two $3 TT gearmotors and two $2.50
+SG-90s replace eight MG90S servos. What both robots share sets the floor: two ESP32s (about $14), a battery
+and its charger.
 
 Prices change. Check each listing before you order.
 

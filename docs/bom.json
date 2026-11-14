@@ -27,7 +27,8 @@
    "ship_days": null,
    "notes": "Genuine WROOM-32 in the Feather shape, not the DevKit shape, so it will not sit on the spine the same way. About three times the price."
   },
-  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. Classic ESP32 only, not S2, S3 or C3. One rides on the robot, one is the USB radio bridge on the laptop. The robot board sits on the spine with its header pins pointing back; 30-pin or 38-pin both fit."
+  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. Classic ESP32 only, not S2, S3 or C3. One rides on the robot, one is the USB radio bridge on the laptop. The robot board sits on the spine with its header pins pointing back; 30-pin or 38-pin both fit.",
+  "group": "core"
  },
  {
   "id": 2,
@@ -57,7 +58,8 @@
    "ship_days": null,
    "notes": "Genuine sensor, but a different board size and hole pattern from the GY-521, so the mount would need changing."
   },
-  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. Draws about 3.8 to 3.9 mA (datasheet). Power it from 3.3 V."
+  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. Draws about 3.8 to 3.9 mA (datasheet). Power it from 3.3 V.",
+  "group": "core"
  },
  {
   "id": 3,
@@ -76,7 +78,8 @@
    "search_url": "https://www.amazon.com/s?k=MX1508+dual+motor+driver+module"
   },
   "alt": null,
-  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. Datasheet: 2 to 9.6 V; one channel is rated 1.5 A continuous (2 A peak), the other only 0.8 A continuous (1.5 A peak). Most modules do not say which is which, so watch for one side running hot."
+  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. Datasheet: 2 to 9.6 V; one channel is rated 1.5 A continuous (2 A peak), the other only 0.8 A continuous (1.5 A peak). Most modules do not say which is which, so watch for one side running hot.",
+  "group": "core"
  },
  {
   "id": 4,
@@ -106,7 +109,8 @@
    "ship_days": null,
    "notes": "1:48. Datasheet: no load 120 RPM / 150 mA at 3 V, 185 RPM / 155 mA at 4.5 V, 250 RPM / 160 mA at 6 V; stall 1.1 A at 3 V, 1.2 A at 4.5 V, 1.5 A at 6 V. $2.66 each at 10+."
   },
-  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. Straight-shaft 1:48 TT motor, the common yellow one. Both clamp through the core on two M3 x 70 screws."
+  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. Straight-shaft 1:48 TT motor, the common yellow one. Both clamp through the core on two M3 x 70 screws.",
+  "group": "core"
  },
  {
   "id": 5,
@@ -136,7 +140,8 @@
    "ship_days": null,
    "notes": "Fits the TT D-shaft. Adafruit also sells a thin white 65 mm wheel (product 3763) at the same price."
   },
-  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. Often comes with the motors. Check the tyre grips: a hard plastic tyre slips on a smooth floor."
+  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. Often comes with the motors. Check the tyre grips: a hard plastic tyre slips on a smooth floor.",
+  "group": "core"
  },
  {
   "id": 6,
@@ -166,7 +171,8 @@
    "ship_days": null,
    "notes": "SG92R, a slightly stronger SG-90: 0.1 s/60 deg at 4.8 V, 2.5 kg-cm. Out of stock when checked."
   },
-  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. One moves the tail, one pans the head. About 0.1 s/60 deg at 4.8 V and roughly 550-650 mA stall (reseller sheets, estimate)."
+  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. One moves the tail, one pans the head. About 0.1 s/60 deg at 4.8 V and roughly 550-650 mA stall (reseller sheets, estimate).",
+  "group": "core"
  },
  {
   "id": 7,
@@ -208,7 +214,8 @@
    "ship_days": null,
    "notes": "MG90D, a close cousin of the MG90S with the same body size. More trustworthy, about four times the price."
   },
-  "build_note": "BUY. Same body as the SG-90, so it drops straight into the tail mount if the tail SG-90 strips its plastic gears. Two: one spare."
+  "build_note": "BUY. Same body as the SG-90, so it drops straight into the tail mount if the tail SG-90 strips its plastic gears. Two: one spare.",
+  "group": "optional"
  },
  {
   "id": 8,
@@ -238,7 +245,8 @@
    "ship_days": null,
    "notes": "Bare TCRT5000-style sensor plus resistors, no comparator board. Only if you are happy to build the circuit."
   },
-  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. Wheel speed sensing, one per wheel. Power it from 3.3 V so its output is safe for the ESP32 pins."
+  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. Wheel speed sensing, one per wheel. Power it from 3.3 V so its output is safe for the ESP32 pins.",
+  "group": "core"
  },
  {
   "id": 9,
@@ -257,7 +265,8 @@
    "search_url": "https://www.amazon.com/s?k=Mini360+DC-DC+buck+converter+adjustable+10+pcs"
   },
   "alt": null,
-  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. Set each to 5.0 V with a meter BEFORE connecting anything. The trim pot is tiny and easy to knock; a dab of nail varnish holds it."
+  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. Set each to 5.0 V with a meter BEFORE connecting anything. The trim pot is tiny and easy to knock; a dab of nail varnish holds it.",
+  "group": "core"
  },
  {
   "id": 10,
@@ -276,7 +285,8 @@
    "search_url": "https://www.amazon.com/s?k=ESP32-CAM+OV2640+camera+module+with+USB+programmer"
   },
   "alt": null,
-  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. Stage 4 only. Expect about 180 mA at 5 V streaming with the flash off (AI-Thinker spec), with short Wi-Fi peaks above that."
+  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. Stage 4 only. Expect about 180 mA at 5 V streaming with the flash off (AI-Thinker spec), with short Wi-Fi peaks above that.",
+  "group": "optional"
  },
  {
   "id": 11,
@@ -318,7 +328,8 @@
    "ship_days": null,
    "notes": "$4.99 each, in stock when checked. 20 A continuous; a little less capacity than the P28A."
   },
-  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. Buy a matched pair of the same model, from a battery specialist, flat top. Unprotected cells are fine because the BMS (item 13) protects the pack. Never 'UltraFire', 'GTF' or '9900 mAh' cells."
+  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. Buy a matched pair of the same model, from a battery specialist, flat top. Unprotected cells are fine because the BMS (item 13) protects the pack. Never 'UltraFire', 'GTF' or '9900 mAh' cells.",
+  "group": "core"
  },
  {
   "id": 12,
@@ -348,7 +359,8 @@
    "ship_days": null,
    "notes": "74.5 x 40.8 x 17.7 mm, two 6 in leads. The page does not say series or parallel: measure about 7-8.4 V across the leads with cells fitted."
   },
-  "build_note": "BUY. CAD assumes about 41 x 77.5 x 20.5 mm outside. The BMS also needs a wire to the middle of the pack (between the two cells): solder a thin wire to the metal strap that joins the cells, or pick a holder where that strap is reachable."
+  "build_note": "BUY. CAD assumes about 41 x 77.5 x 20.5 mm outside. The BMS also needs a wire to the middle of the pack (between the two cells): solder a thin wire to the metal strap that joins the cells, or pick a holder where that strap is reachable.",
+  "group": "core"
  },
  {
   "id": 13,
@@ -378,7 +390,8 @@
    "ship_days": null,
    "notes": "10 A continuous, about 15 A for short bursts. Over-charge 4.25-4.35 V per cell, over-discharge 2.4-2.6 V per cell, passive balance about 40 mA. About 50 x 22 x 3.5 mm: bigger than the 30 x 16 mm CAD slot."
   },
-  "build_note": "BUY. The robot pulls up to about 4.5 A for a second, so 10 A continuous gives plenty of margin. The balanced board is about 50 x 22 mm, larger than the 30 x 16 mm slot in the CAD, so the slot needs widening."
+  "build_note": "BUY. The robot pulls up to about 4.5 A for a second, so 10 A continuous gives plenty of margin. The balanced board is about 50 x 22 mm, larger than the 30 x 16 mm slot in the CAD, so the slot needs widening.",
+  "group": "core"
  },
  {
   "id": 14,
@@ -408,7 +421,8 @@
    "ship_days": null,
    "notes": "$0.62 each. Bourns MF-R300 is an equivalent. Plus DigiKey shipping."
   },
-  "build_note": "BUY. In the battery red lead, after the BMS. Protects the wiring from a short."
+  "build_note": "BUY. In the battery red lead, after the BMS. Protects the wiring from a short.",
+  "group": "core"
  },
  {
   "id": 15,
@@ -438,7 +452,8 @@
    "ship_days": null,
    "notes": "A tiny slide switch drives a MOSFET: 1.8-16 V, 3 A continuous with only a 55 C rise (6 A max continuous, 12 A peak), plus reverse-battery protection. Board 15.2 x 15.2 mm, lever sticks out about 1 mm."
   },
-  "build_note": "BUY. It carries all the motor current (3-4 A peaks, 1-1.5 A average). Tiny SS12D00 slide switches are rated only 0.3-0.5 A: do not use one. First choice is the Pololu MOSFET slide switch (15.2 x 15.2 mm); the KCD11 rocker (10 x 15 mm face, about 18 mm deep) also works."
+  "build_note": "BUY. It carries all the motor current (3-4 A peaks, 1-1.5 A average). Tiny SS12D00 slide switches are rated only 0.3-0.5 A: do not use one. First choice is the Pololu MOSFET slide switch (15.2 x 15.2 mm); the KCD11 rocker (10 x 15 mm face, about 18 mm deep) also works.",
+  "group": "core"
  },
  {
   "id": 16,
@@ -457,7 +472,8 @@
    "search_url": "https://www.amazon.com/s?k=470uF+16V+low+ESR+electrolytic+capacitor"
   },
   "alt": null,
-  "build_note": "BUY. Across the servo 5 V rail, close to the servo plugs. Mind the polarity stripe (negative)."
+  "build_note": "BUY. Across the servo 5 V rail, close to the servo plugs. Mind the polarity stripe (negative).",
+  "group": "core"
  },
  {
   "id": 17,
@@ -487,7 +503,8 @@
    "ship_days": null,
    "notes": "Single resistors, about $0.10 each. Buy the 33k (MFR-25FBF52-33K) the same way. Plus shipping."
   },
-  "build_note": "BUY if you have no kit. Uses three resistors: the battery divider (100k top, 33k bottom) and 100k pull-downs on the two IR inputs (the third 100k comes from the same kit)."
+  "build_note": "BUY if you have no kit. Uses three resistors: the battery divider (100k top, 33k bottom) and 100k pull-downs on the two IR inputs (the third 100k comes from the same kit).",
+  "group": "core"
  },
  {
   "id": 18,
@@ -506,7 +523,8 @@
    "search_url": "https://www.amazon.com/s?k=100nF+ceramic+capacitor+0.1uF"
   },
   "alt": null,
-  "build_note": "BUY. Across the 33k divider resistor, to steady the battery reading."
+  "build_note": "BUY. Across the 33k divider resistor, to steady the battery reading.",
+  "group": "core"
  },
  {
   "id": 19,
@@ -525,7 +543,8 @@
    "search_url": "https://www.amazon.com/s?k=8.4V+1A+lithium+charger+5.5x2.1mm"
   },
   "alt": null,
-  "build_note": "BUY if you don't have one. Must say 8.4 V (2S Li-ion), not 7.4 V or 9 V. Charges the pack through the BMS, which balances the cells near full."
+  "build_note": "BUY if you don't have one. Must say 8.4 V (2S Li-ion), not 7.4 V or 9 V. Charges the pack through the BMS, which balances the cells near full.",
+  "group": "shop"
  },
  {
   "id": 20,
@@ -555,7 +574,8 @@
    "ship_days": null,
    "notes": "Inline female barrel connector with solder terminals, fits 5.5 x 2.1 mm. Showed backorder when checked."
   },
-  "build_note": "BUY. The charge jack, wired to the BMS P+ and P-."
+  "build_note": "BUY. The charge jack, wired to the BMS P+ and P-.",
+  "group": "core"
  },
  {
   "id": 21,
@@ -585,7 +605,8 @@
    "ship_days": null,
    "notes": "$14.99. 18650batterystore.com lists the VC2S at $14.99 and the Nitecore i2 at $9.99, both sold out when checked."
   },
-  "build_note": "Optional, not in the total. For checking each cell's voltage and topping up a cell that has drifted out of balance."
+  "build_note": "Optional, not in the total. For checking each cell's voltage and topping up a cell that has drifted out of balance.",
+  "group": "optional"
  },
  {
   "id": 22,
@@ -604,7 +625,8 @@
    "search_url": "https://www.amazon.com/s?k=M3+x+70mm+socket+head+cap+screw"
   },
   "alt": null,
-  "build_note": "BUY. Clamps both motors through the core. An M3 threaded rod cut to length with two nuts also works."
+  "build_note": "BUY. Clamps both motors through the core. An M3 threaded rod cut to length with two nuts also works.",
+  "group": "core"
  },
  {
   "id": 23,
@@ -623,7 +645,8 @@
    "search_url": "https://www.amazon.com/s?k=M3+socket+head+cap+screw+nut+assortment+kit"
   },
   "alt": null,
-  "build_note": "BUY if you don't have one. One kit covers the M3 x 10 (4), M3 x 8 (2, IR module posts) and 6 nuts (4 captured, 2 for the M3 x 70 screws)."
+  "build_note": "BUY if you don't have one. One kit covers the M3 x 10 (4), M3 x 8 (2, IR module posts) and 6 nuts (4 captured, 2 for the M3 x 70 screws).",
+  "group": "shop"
  },
  {
   "id": 24,
@@ -653,7 +676,8 @@
    "ship_days": null,
    "notes": "Price not checked (the page blocked the check). McMaster and Misumi sell the same thing as a 'metric shoulder screw, 4 mm shoulder diameter, 8 mm shoulder length, M3 thread'."
   },
-  "build_note": "BUY. The tail pivot. Fallback: an M3 x 16 screw through a 4 mm brass spacer, 8 mm long."
+  "build_note": "BUY. The tail pivot. Fallback: an M3 x 16 screw through a 4 mm brass spacer, 8 mm long.",
+  "group": "core"
  },
  {
   "id": 25,
@@ -672,7 +696,8 @@
    "search_url": "https://www.amazon.com/s?k=zip+ties+2.5+x+100mm"
   },
   "alt": null,
-  "build_note": "BUY if you have none. Wiring and servo leads."
+  "build_note": "BUY if you have none. Wiring and servo leads.",
+  "group": "core"
  },
  {
   "id": 26,
@@ -702,7 +727,8 @@
    "ship_days": null,
    "notes": "PVC, not silicone, so stiffer. $2.95 per 7.62 m; black is product 2976. pack_qty and unit_usd are in metres."
   },
-  "build_note": "BUY. Battery, BMS, switch, motor and buck input wiring. Unit is metres."
+  "build_note": "BUY. Battery, BMS, switch, motor and buck input wiring. Unit is metres.",
+  "group": "core"
  },
  {
   "id": 27,
@@ -732,7 +758,8 @@
    "ship_days": null,
    "notes": "One colour per spool, $4.95 per 7.62 m. pack_qty and unit_usd are in metres."
   },
-  "build_note": "BUY. Signal wires (IMU, IR sensors, servo signals). Unit is metres."
+  "build_note": "BUY. Signal wires (IMU, IR sensors, servo signals). Unit is metres.",
+  "group": "core"
  },
  {
   "id": 28,
@@ -762,7 +789,8 @@
    "ship_days": null,
    "notes": "150 mm, a bit longer than needed. A 20 x 3 in (75 mm) pack is product 1951, also $1.95."
   },
-  "build_note": "BUY. Push onto the ESP32 header pins."
+  "build_note": "BUY. Push onto the ESP32 header pins.",
+  "group": "core"
  },
  {
   "id": 29,
@@ -792,7 +820,8 @@
    "ship_days": null,
    "notes": "$0.95 per pair, wires already fitted."
   },
-  "build_note": "BUY. On the motor leads so the motors unplug."
+  "build_note": "BUY. On the motor leads so the motors unplug.",
+  "group": "core"
  },
  {
   "id": 30,
@@ -822,7 +851,8 @@
    "ship_days": null,
    "notes": "36 pins per strip; plenty."
   },
-  "build_note": "BUY. Servo rail: two 3-pin servo plugs on a scrap of perfboard."
+  "build_note": "BUY. Servo rail: two 3-pin servo plugs on a scrap of perfboard.",
+  "group": "core"
  },
  {
   "id": 31,
@@ -852,7 +882,8 @@
    "ship_days": null,
    "notes": "Larger than needed: cut one down with a knife and ruler."
   },
-  "build_note": "BUY. Servo rail distribution, the battery divider and the IR pull-downs."
+  "build_note": "BUY. Servo rail distribution, the battery divider and the IR pull-downs.",
+  "group": "core"
  },
  {
   "id": 32,
@@ -882,7 +913,8 @@
    "ship_days": null,
    "notes": "Pre-cut lengths."
   },
-  "build_note": "BUY if you have none. Consumable: one kit lasts many robots."
+  "build_note": "BUY if you have none. Consumable: one kit lasts many robots.",
+  "group": "shop"
  },
  {
   "id": 33,
@@ -901,7 +933,8 @@
    "search_url": "https://www.amazon.com/s?k=PLA+filament+1.75mm+1kg"
   },
   "alt": null,
-  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. About 92 g for the body. Unit is kg."
+  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. About 92 g for the body. Unit is kg.",
+  "group": "core"
  },
  {
   "id": 34,
@@ -920,6 +953,7 @@
    "search_url": "https://www.amazon.com/s?k=ABS+filament+1.75mm+1kg"
   },
   "alt": null,
-  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. About 10 g for the tail: ABS flexes where PLA would snap. Unit is kg."
+  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. About 10 g for the tail: ABS flexes where PLA would snap. Unit is kg.",
+  "group": "core"
  }
 ]
