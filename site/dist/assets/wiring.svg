@@ -1,0 +1,92 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='1600' height='1230' viewBox='0 0 1600 1230' font-family='Helvetica Neue, Helvetica, Arial, sans-serif'>
+<title>Tailwhip board placement and wiring</title>
+<rect x='1' y='1' width='1598' height='1228' rx='14' fill='#ffffff' stroke='#c9ced8'/>
+<text x='30.0' y='40.0' font-size='18' text-anchor='start' font-weight='bold' fill='#1d2433'>Tailwhip: where each board sits (body frame from cad/tailwhip.py, mm) and the main wire runs</text>
+<text x='30.0' y='64.0' font-size='12' text-anchor='start' font-weight='normal' fill='#5b6475'>Positions: cad/tailwhip.py items(). Front view looks at the robot from the front (robot left = image right). Wire ids match the wire list in electronics.md and electronics.json.</text>
+<text x='40.0' y='100.0' font-size='14' text-anchor='start' font-weight='bold' fill='#1d2433'>SIDE (from the robot's left)</text>
+<circle cx='420.0' cy='760.0' r='104.0' fill='#f4f6fa' stroke='#9aa3b2' stroke-width='1.4'/>
+<text x='420.0' y='881.6' font-size='11' text-anchor='middle' font-weight='normal' fill='#5b6475'>wheel 65 mm, axle at 0</text>
+<rect x='344.8' y='228.8' width='161.0' height='326.4' rx='3' fill='#f7f8fb' stroke='#c9ced8' stroke-width='1.4'/>
+<rect x='367.2' y='290.2' width='131.2' height='65.6' rx='3' fill='#f6e7cf' stroke='#8a5a2b' stroke-width='1.4'/>
+<line x1='432.8' y1='323.0' x2='548.0' y2='248.0' stroke='#5b6475' stroke-width='1' stroke-linecap='round' stroke-dasharray='3 3'/>
+<text x='552.0' y='252.0' font-size='12' text-anchor='start' font-weight='normal' fill='#1d2433'>battery: 2 x 18650 in the sleeve</text>
+<rect x='350.2' y='177.3' width='104.3' height='102.4' rx='3' fill='#f6e7cf' stroke='#6b4a1f' stroke-width='1.4'/>
+<line x1='402.4' y1='228.5' x2='548.0' y2='177.6' stroke='#5b6475' stroke-width='1' stroke-linecap='round' stroke-dasharray='3 3'/>
+<text x='552.0' y='181.6' font-size='12' text-anchor='start' font-weight='normal' fill='#1d2433'>head-pan SG-90 (S2)</text>
+<rect x='370.4' y='369.6' width='42.2' height='176.0' rx='3' fill='#eef3fd' stroke='#2a62d0' stroke-width='1.4'/>
+<line x1='391.5' y1='457.6' x2='276.0' y2='382.4' stroke='#5b6475' stroke-width='1' stroke-linecap='round' stroke-dasharray='3 3'/>
+<text x='272.0' y='386.4' font-size='12' text-anchor='end' font-weight='normal' fill='#1d2433'>ESP32 (U5), back of the spine</text>
+<rect x='427.4' y='364.8' width='11.5' height='67.2' rx='3' fill='#e3f2ea' stroke='#2f7d5b' stroke-width='1.4'/>
+<line x1='433.1' y1='398.4' x2='564.0' y2='369.6' stroke='#5b6475' stroke-width='1' stroke-linecap='round' stroke-dasharray='3 3'/>
+<text x='568.0' y='373.6' font-size='12' text-anchor='start' font-weight='normal' fill='#1d2433'>MX1508 (U4)</text>
+<rect x='505.8' y='300.2' width='12.8' height='48.6' rx='3' fill='#e3f2ea' stroke='#2f7d5b' stroke-width='1.4'/>
+<line x1='512.2' y1='324.5' x2='564.0' y2='331.2' stroke='#5b6475' stroke-width='1' stroke-linecap='round' stroke-dasharray='3 3'/>
+<text x='568.0' y='335.2' font-size='12' text-anchor='start' font-weight='normal' fill='#1d2433'>SW1</text>
+<rect x='427.4' y='436.2' width='13.4' height='35.8' rx='3' fill='#e3f2ea' stroke='#2f7d5b' stroke-width='1.4'/>
+<line x1='434.1' y1='454.1' x2='564.0' y2='465.6' stroke='#5b6475' stroke-width='1' stroke-linecap='round' stroke-dasharray='3 3'/>
+<text x='568.0' y='469.6' font-size='12' text-anchor='start' font-weight='normal' fill='#1d2433'>Mini360 U1 / U2</text>
+<rect x='427.4' y='473.9' width='11.2' height='70.4' rx='3' fill='#e3f2ea' stroke='#2f7d5b' stroke-width='1.4'/>
+<line x1='433.0' y1='509.1' x2='564.0' y2='523.2' stroke='#5b6475' stroke-width='1' stroke-linecap='round' stroke-dasharray='3 3'/>
+<text x='568.0' y='527.2' font-size='12' text-anchor='start' font-weight='normal' fill='#1d2433'>BMS (U3)</text>
+<rect x='427.4' y='366.4' width='43.5' height='64.0' rx='3' fill='#e3f2ea' stroke='#2f7d5b' stroke-width='1.4'/>
+<line x1='449.1' y1='398.4' x2='564.0' y2='414.4' stroke='#5b6475' stroke-width='1' stroke-linecap='round' stroke-dasharray='3 3'/>
+<text x='568.0' y='418.4' font-size='12' text-anchor='start' font-weight='normal' fill='#1d2433'>junction board JB (C1 ...)</text>
+<rect x='384.2' y='676.8' width='71.7' height='118.4' rx='3' fill='#fbf3d6' stroke='#8a6d1f' stroke-width='1.4'/>
+<rect x='388.0' y='571.2' width='64.0' height='105.6' rx='3' fill='#fbf3d6' stroke='#8a6d1f' stroke-width='1.4'/>
+<line x1='420.0' y1='624.0' x2='276.0' y2='600.0' stroke='#5b6475' stroke-width='1' stroke-linecap='round' stroke-dasharray='3 3'/>
+<text x='272.0' y='604.0' font-size='12' text-anchor='end' font-weight='normal' fill='#1d2433'>TT motors, cans up</text>
+<rect x='476.3' y='648.0' width='8.3' height='51.2' rx='3' fill='#fde8e5' stroke='#b0362a' stroke-width='1.4'/>
+<line x1='480.5' y1='673.6' x2='564.0' y2='644.8' stroke='#5b6475' stroke-width='1' stroke-linecap='round' stroke-dasharray='3 3'/>
+<text x='568.0' y='648.8' font-size='12' text-anchor='start' font-weight='normal' fill='#1d2433'>GY-521 (U6) on the web pad</text>
+<rect x='468.0' y='689.6' width='44.8' height='102.4' rx='3' fill='#e3f2ea' stroke='#2f7d5b' stroke-width='1.4'/>
+<line x1='490.4' y1='740.8' x2='564.0' y2='728.0' stroke='#5b6475' stroke-width='1' stroke-linecap='round' stroke-dasharray='3 3'/>
+<text x='568.0' y='732.0' font-size='12' text-anchor='start' font-weight='normal' fill='#1d2433'>TCRT5000 (U7 / U8) on posts</text>
+<rect x='289.4' y='644.5' width='104.3' height='39.0' rx='3' fill='#f6e7cf' stroke='#6b4a1f' stroke-width='1.4'/>
+<line x1='341.6' y1='664.0' x2='276.0' y2='676.8' stroke='#5b6475' stroke-width='1' stroke-linecap='round' stroke-dasharray='3 3'/>
+<text x='272.0' y='680.8' font-size='12' text-anchor='end' font-weight='normal' fill='#1d2433'>tail SG-90 (S1) in the hip</text>
+<line x1='228.0' y1='760.0' x2='644.0' y2='760.0' stroke='#c9ced8' stroke-width='1' stroke-linecap='round' stroke-dasharray='2 4'/>
+<text x='228.0' y='913.6' font-size='11' text-anchor='start' font-weight='normal' fill='#5b6475'>x forward -&gt;   z up the body</text>
+<text x='810.0' y='100.0' font-size='14' text-anchor='start' font-weight='bold' fill='#1d2433'>FRONT FACE (power), seen from the front</text>
+<rect x='820.0' y='340.0' width='280.0' height='300.0' rx='4' fill='#f7f8fb' stroke='#c9ced8' stroke-width='1.6'/>
+<text x='960.0' y='325.0' font-size='11' text-anchor='middle' font-weight='normal' fill='#5b6475'>battery sleeve above</text>
+<rect x='836.0' y='513.0' width='248.0' height='110.0' rx='3' fill='#e3f2ea' stroke='#2f7d5b' stroke-width='1.4'/>
+<text x='960.0' y='572.0' font-size='11' text-anchor='middle' font-weight='bold' fill='#2f7d5b'>U3 BMS</text>
+<rect x='833.5' y='454.0' width='86.0' height='56.0' rx='3' fill='#eef3fd' stroke='#2a62d0' stroke-width='1.4'/>
+<text x='876.5' y='486.0' font-size='11' text-anchor='middle' font-weight='bold' fill='#2a62d0'>U1 logic</text>
+<rect x='1000.5' y='454.0' width='86.0' height='56.0' rx='3' fill='#eef3fd' stroke='#2a62d0' stroke-width='1.4'/>
+<text x='1043.5' y='486.0' font-size='11' text-anchor='middle' font-weight='bold' fill='#2a62d0'>U2 servo</text>
+<rect x='900.0' y='342.5' width='120.0' height='105.0' rx='3' fill='#e3f2ea' stroke='#2f7d5b' stroke-width='1.4'/>
+<text x='960.0' y='399.0' font-size='11' text-anchor='middle' font-weight='bold' fill='#2f7d5b'>U4 MX1508</text>
+<rect x='1023.0' y='345.0' width='61.0' height='100.0' rx='3' fill='#f6e7cf' stroke='#8a5a2b' stroke-width='1.4'/>
+<text x='1053.5' y='399.0' font-size='11' text-anchor='middle' font-weight='bold' fill='#8a5a2b'>JB</text>
+<rect x='922.0' y='241.5' width='76.0' height='76.0' rx='3' fill='#e9ebef' stroke='#1d2433' stroke-width='1.4'/>
+<text x='960.0' y='283.5' font-size='11' text-anchor='middle' font-weight='bold' fill='#1d2433'>SW1</text>
+<text x='820.0' y='668.0' font-size='11' text-anchor='start' font-weight='normal' fill='#5b6475'>robot right (-y)</text>
+<text x='1100.0' y='668.0' font-size='11' text-anchor='end' font-weight='normal' fill='#5b6475'>robot left (+y)</text>
+<text x='960.0' y='690.0' font-size='11' text-anchor='middle' font-weight='normal' fill='#5b6475'>JB = junction board in the place the CAD gives the 470 uF capacitor</text>
+<text x='1240.0' y='100.0' font-size='14' text-anchor='start' font-weight='bold' fill='#1d2433'>BACK FACE, seen from behind</text>
+<rect x='1250.0' y='340.0' width='280.0' height='300.0' rx='4' fill='#f7f8fb' stroke='#c9ced8' stroke-width='1.6'/>
+<text x='1390.0' y='325.0' font-size='11' text-anchor='middle' font-weight='normal' fill='#5b6475'>battery sleeve above</text>
+<rect x='1320.0' y='350.0' width='140.0' height='275.0' rx='3' fill='#eef3fd' stroke='#2a62d0' stroke-width='1.4'/>
+<text x='1390.0' y='491.5' font-size='11' text-anchor='middle' font-weight='bold' fill='#2a62d0'>U5 ESP32</text>
+<text x='1390.0' y='668.0' font-size='11' text-anchor='middle' font-weight='normal' fill='#5b6475'>header pins point back, toward you</text>
+<text x='1390.0' y='686.0' font-size='11' text-anchor='middle' font-weight='normal' fill='#5b6475'>USB socket: top or bottom, keep it reachable</text>
+<text x='30.0' y='960.0' font-size='14' text-anchor='start' font-weight='bold' fill='#1d2433'>Main runs (full list: electronics.md, Wire list)</text>
+<line x1='30.0' y1='982.0' x2='60.0' y2='982.0' stroke='#d02a2a' stroke-width='4' stroke-linecap='round'/>
+<text x='70.0' y='986.0' font-size='12' text-anchor='start' font-weight='normal' fill='#1d2433'>P1-P13  battery -&gt; BMS -&gt; F1 -&gt; SW1 -&gt; MX1508 VM -&gt; both bucks, divider tap. 22 AWG.</text>
+<line x1='30.0' y1='1004.0' x2='60.0' y2='1004.0' stroke='#1d2433' stroke-width='4' stroke-linecap='round'/>
+<text x='70.0' y='1008.0' font-size='12' text-anchor='start' font-weight='normal' fill='#1d2433'>P8, P9, P11  BMS P- is the one ground: MX1508 -, buck IN-, charge jack -. 22 AWG.</text>
+<line x1='30.0' y1='1026.0' x2='60.0' y2='1026.0' stroke='#2a62d0' stroke-width='4' stroke-linecap='round'/>
+<text x='70.0' y='1030.0' font-size='12' text-anchor='start' font-weight='normal' fill='#1d2433'>L1 L2  U1 5 V and GND round the -y edge of the spine to the ESP32 VIN / GND pins (Dupont).</text>
+<line x1='30.0' y1='1048.0' x2='60.0' y2='1048.0' stroke='#e8771b' stroke-width='4' stroke-linecap='round'/>
+<text x='70.0' y='1052.0' font-size='12' text-anchor='start' font-weight='normal' fill='#1d2433'>S1-S4  U2 5 V -&gt; junction board (C1, two 3-pin servo headers) -&gt; tail and head servo plugs.</text>
+<line x1='30.0' y1='1070.0' x2='60.0' y2='1070.0' stroke='#2f9a46' stroke-width='4' stroke-linecap='round'/>
+<text x='70.0' y='1074.0' font-size='12' text-anchor='start' font-weight='normal' fill='#1d2433'>J1-J6  ESP32 back -&gt; junction board over the +y edge: servo signals, VSENSE, IR_L, IR_R, GND.</text>
+<line x1='30.0' y1='1092.0' x2='60.0' y2='1092.0' stroke='#9aa3b2' stroke-width='4' stroke-linecap='round'/>
+<text x='70.0' y='1096.0' font-size='12' text-anchor='start' font-weight='normal' fill='#1d2433'>M1-M4  ESP32 GPIO25 26 27 14 -&gt; MX1508 IN1-IN4, over the top edge of the spine.</text>
+<line x1='30.0' y1='1114.0' x2='60.0' y2='1114.0' stroke='#8a5a2b' stroke-width='4' stroke-linecap='round'/>
+<text x='70.0' y='1118.0' font-size='12' text-anchor='start' font-weight='normal' fill='#1d2433'>M5 M6  MX1508 MOTOR-A / -B -&gt; left / right TT motor (JST-XH), down each side of the core.</text>
+<line x1='30.0' y1='1136.0' x2='60.0' y2='1136.0' stroke='#8a3fc4' stroke-width='4' stroke-linecap='round'/>
+<text x='70.0' y='1140.0' font-size='12' text-anchor='start' font-weight='normal' fill='#1d2433'>I1-I8  ESP32 3V3 GND SDA SCL -&gt; GY-521 on the web; 3V3 GND on to both IR modules; D0 back up.</text>
+<text x='30.0' y='1168.0' font-size='12' text-anchor='start' font-weight='normal' fill='#5b6475'>Leave a 30 mm loop on the head servo and ESP32-CAM leads for +-60 deg of pan; zip-tie every run to the spine slot pairs.</text>
+</svg>

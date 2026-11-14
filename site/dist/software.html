@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Software · Tailwhip robot</title>
+<meta name="description" content="Firmware on the robot, a radio bridge on your laptop, and Python tools for driving, bench tests and running the policy.">
+<meta property="og:title" content="Software"><meta property="og:description" content="Firmware on the robot, a radio bridge on your laptop, and Python tools for driving, bench tests and running the policy.">
+<meta property="og:image" content="https://tailwhip.buildrobotz.com/assets/cad_render_upright.jpg">
+<link rel="icon" href="data:,"><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/style.css"></head>
+<body>
+<div class="crumb"><div class="wrap"><a href="https://buildrobotz.com/">BuildRobotz</a><span aria-hidden="true">/</span><a href="https://buildrobotz.com/robots/">Robots</a><span aria-hidden="true">/</span><span>Tailwhip</span></div></div>
+<header class="top"><div class="wrap"><a class="brand" href="index.html">Tailwhip<span>.</span></a><nav aria-label="Project pages"><a href="index.html">Overview</a><a href="build.html">Build plan</a><a href="parts.html">Parts</a><a href="mechanical.html">Mechanical</a><a href="electronics.html">Electronics</a><a href="software.html" aria-current="page">Software</a><a href="learning.html">Simulation and RL</a><a href="course.html">Learning path</a><a href="risks.html">Limits</a></nav></div></header>
+<div class="wrap"><main>
+<header><div class="eyebrow">BuildRobotz project · Software</div><h1>Software</h1><p class="lede">Firmware on the robot, a radio bridge on your laptop, and Python tools for driving, bench tests and running the policy.</p></header>
+<details class="toc"><summary>On this page</summary><ol><li><a href="#install">Install</a></li><li><a href="#what-talks-to-what">What talks to what</a></li><li><a href="#conventions-shared-with-the-simulator">Conventions shared with the simulator</a></li><li><a href="#modes">Modes</a></li><li><a href="#timing-on-the-robot">Timing on the robot</a></li><li><a href="#packets">Packets</a></li><li><a href="#the-pid-baseline">The PID baseline</a></li><li><a href="#the-policy-remote-and-onboard">The policy: remote and onboard</a></li><li><a href="#the-robots-own-usb-serial-commands">The robot's own USB: serial commands</a></li><li><a href="#laptop-tools">Laptop tools</a></li></ol></details><section class="prose"><blockquote>
+<p><strong>AI-generated and unbuilt.</strong> The firmware compiles and the protocol tests pass on a laptop, but none of it has
+run on a Tailwhip yet. Gains, filter constants and timings are [C] chosen or [E] estimated until the bench and
+milestone runs replace them.</p>
+</blockquote>
+<p>Three computers run three programs.</p>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>Where</th>
+<th>Program</th>
+<th>Language</th>
+<th>Job</th>
+<th>Rate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="Where">ESP32 on the robot</td>
+<td data-label="Program"><code>firmware/tailwhip_robot</code></td>
+<td data-label="Language">Arduino C++</td>
+<td data-label="Job">IMU and pitch filter, wheel speed, PWM to the MX1508, two servos, failsafe. Runs the PID baseline (<code>pid</code> mode) and the trained policy (<code>onboard</code> mode).</td>
+<td data-label="Rate">400 Hz control, 100 Hz state packets, 50 Hz policy</td>
+</tr>
+<tr>
+<td data-label="Where">ESP32 on the laptop's USB</td>
+<td data-label="Program"><code>firmware/tailwhip_bridge</code></td>
+<td data-label="Language">Arduino C++</td>
+<td data-label="Job">Copy packets between USB serial and ESP-NOW</td>
+<td data-label="Rate">as they arrive</td>
+</tr>
+<tr>
+<td data-label="Where">Laptop</td>
+<td data-label="Program"><code>host/</code> and <code>sim/</code></td>
+<td data-label="Language">Python 3.10+</td>
+<td data-label="Job">Teleop, bench measurements, logging, plotting, the simulator, training, and the policy during development</td>
+<td data-label="Rate">50 Hz commands</td>
+</tr>
+</tbody>
+</table></div>
+<p>Unlike Ouro, the robot is not just a relay: balancing needs a fast loop, so the filter, the PID and (later) the policy all run on the robot's ESP32. The laptop can still drive every actuator directly in <code>remote</code> mode, which is how a policy runs during development.</p>
+<h2 id="install">Install</h2>
+<pre><code>python -m venv tailwhip-env &amp;&amp; source tailwhip-env/bin/activate
+pip install numpy pyserial matplotlib
+</code></pre>
+<p>(<code>pip install numpy pyserial</code>, plus matplotlib for <code>log_plot.py</code>.) Simulation and training need more; see the Simulation page (<code>sim/</code>).</p>
+<p>Flash the firmware as described on the <a href="electronics.md#set-up-the-firmware-toolchain">Electronics</a> page: <code>tailwhip_robot</code> to the robot, <code>tailwhip_bridge</code> to the board that stays on the laptop. <code>PORT</code> below is the bridge's serial port: <code>/dev/cu.usbserial-XXXX</code> or <code>/dev/cu.wchusbserial-XXXX</code> on macOS, <code>/dev/ttyUSB0</code> on Linux, <code>COM5</code> on Windows.</p>
+<h2 id="what-talks-to-what">What talks to what</h2>
+<pre><code> sim/ (MuJoCo, PPO) ──export_policy.py──&gt; firmware/tailwhip_robot/policy.h ──&gt; onboard mode
+        ▲         └──trained policy──&gt; host/run_policy.py ─┐
+        │ measured numbers                                  │ Link.send(u_l, u_r, tail, head, mode)
+ host/measurements.json &lt;── host/bench.py ──┐               ▼
+                                            host/link.py  &lt;── host/drive.py, host/log_plot.py
+                                                 │ USB serial 921600, framed + CRC-8
+                                                 ▼
+                                       tailwhip_bridge (ESP32)
+                                                 │ ESP-NOW broadcast, channel 6
+                                                 ▼
+                                       tailwhip_robot (ESP32) ── USB serial 115200: bench and tuning commands
+                                   PWM ×4 ▼     ▼ PWM ×2          ▲ I2C, GPIO interrupts, ADC
+                                  MX1508, 2 TT    2 SG-90     MPU-6050, 2 IR modules, battery
+</code></pre>
+<h2 id="conventions-shared-with-the-simulator">Conventions shared with the simulator</h2>
+<p>These must match the simulator exactly. They are the contract between <code>sim/</code>, <code>host/</code> and the firmware.</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Convention</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Body pitch</td>
+<td>+ = leaning <strong>forward</strong>, 0 = upright, tail-down rest about -25 deg. Radians in the policy, degrees in packets.</td>
+</tr>
+<tr>
+<td>Tail angle</td>
+<td>deg; 0 = straight down the body, + = swung backwards. Servo angle = tail angle (servo 90 = tail straight back). Foot on the floor while upright 24.3, rest 73.6 (also where it waits while balancing: it is the back bumper). Never stow it up the back: a fall from there ends flat on its back. Allowed 20..150.</td>
+</tr>
+<tr>
+<td>Head pan</td>
+<td>deg; servo 90 = facing forward, + = turn left. Allowed 30..150.</td>
+</tr>
+<tr>
+<td>Wheel command u</td>
+<td>-1..1, + = drive forward. Motor voltage = u x 6.0 V (clipped at the battery voltage).</td>
+</tr>
+<tr>
+<td>Policy action</td>
+<td>3 floats in -1..1: u_left, u_right, a_tail. Tail target = 85 + 65 x a_tail deg (so -1..1 is 20..150). 50 Hz.</td>
+</tr>
+<tr>
+<td>Wheel speed</td>
+<td>rad/s of the wheel <strong>relative to the body</strong> (the sensor is on the body). Sign = sign of the last <strong>non-zero</strong> command to that wheel. 32 edges per turn.</td>
+</tr>
+<tr>
+<td>Yaw rate</td>
+<td>rad/s, + = turning left.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="modes">Modes</h2>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>Mode</th>
+<th>Wheels</th>
+<th>Tail</th>
+<th>Head</th>
+<th>Without radio</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="Mode"><code>idle</code> (0)</td>
+<td data-label="Wheels">off (coast)</td>
+<td data-label="Tail">rest 73.6</td>
+<td data-label="Head">from the command, else 90</td>
+<td data-label="Without radio">stays idle</td>
+</tr>
+<tr>
+<td data-label="Mode"><code>pid</code> (1)</td>
+<td data-label="Wheels">on-board PID balance; speed and turn setpoints from the command</td>
+<td data-label="Tail">from the command, else rest 73.6</td>
+<td data-label="Head">command, else 90</td>
+<td data-label="Without radio">keeps balancing with speed and turn 0</td>
+</tr>
+<tr>
+<td data-label="Mode"><code>remote</code> (2)</td>
+<td data-label="Wheels">u_left, u_right from the command</td>
+<td data-label="Tail">from the command</td>
+<td data-label="Head">from the command</td>
+<td data-label="Without radio"><strong>failsafe</strong>: wheels off, tail to rest</td>
+</tr>
+<tr>
+<td data-label="Mode"><code>onboard</code> (3)</td>
+<td data-label="Wheels">policy.h, 50 Hz; stand / speed / turn from the command</td>
+<td data-label="Tail">policy</td>
+<td data-label="Head">command, else 90</td>
+<td data-label="Without radio">keeps running with speed and turn 0, last stand command</td>
+</tr>
+<tr>
+<td data-label="Mode"><code>bench</code> (4)</td>
+<td data-label="Wheels">u x <strong>8.4 V</strong> (no 6 V cap, no tilt cut)</td>
+<td data-label="Tail">command or serial</td>
+<td data-label="Head">command or serial</td>
+<td data-label="Without radio">failsafe if it was driven by radio</td>
+</tr>
+</tbody>
+</table></div>
+<p>Every command packet carries a mode, so the laptop sets the mode simply by sending it (use <code>keep</code>, 255, to leave the mode alone). On the robot's own USB you can type <code>mode idle|pid|onboard|bench</code>. The robot refuses <code>onboard</code> while <code>policy.h</code> is the placeholder, and refuses every mode but <code>idle</code> with a low battery.</p>
+<h3 id="safety-rules-all-modes">Safety rules (all modes)</h3>
+<ul>
+<li><strong>Failsafe:</strong> in <code>remote</code> and radio-driven <code>bench</code>, no valid command for <strong>100 ms</strong> turns the wheels off (coast) and puts the tail to rest 73.6 deg. Flag <code>failsafe</code>.</li>
+<li><strong>Tilt cut:</strong> in <code>remote</code> and <code>onboard</code>, |pitch| over <strong>45 deg</strong> turns the wheels off until it is back under 40 deg. Falls stop on the feet at 18 deg and on the tail at 25 deg, well inside 45 deg, so the wheels still work there to get it back up.</li>
+<li><strong>PID fall:</strong> in <code>pid</code> mode the controller disarms when |pitch - trim| passes 30 deg and re-arms only after it has been held within 5 deg of upright for 0.5 s. Flag <code>pid_fallen</code> while disarmed.</li>
+<li><strong>IMU fault:</strong> if the MPU-6050 stops answering, the wheels are off (except in <code>bench</code>) and the firmware retries every 500 ms.</li>
+<li><strong>Low battery:</strong> under 6.4 V for 2 s the robot latches into <code>idle</code> (flag <code>low_batt</code>, LED blinks slowly). 30 s later it puts itself to sleep. Switch it off and charge.</li>
+</ul>
+<h2 id="timing-on-the-robot">Timing on the robot</h2>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Every</th>
+<th>What</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2.5 ms (400 Hz)</td>
+<td>Read the MPU-6050 (14 bytes, ~0.4 ms), update the pitch filter, run the mode, write PWM and servo pulses. PID runs here.</td>
+</tr>
+<tr>
+<td>10 ms (100 Hz)</td>
+<td>Battery reading, wheel speed update, send a StatePacket, LED.</td>
+</tr>
+<tr>
+<td>20 ms (50 Hz)</td>
+<td><code>onboard</code> mode: one policy step (about 7,600 multiply-adds, well under 1 ms).</td>
+</tr>
+</tbody>
+</table></div>
+<p>The pitch filter is complementary: <code>pitch += rate x dt</code>, then <code>pitch += (accel_pitch - pitch) x dt / 0.5 s</code>, skipping the accelerometer when its magnitude is more than 0.25 g from 1 g. Accelerometer pitch is <code>atan2(-a_x, a_z)</code> in the body frame. Details on the <a href="electronics.md#imu">Electronics</a> page.</p>
+<h2 id="packets">Packets</h2>
+<p>Both packets are packed little-endian structs defined in <code>tailwhip_common.h</code> (one copy in each sketch folder, kept identical) and mirrored in <code>host/link.py</code>.</p>
+<p>On the USB line between the laptop and the bridge every packet is framed as <code>0xAA 0x55 &lt;length&gt; &lt;payload&gt; &lt;CRC-8&gt;</code> (CRC-8 polynomial 0x07, initial 0, the "SMBus" CRC). The bridge drops frames with a bad CRC, a wrong length, magic or robot id. Over ESP-NOW the bare payload travels as a broadcast on channel 6 (no acknowledgement, no retry; the radio has its own CRC).</p>
+<p><strong>CmdPacket</strong>, laptop to robot, 18 bytes, <code>'&lt;4BH6h'</code>:</p>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>Offset</th>
+<th>Field</th>
+<th>Type</th>
+<th>Units</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="Offset">0</td>
+<td data-label="Field">magic</td>
+<td data-label="Type">u8</td>
+<td data-label="Units">0xC7</td>
+</tr>
+<tr>
+<td data-label="Offset">1</td>
+<td data-label="Field">robot_id</td>
+<td data-label="Type">u8</td>
+<td data-label="Units"><code>ROBOT_ID</code> (1)</td>
+</tr>
+<tr>
+<td data-label="Offset">2</td>
+<td data-label="Field">mode</td>
+<td data-label="Type">u8</td>
+<td data-label="Units">0 idle, 1 pid, 2 remote, 3 onboard, 4 bench, 255 keep</td>
+</tr>
+<tr>
+<td data-label="Offset">3</td>
+<td data-label="Field">flags</td>
+<td data-label="Type">u8</td>
+<td data-label="Units">bit 0 stand (1 = stand), bit 1 servos off (bench only)</td>
+</tr>
+<tr>
+<td data-label="Offset">4</td>
+<td data-label="Field">seq</td>
+<td data-label="Type">u16</td>
+<td data-label="Units">+1 every packet; echoed back as last_cmd_seq</td>
+</tr>
+<tr>
+<td data-label="Offset">6</td>
+<td data-label="Field">u_left</td>
+<td data-label="Type">i16</td>
+<td data-label="Units">u x 10000</td>
+</tr>
+<tr>
+<td data-label="Offset">8</td>
+<td data-label="Field">u_right</td>
+<td data-label="Type">i16</td>
+<td data-label="Units">u x 10000</td>
+</tr>
+<tr>
+<td data-label="Offset">10</td>
+<td data-label="Field">tail</td>
+<td data-label="Type">i16</td>
+<td data-label="Units">0.01 deg</td>
+</tr>
+<tr>
+<td data-label="Offset">12</td>
+<td data-label="Field">head</td>
+<td data-label="Type">i16</td>
+<td data-label="Units">0.01 deg</td>
+</tr>
+<tr>
+<td data-label="Offset">14</td>
+<td data-label="Field">v</td>
+<td data-label="Type">i16</td>
+<td data-label="Units">forward speed command, mm/s (pid, onboard)</td>
+</tr>
+<tr>
+<td data-label="Offset">16</td>
+<td data-label="Field">yaw</td>
+<td data-label="Type">i16</td>
+<td data-label="Units">turn rate command, mrad/s, + = left (pid, onboard)</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>StatePacket</strong>, robot to laptop, 100 Hz, 42 bytes, <code>'&lt;4B3HI7hH2h2HhH'</code>:</p>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>Offset</th>
+<th>Field</th>
+<th>Type</th>
+<th>Units</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="Offset">0</td>
+<td data-label="Field">magic</td>
+<td data-label="Type">u8</td>
+<td data-label="Units">0x7D</td>
+</tr>
+<tr>
+<td data-label="Offset">1</td>
+<td data-label="Field">robot_id</td>
+<td data-label="Type">u8</td>
+<td data-label="Units"></td>
+</tr>
+<tr>
+<td data-label="Offset">2</td>
+<td data-label="Field">mode</td>
+<td data-label="Type">u8</td>
+<td data-label="Units">current mode</td>
+</tr>
+<tr>
+<td data-label="Offset">3</td>
+<td data-label="Field">cmd_age_ms</td>
+<td data-label="Type">u8</td>
+<td data-label="Units">ms since last_cmd_seq arrived (255 = none or older)</td>
+</tr>
+<tr>
+<td data-label="Offset">4</td>
+<td data-label="Field">flags</td>
+<td data-label="Type">u16</td>
+<td data-label="Units">see below</td>
+</tr>
+<tr>
+<td data-label="Offset">6</td>
+<td data-label="Field">seq</td>
+<td data-label="Type">u16</td>
+<td data-label="Units">+1 every state packet</td>
+</tr>
+<tr>
+<td data-label="Offset">8</td>
+<td data-label="Field">last_cmd_seq</td>
+<td data-label="Type">u16</td>
+<td data-label="Units">seq of the last command received</td>
+</tr>
+<tr>
+<td data-label="Offset">10</td>
+<td data-label="Field">t_ms</td>
+<td data-label="Type">u32</td>
+<td data-label="Units">robot millis() at sampling</td>
+</tr>
+<tr>
+<td data-label="Offset">14</td>
+<td data-label="Field">pitch</td>
+<td data-label="Type">i16</td>
+<td data-label="Units">0.01 deg (filtered)</td>
+</tr>
+<tr>
+<td data-label="Offset">16</td>
+<td data-label="Field">pitch_rate</td>
+<td data-label="Type">i16</td>
+<td data-label="Units">0.1 deg/s (gyro, bias removed)</td>
+</tr>
+<tr>
+<td data-label="Offset">18</td>
+<td data-label="Field">yaw_rate</td>
+<td data-label="Type">i16</td>
+<td data-label="Units">0.1 deg/s</td>
+</tr>
+<tr>
+<td data-label="Offset">20, 22</td>
+<td data-label="Field">wheel_l, wheel_r</td>
+<td data-label="Type">i16</td>
+<td data-label="Units">0.01 rad/s, signed by the last non-zero command</td>
+</tr>
+<tr>
+<td data-label="Offset">24</td>
+<td data-label="Field">tail_cmd</td>
+<td data-label="Type">i16</td>
+<td data-label="Units">0.01 deg, what the servo is being told</td>
+</tr>
+<tr>
+<td data-label="Offset">26</td>
+<td data-label="Field">head_cmd</td>
+<td data-label="Type">i16</td>
+<td data-label="Units">0.01 deg</td>
+</tr>
+<tr>
+<td data-label="Offset">28</td>
+<td data-label="Field">vbat</td>
+<td data-label="Type">u16</td>
+<td data-label="Units">mV</td>
+</tr>
+<tr>
+<td data-label="Offset">30, 32</td>
+<td data-label="Field">u_left, u_right</td>
+<td data-label="Type">i16</td>
+<td data-label="Units">wheel command actually applied, x 10000 (0 when cut)</td>
+</tr>
+<tr>
+<td data-label="Offset">34, 36</td>
+<td data-label="Field">edges_l, edges_r</td>
+<td data-label="Type">u16</td>
+<td data-label="Units">IR edge counters, free-running</td>
+</tr>
+<tr>
+<td data-label="Offset">38</td>
+<td data-label="Field">pitch_acc</td>
+<td data-label="Type">i16</td>
+<td data-label="Units">0.01 deg, accelerometer-only pitch</td>
+</tr>
+<tr>
+<td data-label="Offset">40</td>
+<td data-label="Field">cmd_lost</td>
+<td data-label="Type">u16</td>
+<td data-label="Units">commands missed (gaps in seq), free-running</td>
+</tr>
+</tbody>
+</table></div>
+<p>Flags: 0x0001 failsafe, 0x0002 tilt cut, 0x0004 wheel sensors working, 0x0008 IMU fault, 0x0010 low battery, 0x0020 motors driven, 0x0040 servos on, 0x0080 PID disarmed (fallen), 0x0100 trained policy loaded, 0x0200 no battery (USB only), 0x0400 a wheel asked for more than the battery has, 0x0800 radio link alive.</p>
+<p><code>cmd_age_ms</code> lets the laptop measure the true round trip: (time the state arrived - time that command was sent) - cmd_age_ms.</p>
+<h2 id="the-pid-baseline">The PID baseline</h2>
+<p><code>pid</code> mode is the hand-written controller: the comparison for RL, the fallback, and milestone 2. It runs at 400 Hz on the robot:</p>
+<pre><code>theta = pitch - trim                                  (rad)
+v     = ground speed, m/s: r x (mean wheel speed + pitch rate)   with the wheel sensors
+      = first-order model of the motor: lag 80 ms towards u x 26.2 rad/s x r   without them
+x     = integral of (v - v_cmd), clamped to +-0.5 m
+u     = kp theta + kd theta_dot + ki integral(theta) + kv (v - v_cmd) + kx x
+turn  = kyff w_cmd + kyaw (w_cmd - yaw_rate)
+u_left = u - turn,  u_right = u + turn  (plus the dead-zone term dz, then clipped to +-1)
+</code></pre>
+<p>All gains are positive. kv and kx have the same sign as kp because a balancing robot that drifts forward has to speed up first, so the body tips back, before it can slow down.</p>
+<p>Starting gains [C]:</p>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>Gain</th>
+<th>Value</th>
+<th>Units</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="Gain">kp</td>
+<td data-label="Value">3.0</td>
+<td data-label="Units">u per rad (full 6 V at 19 deg)</td>
+</tr>
+<tr>
+<td data-label="Gain">kd</td>
+<td data-label="Value">0.40</td>
+<td data-label="Units">u per rad/s</td>
+</tr>
+<tr>
+<td data-label="Gain">ki</td>
+<td data-label="Value">0</td>
+<td data-label="Units">u per rad s</td>
+</tr>
+<tr>
+<td data-label="Gain">kv</td>
+<td data-label="Value">2.0</td>
+<td data-label="Units">u per m/s</td>
+</tr>
+<tr>
+<td data-label="Gain">kx</td>
+<td data-label="Value">0.3</td>
+<td data-label="Units">u per m</td>
+</tr>
+<tr>
+<td data-label="Gain">kyff, kyaw</td>
+<td data-label="Value">0.06, 0.03</td>
+<td data-label="Units">u per rad/s</td>
+</tr>
+<tr>
+<td data-label="Gain">dz</td>
+<td data-label="Value">0.10</td>
+<td data-label="Units">u added in the direction of motion (set it to your measured dead zone)</td>
+</tr>
+</tbody>
+</table></div>
+<p>They come from a grid search in the MuJoCo model (<code>sim/evaluate.py</code> runs the same controller as its PID baseline), which has the backlash, the dead zone, the coarse encoders and the radio delay. On the nominal simulated robot they hold it within 5 deg 85 % of the time; across randomised robots, much less. A plain PID struggles with sloppy TT gearboxes, which is why the project has a policy. Expect to tune on your robot.</p>
+<h3 id="tuning-on-the-robot">Tuning on the robot</h3>
+<p>Do it over the robot's USB (Serial Monitor 115200, or <code>screen PORT 115200</code>) with <code>s</code> streaming, holding the robot upright by hand above a soft surface.</p>
+<ol>
+<li><strong>Find the balance point.</strong> Wheels off (<code>mode idle</code>). Hold the robot where it feels balanced, read pitch, and set <code>trim &lt;deg&gt;</code> to it.</li>
+<li><strong>IMU-only first.</strong> <code>wheels off</code>, <code>kv 0</code>, <code>kx 0</code>. <code>mode pid</code>, hold it upright until it arms. With kp alone it should push back against your hand. Raise <code>kp</code> until it oscillates fast (a few Hz buzz), then back off 30 %.</li>
+<li><strong>kd</strong> damps that oscillation. Raise it until the robot stops rocking; too much gives a high-pitched jitter (gyro noise through the gain).</li>
+<li><strong>Speed loop.</strong> <code>kv 1</code>, then up to 2-3. Without it the robot runs away across the floor; with too much it rocks slowly back and forth.</li>
+<li><strong>Position loop.</strong> <code>kx 0.5</code> to 1. It pulls the robot back to where it started. Too much: slow oscillation of a few cm.</li>
+<li><strong>Wheel sensors back on.</strong> <code>wheels auto</code>. The speed now comes from the IR rings and drift falls.</li>
+<li><strong>Dead zone.</strong> If it rocks in a small limit cycle, set <code>dz</code> to the measured <code>motor_deadzone_u</code> (from <code>bench.py motor</code>) and lower it until the rocking just stops.</li>
+<li><code>save</code> stores everything in flash. <code>gains</code> prints it; <code>defaults</code> restores the starting values.</li>
+</ol>
+<p>Pass mark (milestone 2): placed upright by hand, balances 60 s, drifts less than 1 m with the wheel sensors on.</p>
+<h2 id="the-policy-remote-and-onboard">The policy: remote and onboard</h2>
+<p>A policy maps the last 4 observation steps to 3 actions at 50 Hz. Training, the reward and the export are on the Simulation page (<code>sim/</code>); this section is only how the robot side consumes the result.</p>
+<p><strong>Observation</strong>, 13 floats per step, built by <code>link.obs_step(state, prev_action, cmd)</code> on the laptop and by <code>obsStep()</code> in the firmware, identically:</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>i</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>pitch, rad</td>
+</tr>
+<tr>
+<td>1</td>
+<td>pitch rate, rad/s, / 5</td>
+</tr>
+<tr>
+<td>2</td>
+<td>yaw rate, rad/s, / 5</td>
+</tr>
+<tr>
+<td>3, 4</td>
+<td>left, right wheel speed, rad/s, / 20</td>
+</tr>
+<tr>
+<td>5</td>
+<td>tail action sent last step, a_tail</td>
+</tr>
+<tr>
+<td>6, 7, 8</td>
+<td>the action sent the step before that: u_left, u_right, a_tail (at start-up, the same as the last one)</td>
+</tr>
+<tr>
+<td>9</td>
+<td>(battery V - 7.6) / 0.8</td>
+</tr>
+<tr>
+<td>10</td>
+<td>stand command: 1 stand, 0 rest / lie down</td>
+</tr>
+<tr>
+<td>11</td>
+<td>forward speed command, m/s, / 0.3</td>
+</tr>
+<tr>
+<td>12</td>
+<td>turn rate command, rad/s, / 2</td>
+</tr>
+</tbody>
+</table></div>
+<p>The policy input is the last 4 steps stacked <strong>newest first</strong> (52 floats). When the policy starts, all 4 slots are filled with the first step, and the previous action starts as [0, 0, (current tail command - 85) / 65]. <code>link.ObsStack</code> does the stacking on the laptop the same way.</p>
+<p><strong>Remote</strong> (<code>host/run_policy.py</code>, see the Simulation page): the laptop reads the latest state, builds the observation, runs the network and sends <code>Link.send(u_left, u_right, 85 + 65 a_tail, head, 'remote')</code> every 20 ms. The radio delay sits inside the loop; <code>bench.py radio</code> measures it.</p>
+<p><strong>Onboard</strong>: <code>sim/export_policy.py</code> writes <code>firmware/tailwhip_robot/policy.h</code>, then you reflash <code>tailwhip_robot</code>. The format:</p>
+<pre><code>#define TW_OBS_DIM 52
+#define TW_HID 64
+#define TW_ACT_DIM 3
+static const float TW_W0[TW_HID][TW_OBS_DIM], TW_B0[TW_HID];
+static const float TW_W1[TW_HID][TW_HID],     TW_B1[TW_HID];
+static const float TW_W2[TW_ACT_DIM][TW_HID], TW_B2[TW_ACT_DIM];
+static const float TW_OBS_MEAN[TW_OBS_DIM], TW_OBS_STD[TW_OBS_DIM];   // x_n = (x - mean) / std
+</code></pre>
+<p>Hidden layers are tanh, the output is linear and then clipped to -1..1. The repository ships the trained policy already exported (<code>sim/policies/tailwhip.zip</code>). A placeholder file that defines <code>TW_POLICY_PLACEHOLDER</code> (all zeros) makes the robot refuse <code>onboard</code> mode; the exporter's file does not define it. <code>host/test_protocol.py</code> checks that a network written in this format gives the same actions in C++ and numpy. With the laptop gone, the robot keeps running the policy with speed and turn 0 and the last stand command.</p>
+<h2 id="the-robots-own-usb-serial-commands">The robot's own USB: serial commands</h2>
+<p>Serial Monitor at 115200, one command per line. <code>help</code> lists them.</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>p</code> / <code>s</code></td>
+<td>print one status line / toggle a 10 Hz stream</td>
+</tr>
+<tr>
+<td><code>mode idle\|pid\|onboard\|bench</code></td>
+<td>switch mode (remote is radio only)</td>
+</tr>
+<tr>
+<td><code>m &lt;VL&gt; &lt;VR&gt; [sec]</code></td>
+<td>bench: wheels at VL, VR volts for sec (default 2 s, up to 8.4 V)</td>
+</tr>
+<tr>
+<td><code>tail &lt;deg&gt;</code>, <code>head &lt;deg&gt;</code></td>
+<td>bench: servo angle</td>
+</tr>
+<tr>
+<td><code>sweep tail\|head</code></td>
+<td>bench: sweep the full range at 30 deg/s and back</td>
+</tr>
+<tr>
+<td><code>servos on\|off</code></td>
+<td>bench: servo pulses on or off</td>
+</tr>
+<tr>
+<td><code>stand 0\|1</code>, <code>go &lt;v&gt; &lt;w&gt;</code></td>
+<td>setpoints for pid and onboard when there is no radio</td>
+</tr>
+<tr>
+<td><code>kp kd ki kv kx kyff kyaw dz &lt;value&gt;</code>, <code>trim &lt;deg&gt;</code></td>
+<td>PID gains, dead zone, balance point</td>
+</tr>
+<tr>
+<td><code>ttrim &lt;us&gt;</code>, <code>htrim &lt;us&gt;</code></td>
+<td>servo trim</td>
+</tr>
+<tr>
+<td><code>flip l\|r\|tail\|head</code></td>
+<td>reverse a motor or a servo</td>
+</tr>
+<tr>
+<td><code>wheels auto\|off</code></td>
+<td>use the IR wheel sensors or run IMU-only</td>
+</tr>
+<tr>
+<td><code>cal</code></td>
+<td>redo the gyro bias (hold still)</td>
+</tr>
+<tr>
+<td><code>gains</code>, <code>save</code>, <code>defaults</code></td>
+<td>print, store in flash, restore defaults</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="laptop-tools">Laptop tools</h2>
+<pre><code>cd host
+python test_protocol.py                    # no hardware needed: packet layout, framing, CRC, obs, policy.h format
+python drive.py PORT --log drive1.npz      # milestone 1: drive on the tail
+python bench.py radio PORT                 # and the other bench subcommands
+python log_plot.py drive1.npz              # or --live PORT
+</code></pre>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Script</th>
+<th>Use it to</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>link.py</code></td>
+<td>The only file that knows about bytes. <code>Link(port)</code>: <code>.state()</code> latest <code>State</code> or None, <code>.send(u_left, u_right, tail_deg, head_deg, mode, stand=1, v_mps=0, yaw_rps=0)</code>, <code>.start_log(path)</code> / <code>.stop_log()</code> (every state and command, <code>.npz</code> or <code>.csv</code>), <code>.close()</code>, a background reader thread, <code>.rtt_ms</code>. Also <code>obs_step()</code>, <code>ObsStack</code>, <code>load_log()</code>.</td>
+</tr>
+<tr>
+<td><code>test_protocol.py</code></td>
+<td>Check everything above against the firmware headers with a C++ compiler and a fake serial port. Run it after any change to a packet.</td>
+</tr>
+<tr>
+<td><code>drive.py</code></td>
+<td>Keyboard teleop (w/s a/d, tail and head keys, <code>p</code> for PID). Milestone 1. <code>--max</code> caps u (default 0.5 = 3 V).</td>
+</tr>
+<tr>
+<td><code>bench.py</code></td>
+<td>The SPEC section 9 measurements, one subcommand each (below).</td>
+</tr>
+<tr>
+<td><code>log_plot.py</code></td>
+<td>Plot a log, or a live 10 s window (<code>--live PORT</code>, optionally <code>--mode pid --log file</code> to keep the robot in PID and record it).</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="bench-tools">Bench tools</h3>
+<p><code>bench.py</code> writes <code>host/measurements.json</code>, which the simulator reads. Each subcommand updates only its own keys and records the date and method in <code>&lt;key&gt;_source</code>.</p>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>Subcommand</th>
+<th>Measures</th>
+<th>Keys</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="Subcommand"><code>motor PORT</code></td>
+<td data-label="Measures">Wheels free on a stand: speed at 3, 5 and 6.5 V (bench mode, so 6.5 V is allowed), the currents from your meter, a 2 s stall at 6 V (meter, and optionally a stick on a kitchen scale for torque), then on the floor resting on the tail: ramps the voltage until each wheel moves.</td>
+<td data-label="Keys"><code>motor_no_load_rad_s_at_6v</code>, <code>motor_stall_torque_nm_at_6v</code>, <code>motor_deadzone_u</code>, <code>motor_detail</code></td>
+</tr>
+<tr>
+<td data-label="Subcommand"><code>backlash</code></td>
+<td data-label="Measures">Free play at the tread, by hand with a ruler, 3 times per wheel.</td>
+<td data-label="Keys"><code>backlash_deg</code></td>
+</tr>
+<tr>
+<td data-label="Subcommand"><code>servo PORT</code></td>
+<td data-label="Measures">Unloaded 60 deg moves filmed in slow motion (you count frames); loaded: tail from 133.6 to 73.6 deg lifting the body, timed by the IMU.</td>
+<td data-label="Keys"><code>servo_deg_per_s</code>, <code>servo_deg_per_s_loaded</code></td>
+</tr>
+<tr>
+<td data-label="Subcommand"><code>radio PORT</code></td>
+<td data-label="Measures">20 s at 50 Hz and 20 s at 100 Hz: round trip and loss both ways. Loop delay = median round trip + 5 ms (average age of a 100 Hz state) + 1.25 ms (half a robot tick), laptop compute not included.</td>
+<td data-label="Keys"><code>loop_delay_ms</code>, <code>packet_loss</code> (commands lost at 50 Hz), <code>packet_loss_detail</code></td>
+</tr>
+<tr>
+<td data-label="Subcommand"><code>mass</code></td>
+<td data-label="Measures">Kitchen scale; centre of mass by balancing the robot on an edge.</td>
+<td data-label="Keys"><code>mass_g</code>, <code>com_height_mm</code></td>
+</tr>
+<tr>
+<td data-label="Subcommand"><code>friction</code></td>
+<td data-label="Measures">Robot sideways on a tilted board of your demo surface.</td>
+<td data-label="Keys"><code>tyre_mu</code></td>
+</tr>
+<tr>
+<td data-label="Subcommand"><code>show</code></td>
+<td data-label="Measures">Print the file.</td>
+<td data-label="Keys"></td>
+</tr>
+</tbody>
+</table></div>
+<p>Units: <code>motor_deadzone_u</code> is in u (u = 1 is 6 V); <code>backlash_deg</code> is degrees at the wheel; <code>com_height_mm</code> is along the body from the axle. Until a key exists, the simulator uses its own estimates.</p></section>
+<div class="pager"><a href="electronics.html">&larr; Electronics</a><a href="learning.html">Simulation and RL &rarr;</a></div>
+</main></div>
+<footer><div class="wrap">Tailwhip is an open robot project from <a href="https://buildrobotz.com/">BuildRobotz</a>. The design was generated with AI and has not yet been built or tested on hardware; performance figures are MuJoCo simulation results. Build at your own risk. Code, CAD and firmware: <a href="https://github.com/buildrobotz/tailwhip-robot">github.com/buildrobotz/tailwhip-robot</a> (code MIT, docs and CAD CC BY-SA 4.0).<br>
+<a href="https://buildrobotz.com/robots/">More robots to build</a> · <a href="https://ouro.buildrobotz.com/">Ouro, its sister project</a> · <a href="https://buildrobotz.com/">Learn robotics with BuildRobotz</a></div></footer>
+<script>(function(){var a=document.querySelector('nav [aria-current]');if(a&&a.parentNode.scrollWidth>a.parentNode.clientWidth)a.parentNode.scrollLeft=a.offsetLeft-a.parentNode.clientWidth/2+a.offsetWidth/2;
+function op(){var t=location.hash&&document.getElementById(decodeURIComponent(location.hash.slice(1)));for(var e=t;e;e=e.parentElement)if(e.tagName==='DETAILS')e.open=true;if(t)t.scrollIntoView();}
+addEventListener('hashchange',op);op();})();</script>
+
+</body></html>

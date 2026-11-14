@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.DS_Store
+.venv/
+build/
+.pio/
+visual/out/
+sim/runs/
+sim/out/
+sim/*.log
+sim/policies/*_v*.zip
+sim/eval_*.json

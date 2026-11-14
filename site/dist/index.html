@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tailwhip · Tailwhip robot</title>
+<meta name="description" content="A two-wheeled balancing robot built from the hobby parts in most robotics drawers. It rests on its tail, rears up onto its wheels, balances, looks around, and lands on its tail when you shove it. You train its brain with reinforcement learning in MuJoCo on your laptop, then run it on the real robot.">
+<meta property="og:title" content="Tailwhip, the robot that sits on its tail"><meta property="og:description" content="A two-wheeled balancing robot built from the hobby parts in most robotics drawers. It rests on its tail, rears up onto its wheels, balances, looks around, and lands on its tail when you shove it. You train its brain with reinforcement learning in MuJoCo on your laptop, then run it on the real robot.">
+<meta property="og:image" content="https://tailwhip.buildrobotz.com/assets/cad_render_upright.jpg">
+<link rel="icon" href="data:,"><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/style.css"></head>
+<body>
+<div class="crumb"><div class="wrap"><a href="https://buildrobotz.com/">BuildRobotz</a><span aria-hidden="true">/</span><a href="https://buildrobotz.com/robots/">Robots</a><span aria-hidden="true">/</span><span>Tailwhip</span></div></div>
+<header class="top"><div class="wrap"><a class="brand" href="index.html">Tailwhip<span>.</span></a><nav aria-label="Project pages"><a href="index.html" aria-current="page">Overview</a><a href="build.html">Build plan</a><a href="parts.html">Parts</a><a href="mechanical.html">Mechanical</a><a href="electronics.html">Electronics</a><a href="software.html">Software</a><a href="learning.html">Simulation and RL</a><a href="course.html">Learning path</a><a href="risks.html">Limits</a></nav></div></header>
+<div class="wrap"><main>
+<header><div class="eyebrow">BuildRobotz project · Overview</div><h1>Tailwhip, the robot that sits on its tail</h1><p class="lede">A two-wheeled balancing robot built from the hobby parts in most robotics drawers. It rests on its tail, rears up onto its wheels, balances, looks around, and lands on its tail when you shove it. You train its brain with reinforcement learning in MuJoCo on your laptop, then run it on the real robot.</p></header>
+<details class="toc"><summary>On this page</summary><ol><li><a href="#the-robot">The robot</a></li><li><a href="#why-this-is-a-good-robot-to-learn-on">Why this is a good robot to learn on</a></li><li><a href="#how-it-works-in-one-picture">How it works, in one picture</a></li><li><a href="#sister-project">Sister project</a></li></ol></details>
+<section class="videos"><figure><video src="assets/video/sim_demo.mp4" poster="assets/sim_poster.jpg" controls muted loop playsinline preload="metadata"></video><figcaption><b>Simulation, trained policy</b><br>The trained policy in MuJoCo, on the simulated robot with its sloppy gearboxes, coarse encoders and radio delay. Rest, rear up, balance, drive, turn, take two shoves, lie back down. Nothing is scripted except the commands.</figcaption></figure><figure><video src="assets/video/design_animation.mp4" poster="assets/anim_poster.jpg" controls muted loop playsinline preload="metadata"></video><figcaption><b>Design animation</b><br>The design, animated in Blender from the CAD: what the finished robot should look like. Kinematic, not physics: the timing is hand-chosen.</figcaption></figure></section>
+<dl class="facts"><div><dt>Wheels</dt><dd>2 × TT gearmotor</dd></div><div><dt>Servos</dt><dd>2 × SG-90</dd></div><div><dt>Mass</dt><dd>about 396 g</dd></div><div><dt>Height</dt><dd>264 mm</dd></div><div><dt>Brain</dt><dd>52 → 64 → 64 → 3</dd></div><div><dt>Parts, from nothing</dt><dd>about $114</dd></div><div><dt>Rears up (sim)</dt><dd>84 %</dd></div></dl>
+<div class="note"><b>Read this first: AI-generated, not yet built</b>This design, its code and these pages were generated with AI, and nobody has built or tested a physical Tailwhip yet. The CAD, simulator, trained policy, firmware and print files are complete and checked numerically, and every performance number here comes from simulation. Treat it as a well-worked starting point: measure the parts the pages tell you to, check each step as you go, expect to fix things, and build at your own risk, especially around the 18650 cells. The <a href="risks.html">Limits</a> page lists what to measure and watch.</div>
+<section class="prose"><h2 id="the-robot">The robot</h2>
+<p><strong>Tailwhip</strong> is a small two-wheeled self-balancing robot with a tail and a camera head. It is 264 mm tall,
+weighs about 394 g, and is made from the parts most robotics hobbyists already have in a drawer: two yellow TT
+gearmotors, two SG-90 servos, an ESP32, an MPU6050 and two 18650 cells.</p>
+<p>It reads as a creature, not a machine. Switched off, it sits leaning back on its tail like a kangaroo. Told to
+stand, the tail pushes down and it rears up onto its two wheels. It balances, looks around with its camera head,
+and drives. Shove it hard and it can't catch itself with the wheels, so it lands on its tail, which was waiting
+for it, and gets back up. Shove it forwards and it lands on its feet.</p>
+<p><strong>Your first 30 seconds with a finished robot.</strong> Power on and run <code>python host/drive.py PORT</code>: it drives around
+on its tail with the arrow keys. Press <code>p</code> and the hand-written PID controller holds it upright if you lift it
+there yourself. Then run <code>python host/run_policy.py PORT</code> and type <code>stand</code>: the trained policy pushes down with the
+tail, rolls the wheels back under the body and rises. Getting from "PID balances when I hold it upright" to "it
+gets up by itself and survives a shove" is what the rest of the project teaches.</p>
+<h2 id="why-this-is-a-good-robot-to-learn-on">Why this is a good robot to learn on</h2>
+<p>Plain balancing on two wheels is a solved, hand-written control problem: a PID loop on the tilt angle does it.
+Tailwhip is built so that the interesting part is everything around that loop, which is hard to write by hand:</p>
+<ul>
+<li><strong>Rearing up</strong> needs the tail and both wheels to move together, with a servo that has only twice the
+  torque it needs.</li>
+<li><strong>Deciding when a shove is too big</strong> for the wheels, and letting the tail take it instead.</li>
+<li><strong>Getting up off the feet</strong> needs a quick push of the wheels at the right moment.</li>
+<li><strong>Sloppy parts</strong>: TT gearboxes with several degrees of backlash, encoders that can't tell forwards from
+  backwards, a radio link with 10-40 ms of delay.</li>
+</ul>
+<p>Those are exactly the things reinforcement learning is good at, and exactly the things that make simulated
+robots fail on real hardware. The simulator here models every one of them on purpose.</p>
+<p><strong>What you will learn by building it.</strong></p>
+<ul>
+<li>Mechanical design: a parametric CAD in Python, a printed leaf spring, and checking a design numerically before
+  printing it (including the fall problem the simulator caught, on the Mechanical page).</li>
+<li>Electronics: a 2S 18650 pack with a protection board, two buck converters, an H-bridge, I2C sensors and an
+  ESP-NOW radio link.</li>
+<li>Control: a PID balancer you tune yourself, as the baseline.</li>
+<li>Simulation: a MuJoCo model built straight from the CAD, with the motors, servo and sensors made as bad as the
+  real ones.</li>
+<li>Reinforcement learning: observations, actions, rewards, PPO, and evaluating over hundreds of randomised robots.</li>
+<li>Sim to real: bench measurements that feed the simulator, then running the policy from the laptop and finally on
+  the ESP32 itself.</li>
+</ul>
+<h2 id="how-it-works-in-one-picture">How it works, in one picture</h2>
+<p>The robot's ESP32 reads the IMU 500 times a second and estimates its tilt. 100 times a second it sends a state
+packet over ESP-NOW to a second ESP32 plugged into your laptop. The laptop runs the policy, a small neural network
+(52 inputs, two layers of 64, three outputs), 50 times a second, and sends back two wheel commands and a tail angle.
+If the commands stop for 100 ms the robot cuts the motors and puts the tail down. Once the policy works from the
+laptop, you export it to a C header and it runs on the robot with no laptop at all.</p>
+<h2 id="sister-project">Sister project</h2>
+<p>Tailwhip follows <a href="https://ouro.buildrobotz.com/">Ouro</a>, the worm that bites its own tail and rolls away: same
+toolchain (Python CAD, MuJoCo, PPO, ESP32 + ESP-NOW), same way of documenting. If you have built Ouro, you will
+recognise everything here.</p></section>
+<section><div class="prose"><h2>Build it, page by page</h2></div><div class="cards" style="margin-top:12px"><a href="build.html"><b>Build plan</b><span>From ordering parts to a robot that rears up on its own: seven milestones, each with a test that tells you it worked.</span></a><a href="parts.html"><b>Parts</b><span>Everything to buy for one robot, with what to look for in each listing and what you probably already own.</span></a><a href="mechanical.html"><b>Mechanical</b><span>Seven prints and one long bolt pair. Spin the models, download the STLs, and measure your TT motor before you print.</span></a><a href="electronics.html"><b>Electronics</b><span>One ESP32, two TT motors on an MX1508, two servos, an MPU6050 and a 2S 18650 pack. Schematic, wiring table and a safe bring-up.</span></a><a href="software.html"><b>Software</b><span>Firmware on the robot, a radio bridge on your laptop, and Python tools for driving, bench tests and running the policy.</span></a><a href="learning.html"><b>Simulation and RL</b><span>The MuJoCo model built from the CAD, every sloppy part made sloppy on purpose, what the policy sees and is rewarded for, and how to train your own.</span></a><a href="course.html"><b>Learning path</b><span>One-hour sessions from the simulator to a robot that gets back up. One thing to do, one thing to learn and one check in each.</span></a><a href="risks.html"><b>Limits</b><span>What to know before you order parts: what the design cannot do, what may break, and how to keep the battery safe.</span></a></div></section>
+<div class="pager"><span></span><a href="build.html">Build plan &rarr;</a></div>
+</main></div>
+<footer><div class="wrap">Tailwhip is an open robot project from <a href="https://buildrobotz.com/">BuildRobotz</a>. The design was generated with AI and has not yet been built or tested on hardware; performance figures are MuJoCo simulation results. Build at your own risk. Code, CAD and firmware: <a href="https://github.com/buildrobotz/tailwhip-robot">github.com/buildrobotz/tailwhip-robot</a> (code MIT, docs and CAD CC BY-SA 4.0).<br>
+<a href="https://buildrobotz.com/robots/">More robots to build</a> · <a href="https://ouro.buildrobotz.com/">Ouro, its sister project</a> · <a href="https://buildrobotz.com/">Learn robotics with BuildRobotz</a></div></footer>
+<script>(function(){var a=document.querySelector('nav [aria-current]');if(a&&a.parentNode.scrollWidth>a.parentNode.clientWidth)a.parentNode.scrollLeft=a.offsetLeft-a.parentNode.clientWidth/2+a.offsetWidth/2;
+function op(){var t=location.hash&&document.getElementById(decodeURIComponent(location.hash.slice(1)));for(var e=t;e;e=e.parentElement)if(e.tagName==='DETAILS')e.open=true;if(t)t.scrollIntoView();}
+addEventListener('hashchange',op);op();})();</script>
+
+</body></html>

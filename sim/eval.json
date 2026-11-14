@@ -1,0 +1,17 @@
+{
+ "n": 50,
+ "policy": {
+  "rear_up": 0.84,
+  "rear_up_time_s": 0.24,
+  "balance": 0.58,
+  "from_feet": 0.9,
+  "shove": 0.84,
+  "lie_down": 0.14,
+  "drive_0.2_mps": 0.09000391110956557,
+  "drive_fell": 0.06
+ },
+ "pid_baseline": {
+  "shove": 0.72,
+  "balance": 0.3
+ }
+}

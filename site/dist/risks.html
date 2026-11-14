@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Limits · Tailwhip robot</title>
+<meta name="description" content="What to know before you order parts: what the design cannot do, what may break, and how to keep the battery safe.">
+<meta property="og:title" content="Limits and gotchas"><meta property="og:description" content="What to know before you order parts: what the design cannot do, what may break, and how to keep the battery safe.">
+<meta property="og:image" content="https://tailwhip.buildrobotz.com/assets/cad_render_upright.jpg">
+<link rel="icon" href="data:,"><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/style.css"></head>
+<body>
+<div class="crumb"><div class="wrap"><a href="https://buildrobotz.com/">BuildRobotz</a><span aria-hidden="true">/</span><a href="https://buildrobotz.com/robots/">Robots</a><span aria-hidden="true">/</span><span>Tailwhip</span></div></div>
+<header class="top"><div class="wrap"><a class="brand" href="index.html">Tailwhip<span>.</span></a><nav aria-label="Project pages"><a href="index.html">Overview</a><a href="build.html">Build plan</a><a href="parts.html">Parts</a><a href="mechanical.html">Mechanical</a><a href="electronics.html">Electronics</a><a href="software.html">Software</a><a href="learning.html">Simulation and RL</a><a href="course.html">Learning path</a><a href="risks.html" aria-current="page">Limits</a></nav></div></header>
+<div class="wrap"><main>
+<header><div class="eyebrow">BuildRobotz project · Limits</div><h1>Limits and gotchas</h1><p class="lede">What to know before you order parts: what the design cannot do, what may break, and how to keep the battery safe.</p></header>
+<details class="toc"><summary>On this page</summary><ol><li><a href="#what-it-cannot-do">What it cannot do</a></li><li><a href="#what-will-probably-need-fixing">What will probably need fixing</a></li><li><a href="#battery-safety-read-this-before-you-charge-anything">Battery safety: read this before you charge anything</a></li><li><a href="#simulation-is-not-reality">Simulation is not reality</a></li></ol></details><section class="prose"><h2 id="what-it-cannot-do">What it cannot do</h2>
+<ul>
+<li><strong>Climb anything.</strong> 65 mm wheels and feet that stick out 54 mm in front: door sills, cables and thick rugs stop
+  it. It is a desk and hard-floor robot.</li>
+<li><strong>Lean far forward.</strong> The feet touch the floor at 18 deg. That is plenty for balancing and slow driving, but it
+  caps how hard it can brake from a forward run: brake too hard and it ends up on its feet (then gets up again).</li>
+<li><strong>Survive every shove with the motors off.</strong> With power off or the motors cut, the tail catches backward falls
+  up to about a 4 rad/s shove and the feet catch forward falls up to about 6 rad/s (<code>sim/test_falls.py</code>). Harder
+  shoves need the wheels to help, which only works while the policy is running.</li>
+<li><strong>Sit unpowered.</strong> An unpowered SG-90 can be back-driven, so if the battery dies while it stands, it slumps onto
+  its back. Don't leave it standing on a table edge.</li>
+<li><strong>Take a hard forward shove well (yet).</strong> In simulation the current policy catches backward shoves and kicks
+  well, but a hard forward shove sometimes makes it drive forward and roll over its own feet. Retraining with
+  more forward shoves is the obvious next step; the Simulation page has the numbers.</li>
+<li><strong>Know which way the wheels turn.</strong> The IR encoders count edges but can't tell direction; the firmware takes the
+  sign from the command. When a wheel is pushed backwards against its command, the reading is wrong. The policy is
+  trained with that flaw, the PID baseline just lives with it.</li>
+</ul>
+<h2 id="what-will-probably-need-fixing">What will probably need fixing</h2>
+<p>Nobody has built one yet. These are the places a first build is most likely to need work, roughly in order:</p>
+<ol>
+<li><strong>TT motor mounting.</strong> The hole positions in the CAD are estimates from drawings. Measure your motor and edit
+   <code>TT_HOLES</code> before printing. TT motors also differ: some have one mounting hole, some a tab at the can end.</li>
+<li><strong>Tail servo torque.</strong> Rearing up from the tail rest needs about 0.06 N m, and a clone SG-90 gives about
+   0.13 N m: 2x margin on paper. If yours can't lift it, fit the MG90S (same size, metal gears, more torque).</li>
+<li><strong>Tail landings.</strong> A fall onto the tail can put roughly the servo's stall torque through its plastic gears for a
+   few tens of milliseconds, even with the leaf spring. If the gears strip, use the MG90S.</li>
+<li><strong>Backlash and dead zone.</strong> TT gearboxes have several degrees of slop and need a fair push before they move.
+   The simulator randomises both over a wide range, but if yours is worse, the PID will rock back and forth. Measure
+   it with <code>host/bench.py</code> and retrain.</li>
+<li><strong>The bolt-clamped motor stack.</strong> Two M3 x 70 bolts hold both motors to the frame. If it flexes, add a zip tie
+   round each can (slots are printed in).</li>
+<li><strong>Mass.</strong> The design comes out at about 394 g against the 250-270 g first planned. The simulator and every
+   check use 394 g, but weigh your parts: if the cells or wheels are heavier, update <code>cad/tailwhip.py</code>.</li>
+</ol>
+<h2 id="battery-safety-read-this-before-you-charge-anything">Battery safety: read this before you charge anything</h2>
+<p>The pack is two <strong>unprotected</strong> 18650 lithium-ion cells in series (8.4 V full). They can deliver tens of amps
+into a short circuit and can catch fire if over-charged, over-discharged or punctured.</p>
+<ul>
+<li><strong>Use known cells</strong> from a reputable brand (Samsung, LG, Sony/Murata, Molicel), bought from a reputable seller.
+  Never use "UltraFire"-style cells with impossible capacities.</li>
+<li><strong>Always use the 2S protection board (BMS)</strong> and the polyfuse. They are not optional.</li>
+<li><strong>Charge with a proper 2S Li-ion charger</strong> (8.4 V, constant current then constant voltage), never above
+  8.4 V, and not unattended. Both cells must be at the same voltage when you put them in.</li>
+<li><strong>Never drain below 6.0 V</strong> (3.0 V per cell). The firmware warns at 6.6 V; stop then.</li>
+<li><strong>Check the wiring with a meter before the first power-up</strong>, as the Electronics page says. A reversed cell in the
+  holder is the classic mistake.</li>
+<li>If a cell is dented, hot, or swollen, stop using it.</li>
+</ul>
+<h2 id="simulation-is-not-reality">Simulation is not reality</h2>
+<p>Every performance number on these pages comes from the MuJoCo model. The model is deliberately pessimistic
+(slop, delay, noise, weak motors, random masses), but it is still a model, built from estimated part numbers.
+Expect the first real run to look worse than the simulator, and expect to close the gap by measuring and
+retraining, as milestone 4 describes. That loop is the point of the project.</p></section>
+<div class="pager"><a href="course.html">&larr; Learning path</a><span></span></div>
+</main></div>
+<footer><div class="wrap">Tailwhip is an open robot project from <a href="https://buildrobotz.com/">BuildRobotz</a>. The design was generated with AI and has not yet been built or tested on hardware; performance figures are MuJoCo simulation results. Build at your own risk. Code, CAD and firmware: <a href="https://github.com/buildrobotz/tailwhip-robot">github.com/buildrobotz/tailwhip-robot</a> (code MIT, docs and CAD CC BY-SA 4.0).<br>
+<a href="https://buildrobotz.com/robots/">More robots to build</a> · <a href="https://ouro.buildrobotz.com/">Ouro, its sister project</a> · <a href="https://buildrobotz.com/">Learn robotics with BuildRobotz</a></div></footer>
+<script>(function(){var a=document.querySelector('nav [aria-current]');if(a&&a.parentNode.scrollWidth>a.parentNode.clientWidth)a.parentNode.scrollLeft=a.offsetLeft-a.parentNode.clientWidth/2+a.offsetWidth/2;
+function op(){var t=location.hash&&document.getElementById(decodeURIComponent(location.hash.slice(1)));for(var e=t;e;e=e.parentElement)if(e.tagName==='DETAILS')e.open=true;if(t)t.scrollIntoView();}
+addEventListener('hashchange',op);op();})();</script>
+
+</body></html>

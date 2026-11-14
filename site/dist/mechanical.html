@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mechanical · Tailwhip robot</title>
+<meta name="description" content="Seven prints and one long bolt pair. Spin the models, download the STLs, and measure your TT motor before you print.">
+<meta property="og:title" content="Print and assemble"><meta property="og:description" content="Seven prints and one long bolt pair. Spin the models, download the STLs, and measure your TT motor before you print.">
+<meta property="og:image" content="https://tailwhip.buildrobotz.com/assets/cad_render_upright.jpg">
+<link rel="icon" href="data:,"><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/style.css"></head>
+<body>
+<div class="crumb"><div class="wrap"><a href="https://buildrobotz.com/">BuildRobotz</a><span aria-hidden="true">/</span><a href="https://buildrobotz.com/robots/">Robots</a><span aria-hidden="true">/</span><span>Tailwhip</span></div></div>
+<header class="top"><div class="wrap"><a class="brand" href="index.html">Tailwhip<span>.</span></a><nav aria-label="Project pages"><a href="index.html">Overview</a><a href="build.html">Build plan</a><a href="parts.html">Parts</a><a href="mechanical.html" aria-current="page">Mechanical</a><a href="electronics.html">Electronics</a><a href="software.html">Software</a><a href="learning.html">Simulation and RL</a><a href="course.html">Learning path</a><a href="risks.html">Limits</a></nav></div></header>
+<div class="wrap"><main>
+<header><div class="eyebrow">BuildRobotz project · Mechanical</div><h1>Print and assemble</h1><p class="lede">Seven prints and one long bolt pair. Spin the models, download the STLs, and measure your TT motor before you print.</p></header>
+<details class="toc"><summary>On this page</summary><ol><li><a href="#files">Files</a></li><li><a href="#the-layout-in-one-paragraph">The layout in one paragraph</a></li><li><a href="#decisions-and-why">Decisions and why</a></li><li><a href="#falls-what-the-simulator-found">Falls: what the simulator found</a></li><li><a href="#where-the-design-departs-from-the-spec">Where the design departs from the SPEC</a></li><li><a href="#before-you-print-measure-these">Before you print: measure these</a></li><li><a href="#print-settings">Print settings</a></li><li><a href="#assembly">Assembly</a></li><li><a href="#tail-commands">Tail commands</a></li><li><a href="#known-weaknesses">Known weaknesses</a></li><li><a href="#the-animation">The animation</a></li></ol></details>
+<section><div class="viewer" data-models='[{"label": "Balancing", "file": "models/assembled_upright.glb", "color": null}, {"label": "Resting on the tail", "file": "models/assembled_rest.glb", "color": null}, {"label": "Core, left half", "file": "models/core_left.stl", "color": "#e8862a"}, {"label": "Core, right half", "file": "models/core_right.stl", "color": "#e8862a"}, {"label": "Torso", "file": "models/torso.stl", "color": "#f2b84b"}, {"label": "Tail (ABS)", "file": "models/tail.stl", "color": "#2a9ea8"}, {"label": "Head", "file": "models/head.stl", "color": "#e9e4d8"}, {"label": "Encoder ring (x2)", "file": "models/encoder_ring.stl", "color": "#cfcfc8"}]'><canvas class="view"></canvas><span class="hint">drag to orbit · scroll to zoom</span></div>
+<div class="bar vbar" style="border:1px solid var(--rule);border-top:0;border-radius:0 0 6px 6px"></div></section>
+<section class="prose"><h4>Download the print files</h4><p><a class="btn" href="models/core_left.stl">core_left.stl</a> <a class="btn" href="models/core_right.stl">core_right.stl</a> <a class="btn" href="models/encoder_ring.stl">encoder_ring.stl</a> <a class="btn" href="models/head.stl">head.stl</a> <a class="btn" href="models/tail.stl">tail.stl</a> <a class="btn" href="models/torso.stl">torso.stl</a> <a class="btn" href="assets/analysis.md">analysis.md (every design check)</a></p></section>
+<div class="gallery"><figure class="fig"><img src="assets/cad_render_upright.jpg" alt="Balancing, tail held ready at its rest angle" loading="lazy"><figcaption>Balancing, tail held ready at its rest angle</figcaption></figure><figure class="fig"><img src="assets/cad_render_rest.jpg" alt="At rest on its tail, 25 deg back" loading="lazy"><figcaption>At rest on its tail, 25 deg back</figcaption></figure><figure class="fig"><img src="assets/cad_render_back.jpg" alt="From behind: ESP32 on the spine, tail servo in the hip block" loading="lazy"><figcaption>From behind: ESP32 on the spine, tail servo in the hip block</figcaption></figure><figure class="fig"><img src="assets/cad_render_front.jpg" alt="From the front: power boards on the spine, IMU on the motor web, feet" loading="lazy"><figcaption>From the front: power boards on the spine, IMU on the motor web, feet</figcaption></figure><figure class="fig"><img src="assets/cad_render_parts.jpg" alt="The printed parts" loading="lazy"><figcaption>The printed parts</figcaption></figure><figure class="fig"><img src="assets/cad_side_upright.jpg" alt="Side view with the main dimensions" loading="lazy"><figcaption>Side view with the main dimensions</figcaption></figure><figure class="fig"><img src="assets/cad_side_rest.jpg" alt="Resting on the tail" loading="lazy"><figcaption>Resting on the tail</figcaption></figure><figure class="fig"><img src="assets/cad_side_heel.jpg" alt="A backward fall ends on the tail" loading="lazy"><figcaption>A backward fall ends on the tail</figcaption></figure><figure class="fig"><img src="assets/cad_side_chin.jpg" alt="A forward fall ends on the feet" loading="lazy"><figcaption>A forward fall ends on the feet</figcaption></figure></div>
+<section class="prose"><blockquote>
+<p><strong>AI-generated and unbuilt.</strong> Nothing here has been printed, assembled or measured. Every number is tagged
+in <code>cad/tailwhip.py</code> as [D] datasheet, [E] estimate or [C] chosen, and every result inherits those tags.
+Measure the parts listed under "Before you print" first; the TT motor numbers are the biggest risk.</p>
+</blockquote>
+<p>Rev B is rev A plus one change the MuJoCo model forced: how the robot stops a fall (see "Falls: what the
+simulator found" below). Wiring is in <code>docs/electronics.md</code>, the code in <code>docs/software.md</code>, the simulator and
+training in <code>sim/</code>.</p>
+<p><img alt="Upright" src="assets/cad_render_upright.jpg" /></p>
+<h2 id="files">Files</h2>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Path</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cad/tailwhip.py</code></td>
+<td>Every dimension (tagged), every printed and bought part, the joints and the pose maths</td>
+</tr>
+<tr>
+<td><code>cad/analysis.py</code> → <code>cad/out/analysis.md</code></td>
+<td>Mass and centre-of-mass table, interference, tail sweep, rest angles, tail torque, leaf spring, bed fit, PASS/FAIL table</td>
+</tr>
+<tr>
+<td><code>cad/export.py</code> → <code>cad/out/</code></td>
+<td><code>print/*.stl</code> in print orientation, assembled GLB/STL (upright and at rest), <code>groups/*.glb</code> for Blender and the simulator, renders</td>
+</tr>
+<tr>
+<td><code>visual/motion.py</code>, <code>visual/blender_animate.py</code></td>
+<td>The demo act as kinematic poses, rendered in Blender (the video is kept out of git; it is on the website)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Regenerate everything:</p>
+<pre><code class="language-bash">cd cad &amp;&amp; python analysis.py &amp;&amp; python export.py
+</code></pre>
+<h2 id="the-layout-in-one-paragraph">The layout in one paragraph</h2>
+<p>The two TT motors stand <strong>vertically</strong>, back to back, shafts on the axle and cans pointing up the body. Two
+M3 x 70 bolts pass through both gearboxes and a central printed web, so one bolt pair holds both motors and the
+body is only 65 mm wide between the wheels. Behind the motor cans sits the hip block with the tail servo; its
+shaft is 30 mm behind and 30 mm above the axle. Below the motors a skid runs forward into two long, low
+<strong>feet</strong> that reach 86 mm ahead of the axle. A printed spine rises from the motor web carrying the ESP32 on its back face and the power
+boards on its front face, and the battery sleeve sits <strong>on top</strong> of the spine, under the head, to raise the centre
+of mass. The pan servo sits on the sleeve roof and carries the ESP32-CAM head.</p>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th></th>
+<th>Value</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="">Height, floor to top of head</td>
+<td data-label="Value">264 mm</td>
+<td data-label="Source">[C], SPEC 220-280</td>
+</tr>
+<tr>
+<td data-label="">Width over the tyres / track</td>
+<td data-label="Value">123 / 97 mm</td>
+<td data-label="Source">[C]</td>
+</tr>
+<tr>
+<td data-label="">Front to back (upright, feet to tail)</td>
+<td data-label="Value">134 mm</td>
+<td data-label="Source">[C]</td>
+</tr>
+<tr>
+<td data-label="">Mass</td>
+<td data-label="Value"><strong>394 g</strong></td>
+<td data-label="Source">[E], SPEC target 250-270 (see below)</td>
+</tr>
+<tr>
+<td data-label="">Centre of mass above the axle</td>
+<td data-label="Value">74 mm</td>
+<td data-label="Source">[E], SPEC 70-90</td>
+</tr>
+<tr>
+<td data-label="">Rest on the tail</td>
+<td data-label="Value">25 deg back, tail servo at 73.6 deg</td>
+<td data-label="Source">[C]</td>
+</tr>
+<tr>
+<td data-label="">Where a fall stops: back (on the tail) / forward (on the feet)</td>
+<td data-label="Value">25 / 18 deg</td>
+<td data-label="Source">CAD and MuJoCo, SPEC &lt;= 50</td>
+</tr>
+</tbody>
+</table></div>
+<p><img alt="Side, upright with the foot down" src="assets/cad_side_upright.jpg" /></p>
+<h2 id="decisions-and-why">Decisions and why</h2>
+<p><strong>Vertical motors.</strong> Lying the TT motors horizontally puts 59 mm of motor behind the axle, exactly where the
+tail needs to be. Standing them up keeps the footprint 80 mm deep, puts 14 g of can 43 mm above the axle
+(helps the centre of mass), and lets one bolt pair clamp both gearboxes to the split web. The inner shaft stubs
+need 9.1 mm each [E], so the gearboxes sit 13.5 mm either side of the centre line.</p>
+<p><strong>Tail pivot high and back.</strong> With free wheels the foot carries a vertical force N set by moments about the
+axle, and the servo torque is N times the foot's horizontal distance from the <strong>pivot</strong>, not from the axle. A pivot
+at (-30, +30) mm makes that lever short. Peak torque to rear up from 25 deg is <strong>0.060 N m</strong> against about
+0.12 N m for the SPEC's m g h sin(theta) formula, which is 2.2x margin on a clone SG-90 (~0.13 N m [E]) and 3x on
+the datasheet 0.18 N m. The torque falls to zero as it reaches upright (table in <code>cad/out/analysis.md</code> section 4).
+Driving the wheels backwards while rearing up adds to this; that is left for the policy.</p>
+<p><strong>Feet in front, tail behind.</strong> A bumper only stops a fall if it touches down far beyond the centre of mass;
+see the next section. The feet stop a forward fall at 18 deg with 57 mm to spare, and getting up off them
+needs only 2.2 m/s2 of axle acceleration (tyre friction 0.22). The tail, held at its rest angle while the robot
+balances, stops a backward fall at 25 deg. The small heel and chin on the skid stay as scuff guards.</p>
+<p><strong>Battery on top.</strong> With the cells at mid-body the centre of mass was 60 mm up. On top of the spine it is 74 mm.
+That slows falls (SPEC's intent) at the cost of a larger holding torque: about 0.29 sin(theta) N m.</p>
+<h2 id="falls-what-the-simulator-found">Falls: what the simulator found</h2>
+<p>Rev A had a rounded heel and chin under the motors, and the static check said the robot would come to rest on
+them at 37 and 36 deg. The MuJoCo model disagreed: every fall, even a gentle topple, rolled straight over them
+onto its back or face. The heel and chin sit almost under the centre of mass, and a falling robot carries far more
+energy (its centre of mass drops about 24 mm) than the few millimetres it takes to tip over a contact that close.
+A second attempt with a bar 72 mm out in front and rails 76 mm behind failed the same way.</p>
+<p>What works is a contact far beyond the centre of mass, reached early in the fall:</p>
+<ul>
+<li><strong>Forward: the feet.</strong> A bar 86 mm ahead of the axle at axle height touches at 18 deg, 57 mm beyond the centre
+  of mass. In <code>sim/test_falls.py</code> it holds every forward fall up to a 6 rad/s shove with the motors off.</li>
+<li><strong>Backward: the tail.</strong> Held at its rest angle (73.6 deg) while balancing, the foot is 39 mm off the floor and
+  lands at 25 deg, 88 mm behind the axle. It holds every backward fall up to a 4 rad/s shove with the motors off.
+  Above that the wheels have to help, which the trained policy does.</li>
+<li><strong>Never stow the tail up the back.</strong> With the tail at 150 deg a gentle topple ends flat on its back. The
+  firmware's failsafe and the policy's reward both keep it down.</li>
+</ul>
+<p>The lesson for anyone adapting the design: check bumpers with a dynamic simulation, not just the first point
+that touches.</p>
+<p><strong>Tail with a C-shaped leaf spring.</strong> ABS, 14 mm wide, 2.4 mm thick, about 41 mm of arc: 0.66 N m/rad [E].
+At servo stall it bends 16 deg at 13 MPa (safety factor 2.1 on printed ABS). The fork grips the servo horn on one
+side and an M3 shoulder screw into the hip block on the other, so landing loads do not hang off the spline alone.
+The foot is a 40 mm wide rounded pad; glue a strip of bicycle inner tube to it for grip.</p>
+<p><strong>Encoder rings, not a disc on the shaft.</strong> There is no room for a disc on either shaft stub. A 1.2 mm printed
+ring with 16 windows is glued to the inside face of each wheel; a TCRT5000 line-follower module on a post at
+(x 22, z 0) reads it through a 2.5 mm gap. 32 edges per turn = 6.4 mm of travel per edge, speed only, sign from
+the command (as SPEC section 6 says).</p>
+<p><strong>IMU on the motor web.</strong> The GY-521 zip-ties to a pad on the front edge of the web, 19-35 mm above the axle,
+on the stiffest part of the robot.</p>
+<h2 id="where-the-design-departs-from-the-spec">Where the design departs from the SPEC</h2>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>SPEC</th>
+<th>Rev A</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="SPEC">Mass 250-270 g</td>
+<td data-label="Rev A">394 g [E]</td>
+<td data-label="Why">The bought parts alone are ~297 g [E]: two 18650s 92 g, two TT motors ~58 g, two wheels ~44 g, holder 14 g, servos 18 g, boards and wiring ~70 g. Printed parts are 97 g. Every torque in the analysis and the simulator uses 394 g, and all checks still pass. Weigh the real parts; the cells and wheels are the uncertain ones.</td>
+</tr>
+<tr>
+<td data-label="SPEC">Battery "mid-body"</td>
+<td data-label="Rev A">Top of the spine</td>
+<td data-label="Why">Needed to reach the 70-90 mm centre of mass</td>
+</tr>
+<tr>
+<td data-label="SPEC">Rounded back and chin bumpers at ~50 deg</td>
+<td data-label="Rev A">Feet at 18 deg, tail at 25 deg</td>
+<td data-label="Why">Bumpers near the body don't stop a dynamic fall (above)</td>
+</tr>
+<tr>
+<td data-label="SPEC">Parts list</td>
+<td data-label="Rev A">Adds a 2 x 18650 holder (~$2), a slide switch and a polyfuse (~$1)</td>
+<td data-label="Why">The cells need a holder and the pack needs a switch. Buy total now ~$12, inside the $15</td>
+</tr>
+<tr>
+<td data-label="SPEC">Hardware</td>
+<td data-label="Rev A">2 x M3 x 70 (or M3 threaded rod), 4 x M3 x 10 + nuts, 1 x M3 shoulder screw ~8 mm shoulder, servo screws</td>
+<td data-label="Why">Assumed on hand; add to the BOM if not</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="before-you-print-measure-these">Before you print: measure these</h2>
+<p>The geometry is parametric; edit the numbers at the top of <code>cad/tailwhip.py</code> and rerun.</p>
+<ol>
+<li><strong>TT motor:</strong> gearbox thickness along the shaft (<code>TT_T</code>, 18.8 assumed), width (<code>TT_W</code>, 22.5), shaft to gearbox
+   end (<code>TT_SHAFT_END</code>, 11), stub length beyond each face (<code>TT_STUB</code>, 9.1), and <strong>the two mounting holes</strong>
+   (<code>TT_HOLES</code>, assumed at x +-8, z 18 from the shaft). These are guesses from typical drawings.</li>
+<li><strong>TT wheel:</strong> outer diameter, width, how deep the hub goes on the shaft (<code>WHEEL_IN</code>).</li>
+<li><strong>SG-90:</strong> case length, thickness, tab height, spline height (clones vary +-0.5 mm).</li>
+<li><strong>Battery holder:</strong> outer size (<code>HOLDER</code>, 41 x 77.5 x 20.5 assumed).</li>
+<li><strong>IR module:</strong> where the TCRT5000 sits on its PCB; the post assumes it lands at (x 22, z 0).</li>
+</ol>
+<p>Then print <code>core_left</code> first and check the motor fit before printing the rest.</p>
+<h2 id="print-settings">Print settings</h2>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>Part</th>
+<th>Material</th>
+<th>Settings</th>
+<th>Orientation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="Part">core_left, core_right</td>
+<td data-label="Material">PLA</td>
+<td data-label="Settings">0.2 mm layers, 3 walls, 20 % gyroid</td>
+<td data-label="Orientation">flat on the cut face (y = 0), no supports</td>
+</tr>
+<tr>
+<td data-label="Part">torso</td>
+<td data-label="Material">PLA</td>
+<td data-label="Settings">0.2 mm, 3 walls, 20 % gyroid</td>
+<td data-label="Orientation">upright, tree supports under the battery-sleeve floor</td>
+</tr>
+<tr>
+<td data-label="Part">tail</td>
+<td data-label="Material"><strong>ABS</strong></td>
+<td data-label="Settings">0.2 mm, <strong>4 walls</strong> (so the 2.4 mm leaf is all perimeters), 40 % infill, enclosure or draft shield</td>
+<td data-label="Orientation">on the horn-arm face so each layer is a whole C of the leaf; tree supports under the pivot arm</td>
+</tr>
+<tr>
+<td data-label="Part">head</td>
+<td data-label="Material">PLA</td>
+<td data-label="Settings">0.2 mm, 2 walls, 15 %</td>
+<td data-label="Orientation">on its open back, no supports</td>
+</tr>
+<tr>
+<td data-label="Part">encoder_ring x 2</td>
+<td data-label="Material">white PLA</td>
+<td data-label="Settings">0.2 mm, solid</td>
+<td data-label="Orientation">flat</td>
+</tr>
+</tbody>
+</table></div>
+<p>All parts fit the Ender 3 bed; the longest are the core halves at 134 x 24 x 82 mm (the feet are part of them).</p>
+<p><img alt="Printed parts" src="assets/cad_render_parts.jpg" /></p>
+<h2 id="assembly">Assembly</h2>
+<ol>
+<li><strong>Motors to the core.</strong> Lay <code>core_right</code> on the bench, drop the right TT motor (can up, shaft on the axle hole
+   line) onto its bosses, add <code>core_left</code> and the left motor, and push two M3 x 70 bolts through all four
+   layers (motor, half, half, motor). Nuts on the far side, snug, not tight. Zip-tie each can through the strap
+   slots.</li>
+<li><strong>Tail servo.</strong> Before closing the halves fully, seat the SG-90 in the hip pocket with its spline on the +y
+   (left) side and its lead out of the front; screw its tabs into the right half.</li>
+<li><strong>IMU.</strong> Zip-tie the GY-521 to the pad on the front of the web, chip facing forward, x axis up the body.</li>
+<li><strong>IR sensors.</strong> Screw each TCRT5000 module to its post (M3), sensor facing out at the wheel, and set the gap to
+   the ring at about 2.5 mm.</li>
+<li><strong>Encoder rings and wheels.</strong> Glue a ring centred on the inside face of each wheel (CA glue), then push the
+   wheels onto the shafts and fit the wheel screws.</li>
+<li><strong>Torso.</strong> Wire the boards to the spine first (ESP32 on the back, module towards the plastic; BMS, two
+   Mini360, MX1508, capacitor and switch on the front, zip ties through the slot pairs), then bolt the torso
+   to the core flange with four M3 x 10 into the captured nuts.</li>
+<li><strong>Battery.</strong> Slide the holder into the sleeve from the side, cells in, and strap it through the floor windows.
+   Charge in place through the BMS.</li>
+<li><strong>Head.</strong> Screw the pan servo into the block on the sleeve roof, centre it, fit the single-arm horn pointing
+   forward, screw the head to the horn, and slide the ESP32-CAM down between the ridges, lens in the eye.</li>
+<li><strong>Tail.</strong> Command the tail servo to 90 deg, then fit the single-arm horn into the tail's pocket with the tail
+   pointing straight back along the body's -x axis, screw it to the spline, and fit the M3 shoulder screw through
+   the pivot arm into the hip block. Servo angle then equals tail angle in the table below.</li>
+</ol>
+<h2 id="tail-commands">Tail commands</h2>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Pose</th>
+<th>Tail angle (deg, 0 = straight down the body, + = backwards)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Foot on the floor with the body upright</td>
+<td>24.3</td>
+</tr>
+<tr>
+<td>Rest, body 25 deg back</td>
+<td>73.6</td>
+</tr>
+<tr>
+<td>Held while balancing (ready to catch)</td>
+<td>73.6, the same as rest</td>
+</tr>
+<tr>
+<td>Never use: stowed up the back</td>
+<td>150 (a fall from here ends flat on its back)</td>
+</tr>
+<tr>
+<td>Free range in the CAD (no collisions)</td>
+<td>20 to 180</td>
+</tr>
+</tbody>
+</table></div>
+<p>An SG-90 gives about 180 deg of travel, so the used range 20-150 deg fits with margin at both ends. Trim the offset in firmware.</p>
+<h2 id="known-weaknesses">Known weaknesses</h2>
+<ul>
+<li><strong>Landing loads.</strong> A fall from upright onto the tail stores up to ~26 mJ; if the leaf takes all of it the peak
+  moment through the servo gears is about the stall torque, spread over ~30 ms. Plastic SG-90 gears may still
+  strip; the MG90S is the drop-in fix (same pocket).</li>
+<li><strong>Bolt-clamped motors.</strong> The two M3 x 70 bolts are the only thing holding the motors to the frame. If the
+  gearboxes flex, add a second strap round the cans.</li>
+<li><strong>Wheels get the ring glued on</strong>, so a wheel swap means a new ring.</li>
+<li><strong>Torque numbers are quasi-static</strong> with free wheels. Real rear-ups are dynamic; the MuJoCo model
+  (<code>sim/</code>) is the dynamic check and the trained policy rears up with the same servo limits.</li>
+<li><strong>The feet stick out 54 mm past the tyres.</strong> They catch on door sills and cables. They also stop it leaning
+  forward more than 18 deg, which caps how hard it can brake from a forward run.</li>
+</ul>
+<h2 id="the-animation">The animation</h2>
+<p><code>visual/motion.py</code> turns the intended behaviour into poses (rest, drive on the tail, look around, rear up, balance,
+drive, get hit by a ball, catch itself on the tail, get up, lie down). The wheels roll without slipping and the foot
+stays planted while it rears up, using the same geometry as the CAD, but the timing is hand-chosen: it shows what
+the robot should look like, not what a controller can do. <code>visual/blender_animate.py</code> renders it and saves the
+<code>.blend</code> next to the video so the scene can be tweaked by hand.</p>
+<pre><code class="language-bash">python visual/motion.py
+blender -b -P visual/blender_animate.py -- OUT_DIR
+</code></pre></section>
+<div class="pager"><a href="parts.html">&larr; Parts</a><a href="electronics.html">Electronics &rarr;</a></div>
+</main></div>
+<footer><div class="wrap">Tailwhip is an open robot project from <a href="https://buildrobotz.com/">BuildRobotz</a>. The design was generated with AI and has not yet been built or tested on hardware; performance figures are MuJoCo simulation results. Build at your own risk. Code, CAD and firmware: <a href="https://github.com/buildrobotz/tailwhip-robot">github.com/buildrobotz/tailwhip-robot</a> (code MIT, docs and CAD CC BY-SA 4.0).<br>
+<a href="https://buildrobotz.com/robots/">More robots to build</a> · <a href="https://ouro.buildrobotz.com/">Ouro, its sister project</a> · <a href="https://buildrobotz.com/">Learn robotics with BuildRobotz</a></div></footer>
+<script>(function(){var a=document.querySelector('nav [aria-current]');if(a&&a.parentNode.scrollWidth>a.parentNode.clientWidth)a.parentNode.scrollLeft=a.offsetLeft-a.parentNode.clientWidth/2+a.offsetWidth/2;
+function op(){var t=location.hash&&document.getElementById(decodeURIComponent(location.hash.slice(1)));for(var e=t;e;e=e.parentElement)if(e.tagName==='DETAILS')e.open=true;if(t)t.scrollIntoView();}
+addEventListener('hashchange',op);op();})();</script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="assets/viewer.js"></script>
+</body></html>

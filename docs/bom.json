@@ -1,0 +1,925 @@
+[
+ {
+  "id": 1,
+  "name": "ESP32 DevKit ESP32-WROOM-32 (classic)",
+  "qty_per_robot": 2,
+  "amazon": {
+   "title": "EC Buying 2Pcs ESP32 38Pin Development Board CP2102 USB Type-C",
+   "asin": "B0DYDR6SQZ",
+   "url": "https://www.amazon.com/dp/B0DYDR6SQZ",
+   "pack_qty": 2,
+   "price_usd": 13.99,
+   "unit_usd": 6.995,
+   "confirmed": false,
+   "notes": "Classic ESP32-WROOM-32, 38-pin, USB-C, CP2102. A 30-pin board works just as well.",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=ESP32+WROOM-32+development+board+2+pack"
+  },
+  "alt": {
+   "vendor": "Adafruit",
+   "title": "HUZZAH32 ESP32 Feather Board (product 3405)",
+   "asin": null,
+   "url": "https://www.adafruit.com/product/3405",
+   "pack_qty": 1,
+   "price_usd": 19.95,
+   "unit_usd": 19.95,
+   "confirmed": true,
+   "ship_days": null,
+   "notes": "Genuine WROOM-32 in the Feather shape, not the DevKit shape, so it will not sit on the spine the same way. About three times the price."
+  },
+  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. Classic ESP32 only, not S2, S3 or C3. One rides on the robot, one is the USB radio bridge on the laptop. The robot board sits on the spine with its header pins pointing back; 30-pin or 38-pin both fit."
+ },
+ {
+  "id": 2,
+  "name": "GY-521 MPU-6050 breakout",
+  "qty_per_robot": 1,
+  "amazon": {
+   "title": "Stemedu 5PCS GY-521 MPU6050 module",
+   "asin": "B07PY38BCB",
+   "url": "https://www.amazon.com/dp/B07PY38BCB",
+   "pack_qty": 5,
+   "price_usd": 12.99,
+   "unit_usd": 2.598,
+   "confirmed": false,
+   "notes": "Five boards; the spares are handy.",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=GY-521+MPU6050+module+5+pack"
+  },
+  "alt": {
+   "vendor": "Adafruit",
+   "title": "Adafruit MPU-6050 6-DoF Accel and Gyro, STEMMA QT (product 3886)",
+   "asin": null,
+   "url": "https://www.adafruit.com/product/3886",
+   "pack_qty": 1,
+   "price_usd": 12.95,
+   "unit_usd": 12.95,
+   "confirmed": true,
+   "ship_days": null,
+   "notes": "Genuine sensor, but a different board size and hole pattern from the GY-521, so the mount would need changing."
+  },
+  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. Draws about 3.8 to 3.9 mA (datasheet). Power it from 3.3 V."
+ },
+ {
+  "id": 3,
+  "name": "MX1508 dual H-bridge motor driver module",
+  "qty_per_robot": 1,
+  "amazon": {
+   "title": "Amazon search: MX1508 dual motor driver module",
+   "asin": null,
+   "url": "https://www.amazon.com/s?k=MX1508+dual+motor+driver+module",
+   "pack_qty": 5,
+   "price_usd": 7.99,
+   "unit_usd": 1.598,
+   "confirmed": false,
+   "notes": "Small red or blue board, 2 to 10 V, no enable pins: two inputs per motor.",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=MX1508+dual+motor+driver+module"
+  },
+  "alt": null,
+  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. Datasheet: 2 to 9.6 V; one channel is rated 1.5 A continuous (2 A peak), the other only 0.8 A continuous (1.5 A peak). Most modules do not say which is which, so watch for one side running hot."
+ },
+ {
+  "id": 4,
+  "name": "TT gearmotor 1:48, straight shaft, 3-6 V",
+  "qty_per_robot": 2,
+  "amazon": {
+   "title": "Amazon search: TT gear motor 1:48 3-6V dual shaft with 65mm wheels 4 sets",
+   "asin": null,
+   "url": "https://www.amazon.com/s?k=TT+gear+motor+1%3A48+3-6V+dual+shaft+with+65mm+wheels+4+sets",
+   "pack_qty": 4,
+   "price_usd": 11.99,
+   "unit_usd": 2.9975,
+   "confirmed": false,
+   "notes": "Usually sold as sets with a 65 mm wheel each. Straight shaft, 1:48, yellow gearbox.",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=TT+gear+motor+1%3A48+3-6V+dual+shaft+with+65mm+wheels+4+sets"
+  },
+  "alt": {
+   "vendor": "Adafruit",
+   "title": "DC Gearbox Motor \"TT Motor\" 200RPM 3 to 6VDC (product 3777)",
+   "asin": null,
+   "url": "https://www.adafruit.com/product/3777",
+   "pack_qty": 1,
+   "price_usd": 2.95,
+   "unit_usd": 2.95,
+   "confirmed": true,
+   "ship_days": null,
+   "notes": "1:48. Datasheet: no load 120 RPM / 150 mA at 3 V, 185 RPM / 155 mA at 4.5 V, 250 RPM / 160 mA at 6 V; stall 1.1 A at 3 V, 1.2 A at 4.5 V, 1.5 A at 6 V. $2.66 each at 10+."
+  },
+  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. Straight-shaft 1:48 TT motor, the common yellow one. Both clamp through the core on two M3 x 70 screws."
+ },
+ {
+  "id": 5,
+  "name": "65 mm TT wheel with rubber tyre",
+  "qty_per_robot": 2,
+  "amazon": {
+   "title": "Amazon search: 65mm TT motor wheel rubber tire 4 pcs",
+   "asin": null,
+   "url": "https://www.amazon.com/s?k=65mm+TT+motor+wheel+rubber+tire+4+pcs",
+   "pack_qty": 4,
+   "price_usd": 7.99,
+   "unit_usd": 1.9975,
+   "confirmed": false,
+   "notes": "Often bundled with the motors; you only need these if your motors came without wheels.",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=65mm+TT+motor+wheel+rubber+tire+4+pcs"
+  },
+  "alt": {
+   "vendor": "Adafruit",
+   "title": "Orange and Clear TT Motor Wheel (product 3766)",
+   "asin": null,
+   "url": "https://www.adafruit.com/product/3766",
+   "pack_qty": 1,
+   "price_usd": 1.5,
+   "unit_usd": 1.5,
+   "confirmed": true,
+   "ship_days": null,
+   "notes": "Fits the TT D-shaft. Adafruit also sells a thin white 65 mm wheel (product 3763) at the same price."
+  },
+  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. Often comes with the motors. Check the tyre grips: a hard plastic tyre slips on a smooth floor."
+ },
+ {
+  "id": 6,
+  "name": "SG-90 micro servo, 180 deg",
+  "qty_per_robot": 2,
+  "amazon": {
+   "title": "Amazon search: SG90 micro servo 180 degree 4 pack",
+   "asin": null,
+   "url": "https://www.amazon.com/s?k=SG90+micro+servo+180+degree+4+pack",
+   "pack_qty": 4,
+   "price_usd": 9.99,
+   "unit_usd": 2.4975,
+   "confirmed": false,
+   "notes": "Must say 180 degrees, not 360 or continuous rotation.",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=SG90+micro+servo+180+degree+4+pack"
+  },
+  "alt": {
+   "vendor": "Adafruit",
+   "title": "Micro servo (product 169, TowerPro SG92R)",
+   "asin": null,
+   "url": "https://www.adafruit.com/product/169",
+   "pack_qty": 1,
+   "price_usd": 5.95,
+   "unit_usd": 5.95,
+   "confirmed": true,
+   "ship_days": null,
+   "notes": "SG92R, a slightly stronger SG-90: 0.1 s/60 deg at 4.8 V, 2.5 kg-cm. Out of stock when checked."
+  },
+  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. One moves the tail, one pans the head. About 0.1 s/60 deg at 4.8 V and roughly 550-650 mA stall (reseller sheets, estimate)."
+ },
+ {
+  "id": 7,
+  "name": "MG90S metal-gear micro servo, 180 deg",
+  "qty_per_robot": 2,
+  "amazon": {
+   "title": "Miuzei MG90S 9G Micro Servo Motor Metal Gear (2)",
+   "asin": "B0BWJ41FZB",
+   "url": "https://www.amazon.com/dp/B0BWJ41FZB",
+   "pack_qty": 2,
+   "price_usd": 9.99,
+   "unit_usd": 4.995,
+   "confirmed": false,
+   "notes": "Metal gear, 180 deg, about 2.0 kg-cm at 6 V (listing). Skip any listing that says 360 deg or continuous.",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=MG90S+metal+gear+micro+servo+180+degree+2+pack"
+  },
+  "alt": {
+   "vendor": "Waveshare",
+   "title": "MG90S Micro Servo, Metal Gear (180 deg)",
+   "asin": null,
+   "url": "https://www.waveshare.com/MG90S-Servo.htm",
+   "pack_qty": 1,
+   "price_usd": 2.59,
+   "unit_usd": 2.59,
+   "confirmed": true,
+   "ship_days": null,
+   "notes": "180 deg. Listed at $2.59, with $2.15 each at 10-49. Ships from China."
+  },
+  "alt2": {
+   "vendor": "Adafruit",
+   "title": "Micro Servo MG90D High Torque Metal Gear (product 1143)",
+   "asin": null,
+   "url": "https://www.adafruit.com/product/1143",
+   "pack_qty": 1,
+   "price_usd": 9.95,
+   "unit_usd": 9.95,
+   "confirmed": true,
+   "ship_days": null,
+   "notes": "MG90D, a close cousin of the MG90S with the same body size. More trustworthy, about four times the price."
+  },
+  "build_note": "BUY. Same body as the SG-90, so it drops straight into the tail mount if the tail SG-90 strips its plastic gears. Two: one spare."
+ },
+ {
+  "id": 8,
+  "name": "TCRT5000 IR reflective sensor module (LM393, digital out)",
+  "qty_per_robot": 2,
+  "amazon": {
+   "title": "Amazon search: TCRT5000 IR line tracking sensor module LM393 10 pcs",
+   "asin": null,
+   "url": "https://www.amazon.com/s?k=TCRT5000+IR+line+tracking+sensor+module+LM393+10+pcs",
+   "pack_qty": 10,
+   "price_usd": 7.99,
+   "unit_usd": 0.799,
+   "confirmed": false,
+   "notes": "The module with a blue trim pot and an LM393 comparator, 3.3-5 V, digital DO pin.",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=TCRT5000+IR+line+tracking+sensor+module+LM393+10+pcs"
+  },
+  "alt": {
+   "vendor": "Adafruit",
+   "title": "Reflective Infrared IR Optical Sensor with 470 and 10K resistors (product 2349)",
+   "asin": null,
+   "url": "https://www.adafruit.com/product/2349",
+   "pack_qty": 1,
+   "price_usd": 1.95,
+   "unit_usd": 1.95,
+   "confirmed": true,
+   "ship_days": null,
+   "notes": "Bare TCRT5000-style sensor plus resistors, no comparator board. Only if you are happy to build the circuit."
+  },
+  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. Wheel speed sensing, one per wheel. Power it from 3.3 V so its output is safe for the ESP32 pins."
+ },
+ {
+  "id": 9,
+  "name": "Mini360 adjustable buck converter (MP2307)",
+  "qty_per_robot": 2,
+  "amazon": {
+   "title": "Amazon search: Mini360 DC-DC buck converter adjustable 10 pcs",
+   "asin": null,
+   "url": "https://www.amazon.com/s?k=Mini360+DC-DC+buck+converter+adjustable+10+pcs",
+   "pack_qty": 10,
+   "price_usd": 8.99,
+   "unit_usd": 0.899,
+   "confirmed": false,
+   "notes": "4.75-23 V in, adjustable out. 1.8 A continuous and 3 A surge per most listings; some call 1.2 A the comfortable figure.",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=Mini360+DC-DC+buck+converter+adjustable+10+pcs"
+  },
+  "alt": null,
+  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. Set each to 5.0 V with a meter BEFORE connecting anything. The trim pot is tiny and easy to knock; a dab of nail varnish holds it."
+ },
+ {
+  "id": 10,
+  "name": "ESP32-CAM with OV2640",
+  "qty_per_robot": 1,
+  "amazon": {
+   "title": "Amazon search: ESP32-CAM OV2640 camera module with USB programmer",
+   "asin": null,
+   "url": "https://www.amazon.com/s?k=ESP32-CAM+OV2640+camera+module+with+USB+programmer",
+   "pack_qty": 1,
+   "price_usd": 11.99,
+   "unit_usd": 11.99,
+   "confirmed": false,
+   "notes": "AI-Thinker style board with the OV2640 camera; a version with the USB programmer board (ESP32-CAM-MB) is easiest.",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=ESP32-CAM+OV2640+camera+module+with+USB+programmer"
+  },
+  "alt": null,
+  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. Stage 4 only. Expect about 180 mA at 5 V streaming with the flash off (AI-Thinker spec), with short Wi-Fi peaks above that."
+ },
+ {
+  "id": 11,
+  "name": "18650 Li-ion cell, genuine high-drain, flat top",
+  "qty_per_robot": 2,
+  "amazon": {
+   "title": "Amazon search: Molicel P28A 18650 (not recommended)",
+   "asin": null,
+   "url": "https://www.amazon.com/s?k=Molicel+P28A+18650",
+   "pack_qty": null,
+   "price_usd": null,
+   "unit_usd": null,
+   "confirmed": false,
+   "notes": "Do not buy cells on Amazon or eBay: many are counterfeit or rewrapped. Use a battery specialist (see the alternatives).",
+   "price_source": null,
+   "search_url": "https://www.amazon.com/s?k=Molicel+P28A+18650"
+  },
+  "alt": {
+   "vendor": "18650 Battery Store",
+   "title": "Molicel P28A 18650 2800mAh 35A, flat top",
+   "asin": null,
+   "url": "https://www.18650batterystore.com/products/molicel-p28a",
+   "pack_qty": 1,
+   "price_usd": 5.99,
+   "unit_usd": 5.99,
+   "confirmed": true,
+   "ship_days": null,
+   "notes": "$5.99 each, in stock when checked. Also $5.99 at imrbatteries.com. Very low internal resistance; 35 A continuous rating. Same shop: Samsung 30Q $6.99 and Sony/Murata VTC6 $7.99 (both 15 A)."
+  },
+  "alt2": {
+   "vendor": "18650 Battery Store",
+   "title": "Samsung 25R 18650 2500mAh 20A, flat top",
+   "asin": null,
+   "url": "https://www.18650batterystore.com/products/samsung-25r-18650",
+   "pack_qty": 1,
+   "price_usd": 4.99,
+   "unit_usd": 4.99,
+   "confirmed": true,
+   "ship_days": null,
+   "notes": "$4.99 each, in stock when checked. 20 A continuous; a little less capacity than the P28A."
+  },
+  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. Buy a matched pair of the same model, from a battery specialist, flat top. Unprotected cells are fine because the BMS (item 13) protects the pack. Never 'UltraFire', 'GTF' or '9900 mAh' cells."
+ },
+ {
+  "id": 12,
+  "name": "2 x 18650 holder, series (2S), with leads",
+  "qty_per_robot": 1,
+  "amazon": {
+   "title": "DC 7.4V 2 Slot 2 Series 18650 Battery Holder Box Case with 2 Leads and Spring (Pack of 4)",
+   "asin": "B09TTJVG8R",
+   "url": "https://www.amazon.com/dp/B09TTJVG8R",
+   "pack_qty": 4,
+   "price_usd": 6.99,
+   "unit_usd": 1.7475,
+   "confirmed": false,
+   "notes": "Two cells in series, two leads out. Check the size against 41 x 77.5 x 20.5 mm.",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=2+x+18650+battery+holder+series+7.4V+leads"
+  },
+  "alt": {
+   "vendor": "SparkFun",
+   "title": "Battery Holder 2x18650 (wire leads), PRT-12900",
+   "asin": null,
+   "url": "https://www.sparkfun.com/battery-holder-2x18650-wire-leads.html",
+   "pack_qty": 1,
+   "price_usd": 1.95,
+   "unit_usd": 1.95,
+   "confirmed": true,
+   "ship_days": null,
+   "notes": "74.5 x 40.8 x 17.7 mm, two 6 in leads. The page does not say series or parallel: measure about 7-8.4 V across the leads with cells fitted."
+  },
+  "build_note": "BUY. CAD assumes about 41 x 77.5 x 20.5 mm outside. The BMS also needs a wire to the middle of the pack (between the two cells): solder a thin wire to the metal strap that joins the cells, or pick a holder where that strap is reachable."
+ },
+ {
+  "id": 13,
+  "name": "2S Li-ion BMS with balancing, 7.4/8.4 V, 10 A",
+  "qty_per_robot": 1,
+  "amazon": {
+   "title": "Amazon search: 2S 10A BMS balance 18650 HX-2S-JH20",
+   "asin": null,
+   "url": "https://www.amazon.com/s?k=2S+10A+BMS+balance+18650+HX-2S-JH20",
+   "pack_qty": 5,
+   "price_usd": 7.99,
+   "unit_usd": 1.598,
+   "confirmed": false,
+   "notes": "Look for 'balance' in the title and a continuous rating of 5 A or more. Many cheap 2S boards have no balancing.",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=2S+10A+BMS+balance+18650+HX-2S-JH20"
+  },
+  "alt": {
+   "vendor": "ShillehTek",
+   "title": "HX-2S-JH20 2S 7.4V 18650 protection board 10A with balancer",
+   "asin": null,
+   "url": "https://shillehtek.com/products/hx-2s-jh20-2s-7-4v-18650-lithium-battery-protection-board-10a-with-balancer",
+   "pack_qty": 1,
+   "price_usd": 6.99,
+   "unit_usd": 6.99,
+   "confirmed": true,
+   "ship_days": null,
+   "notes": "10 A continuous, about 15 A for short bursts. Over-charge 4.25-4.35 V per cell, over-discharge 2.4-2.6 V per cell, passive balance about 40 mA. About 50 x 22 x 3.5 mm: bigger than the 30 x 16 mm CAD slot."
+  },
+  "build_note": "BUY. The robot pulls up to about 4.5 A for a second, so 10 A continuous gives plenty of margin. The balanced board is about 50 x 22 mm, larger than the 30 x 16 mm slot in the CAD, so the slot needs widening."
+ },
+ {
+  "id": 14,
+  "name": "Resettable PTC fuse, 3 A hold / 6 A trip, radial",
+  "qty_per_robot": 1,
+  "amazon": {
+   "title": "Amazon search: RUEF300 PTC resettable fuse 3A",
+   "asin": null,
+   "url": "https://www.amazon.com/s?k=RUEF300+PTC+resettable+fuse+3A",
+   "pack_qty": 10,
+   "price_usd": 5.99,
+   "unit_usd": 0.599,
+   "confirmed": false,
+   "notes": "Radial leaded polyfuse, 3 A hold, 6 A trip, 16 V or more.",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=RUEF300+PTC+resettable+fuse+3A"
+  },
+  "alt": {
+   "vendor": "DigiKey",
+   "title": "Littelfuse RUEF300 (3 A hold, 6 A trip, 30 V)",
+   "asin": null,
+   "url": "https://www.digikey.com/en/products/detail/littelfuse-inc/RUEF300/5015983",
+   "pack_qty": 1,
+   "price_usd": 0.62,
+   "unit_usd": 0.62,
+   "confirmed": true,
+   "ship_days": null,
+   "notes": "$0.62 each. Bourns MF-R300 is an equivalent. Plus DigiKey shipping."
+  },
+  "build_note": "BUY. In the battery red lead, after the BMS. Protects the wiring from a short."
+ },
+ {
+  "id": 15,
+  "name": "Power switch rated 3 A DC or more",
+  "qty_per_robot": 1,
+  "amazon": {
+   "title": "Amazon search: KCD11 mini rocker switch 10x15mm 3A 250V",
+   "asin": null,
+   "url": "https://www.amazon.com/s?k=KCD11+mini+rocker+switch+10x15mm+3A+250V",
+   "pack_qty": 10,
+   "price_usd": 6.99,
+   "unit_usd": 0.699,
+   "confirmed": false,
+   "notes": "KCD11 mini rocker, 2-pin on/off, 3 A 250 VAC / 6 A 125 VAC. Snaps into a 10 x 15 mm hole, body about 18 mm deep.",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=KCD11+mini+rocker+switch+10x15mm+3A+250V"
+  },
+  "alt": {
+   "vendor": "Pololu",
+   "title": "Mini MOSFET Slide Switch with Reverse Voltage Protection, LV (item 2810)",
+   "asin": null,
+   "url": "https://www.pololu.com/product/2810",
+   "pack_qty": 1,
+   "price_usd": 4.49,
+   "unit_usd": 4.49,
+   "confirmed": true,
+   "ship_days": null,
+   "notes": "A tiny slide switch drives a MOSFET: 1.8-16 V, 3 A continuous with only a 55 C rise (6 A max continuous, 12 A peak), plus reverse-battery protection. Board 15.2 x 15.2 mm, lever sticks out about 1 mm."
+  },
+  "build_note": "BUY. It carries all the motor current (3-4 A peaks, 1-1.5 A average). Tiny SS12D00 slide switches are rated only 0.3-0.5 A: do not use one. First choice is the Pololu MOSFET slide switch (15.2 x 15.2 mm); the KCD11 rocker (10 x 15 mm face, about 18 mm deep) also works."
+ },
+ {
+  "id": 16,
+  "name": "Low-ESR electrolytic capacitor 470 uF 16 V",
+  "qty_per_robot": 1,
+  "amazon": {
+   "title": "Amazon search: 470uF 16V low ESR electrolytic capacitor",
+   "asin": null,
+   "url": "https://www.amazon.com/s?k=470uF+16V+low+ESR+electrolytic+capacitor",
+   "pack_qty": 10,
+   "price_usd": 6.99,
+   "unit_usd": 0.699,
+   "confirmed": false,
+   "notes": "Radial, 16 V (10 V is also fine on a 5 V rail). About 8 mm diameter.",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=470uF+16V+low+ESR+electrolytic+capacitor"
+  },
+  "alt": null,
+  "build_note": "BUY. Across the servo 5 V rail, close to the servo plugs. Mind the polarity stripe (negative)."
+ },
+ {
+  "id": 17,
+  "name": "Resistor kit incl. 100k and 33k",
+  "qty_per_robot": 3,
+  "amazon": {
+   "title": "Aniann 1280pcs 64 values 1/4W 1% metal film resistor kit",
+   "asin": "B07L851T3V",
+   "url": "https://www.amazon.com/dp/B07L851T3V",
+   "pack_qty": 1280,
+   "price_usd": 9.99,
+   "unit_usd": 0.0078,
+   "confirmed": false,
+   "notes": "Includes 33k and 100k. Smaller kits may skip 33k; check the value table.",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=resistor+assortment+kit+1%2F4W+1%25+33k+100k"
+  },
+  "alt": {
+   "vendor": "DigiKey",
+   "title": "Yageo MFR-25FBF52-100K, 100 kOhm 1% 0.25 W (singles)",
+   "asin": null,
+   "url": "https://www.digikey.com/en/products/result?keywords=MFR-25FBF52-100K",
+   "pack_qty": 1,
+   "price_usd": 0.1,
+   "unit_usd": 0.1,
+   "confirmed": false,
+   "ship_days": null,
+   "notes": "Single resistors, about $0.10 each. Buy the 33k (MFR-25FBF52-33K) the same way. Plus shipping."
+  },
+  "build_note": "BUY if you have no kit. Uses three resistors: the battery divider (100k top, 33k bottom) and 100k pull-downs on the two IR inputs (the third 100k comes from the same kit)."
+ },
+ {
+  "id": 18,
+  "name": "Ceramic capacitor 100 nF",
+  "qty_per_robot": 1,
+  "amazon": {
+   "title": "Amazon search: 100nF ceramic capacitor 0.1uF",
+   "asin": null,
+   "url": "https://www.amazon.com/s?k=100nF+ceramic+capacitor+0.1uF",
+   "pack_qty": 50,
+   "price_usd": 4.99,
+   "unit_usd": 0.0998,
+   "confirmed": false,
+   "notes": "Marked 104.",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=100nF+ceramic+capacitor+0.1uF"
+  },
+  "alt": null,
+  "build_note": "BUY. Across the 33k divider resistor, to steady the battery reading."
+ },
+ {
+  "id": 19,
+  "name": "2S Li-ion charger 8.4 V 1 A, 5.5 x 2.1 mm plug",
+  "qty_per_robot": 1,
+  "amazon": {
+   "title": "iCreatin 8.4V 1A Li-ion Battery Charger with LED Indicator 2.1x5.5mm",
+   "asin": "B07N75MMG6",
+   "url": "https://www.amazon.com/dp/B07N75MMG6",
+   "pack_qty": 1,
+   "price_usd": 9.99,
+   "unit_usd": 9.99,
+   "confirmed": false,
+   "notes": "CC/CV with a red/green LED, 5.5 x 2.1 mm plug, centre positive (check).",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=8.4V+1A+lithium+charger+5.5x2.1mm"
+  },
+  "alt": null,
+  "build_note": "BUY if you don't have one. Must say 8.4 V (2S Li-ion), not 7.4 V or 9 V. Charges the pack through the BMS, which balances the cells near full."
+ },
+ {
+  "id": 20,
+  "name": "DC 5.5 x 2.1 mm female jack, pigtail",
+  "qty_per_robot": 1,
+  "amazon": {
+   "title": "Amazon search: DC 5.5x2.1mm female power jack pigtail cable 10 pcs",
+   "asin": null,
+   "url": "https://www.amazon.com/s?k=DC+5.5x2.1mm+female+power+jack+pigtail+cable+10+pcs",
+   "pack_qty": 10,
+   "price_usd": 6.99,
+   "unit_usd": 0.699,
+   "confirmed": false,
+   "notes": "Female socket with two short wires; the red one is usually centre positive, but check with a meter.",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=DC+5.5x2.1mm+female+power+jack+pigtail+cable+10+pcs"
+  },
+  "alt": {
+   "vendor": "SparkFun",
+   "title": "DC Barrel Jack Plug, Female (PRT-13126)",
+   "asin": null,
+   "url": "https://www.sparkfun.com/products/13126",
+   "pack_qty": 1,
+   "price_usd": 1.25,
+   "unit_usd": 1.25,
+   "confirmed": true,
+   "ship_days": null,
+   "notes": "Inline female barrel connector with solder terminals, fits 5.5 x 2.1 mm. Showed backorder when checked."
+  },
+  "build_note": "BUY. The charge jack, wired to the BMS P+ and P-."
+ },
+ {
+  "id": 21,
+  "name": "Smart charger for single cells (optional)",
+  "qty_per_robot": 0,
+  "amazon": {
+   "title": "Amazon search: XTAR VC2S charger",
+   "asin": null,
+   "url": "https://www.amazon.com/s?k=XTAR+VC2S+charger",
+   "pack_qty": 1,
+   "price_usd": 19.99,
+   "unit_usd": 19.99,
+   "confirmed": false,
+   "notes": "XTAR VC2S or Nitecore i2. Buy from a battery shop to avoid fakes.",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=XTAR+VC2S+charger"
+  },
+  "alt": {
+   "vendor": "IMR Batteries",
+   "title": "XTAR VC2S 2 Channel Digital Battery Charger",
+   "asin": null,
+   "url": "https://imrbatteries.com/products/xtar-vc2s-2-channel-digital-battery-charger",
+   "pack_qty": 1,
+   "price_usd": 14.99,
+   "unit_usd": 14.99,
+   "confirmed": true,
+   "ship_days": null,
+   "notes": "$14.99. 18650batterystore.com lists the VC2S at $14.99 and the Nitecore i2 at $9.99, both sold out when checked."
+  },
+  "build_note": "Optional, not in the total. For checking each cell's voltage and topping up a cell that has drifted out of balance."
+ },
+ {
+  "id": 22,
+  "name": "M3 x 70 mm socket head screw",
+  "qty_per_robot": 2,
+  "amazon": {
+   "title": "M3 Alloy Steel Hex Socket Head Cap Screws DIN912, M3 x 70 mm, pack of 50",
+   "asin": "B01EJ7POVY",
+   "url": "https://www.amazon.com/dp/B01EJ7POVY",
+   "pack_qty": 50,
+   "price_usd": 9.99,
+   "unit_usd": 0.1998,
+   "confirmed": false,
+   "notes": "Grade 12.9, partly threaded (about 19 mm of thread), which is fine for a clamp.",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=M3+x+70mm+socket+head+cap+screw"
+  },
+  "alt": null,
+  "build_note": "BUY. Clamps both motors through the core. An M3 threaded rod cut to length with two nuts also works."
+ },
+ {
+  "id": 23,
+  "name": "M3 screw and nut assortment kit (socket head)",
+  "qty_per_robot": 1,
+  "amazon": {
+   "title": "Amazon search: M3 socket head cap screw nut assortment kit",
+   "asin": null,
+   "url": "https://www.amazon.com/s?k=M3+socket+head+cap+screw+nut+assortment+kit",
+   "pack_qty": 1,
+   "price_usd": 11.99,
+   "unit_usd": 11.99,
+   "confirmed": false,
+   "notes": "Must include M3 x 8, M3 x 10 and nuts. Many kits also have M3 x 16.",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=M3+socket+head+cap+screw+nut+assortment+kit"
+  },
+  "alt": null,
+  "build_note": "BUY if you don't have one. One kit covers the M3 x 10 (4), M3 x 8 (2, IR module posts) and 6 nuts (4 captured, 2 for the M3 x 70 screws)."
+ },
+ {
+  "id": 24,
+  "name": "M3 shoulder screw, 4 mm shoulder x 8 mm long",
+  "qty_per_robot": 1,
+  "amazon": {
+   "title": "Amazon search: M3 shoulder screw 4mm x 8mm",
+   "asin": null,
+   "url": "https://www.amazon.com/s?k=M3+shoulder+screw+4mm+x+8mm",
+   "pack_qty": 10,
+   "price_usd": 8.99,
+   "unit_usd": 0.899,
+   "confirmed": false,
+   "notes": "Also sold as 'shoulder bolt', ISO 7379 / DIN 923 style. Check the shoulder is 4 mm across and 8 mm long.",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=M3+shoulder+screw+4mm+x+8mm"
+  },
+  "alt": {
+   "vendor": "Zoro",
+   "title": "Precision shoulder screw, M3-0.50 thread, 4 mm thread length, 8 mm shoulder length, 18-8 stainless",
+   "asin": null,
+   "url": "https://www.zoro.com/zoro-select-precision-shoulder-screw-m3-050-thr-sz-4-mm-thr-lg-8-mm-shoulder-lg-18-8-stainless-steel-msb1-4/i/G2504521/",
+   "pack_qty": null,
+   "price_usd": null,
+   "unit_usd": null,
+   "confirmed": false,
+   "ship_days": null,
+   "notes": "Price not checked (the page blocked the check). McMaster and Misumi sell the same thing as a 'metric shoulder screw, 4 mm shoulder diameter, 8 mm shoulder length, M3 thread'."
+  },
+  "build_note": "BUY. The tail pivot. Fallback: an M3 x 16 screw through a 4 mm brass spacer, 8 mm long."
+ },
+ {
+  "id": 25,
+  "name": "Zip ties 2.5 x 100 mm",
+  "qty_per_robot": 12,
+  "amazon": {
+   "title": "MACHEE 100 White Nylon Cable Zip Ties 2.5mm x 4in",
+   "asin": "B000RB2DRK",
+   "url": "https://www.amazon.com/dp/B000RB2DRK",
+   "pack_qty": 100,
+   "price_usd": 4.99,
+   "unit_usd": 0.0499,
+   "confirmed": false,
+   "notes": "2.5 mm wide, about 100 mm long.",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=zip+ties+2.5+x+100mm"
+  },
+  "alt": null,
+  "build_note": "BUY if you have none. Wiring and servo leads."
+ },
+ {
+  "id": 26,
+  "name": "22 AWG silicone wire, red and black",
+  "qty_per_robot": 0.6,
+  "amazon": {
+   "title": "Amazon search: 22 AWG silicone wire red black",
+   "asin": null,
+   "url": "https://www.amazon.com/s?k=22+AWG+silicone+wire+red+black",
+   "pack_qty": 6,
+   "price_usd": 7.99,
+   "unit_usd": 1.3317,
+   "confirmed": false,
+   "notes": "Usually two 3 m or 5 m spools; priced here per metre.",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=22+AWG+silicone+wire+red+black"
+  },
+  "alt": {
+   "vendor": "Adafruit",
+   "title": "Stranded-Core Wire Spool 25 ft 22 AWG, red (product 3068)",
+   "asin": null,
+   "url": "https://www.adafruit.com/product/3068",
+   "pack_qty": 7.62,
+   "price_usd": 2.95,
+   "unit_usd": 0.3871,
+   "confirmed": true,
+   "ship_days": null,
+   "notes": "PVC, not silicone, so stiffer. $2.95 per 7.62 m; black is product 2976. pack_qty and unit_usd are in metres."
+  },
+  "build_note": "BUY. Battery, BMS, switch, motor and buck input wiring. Unit is metres."
+ },
+ {
+  "id": 27,
+  "name": "26 AWG silicone hookup wire, assorted colours",
+  "qty_per_robot": 1.5,
+  "amazon": {
+   "title": "Amazon search: 26 AWG silicone wire kit 6 colors",
+   "asin": null,
+   "url": "https://www.amazon.com/s?k=26+AWG+silicone+wire+kit+6+colors",
+   "pack_qty": 60,
+   "price_usd": 13.99,
+   "unit_usd": 0.2332,
+   "confirmed": false,
+   "notes": "Six colours, about 10 m each; priced per metre.",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=26+AWG+silicone+wire+kit+6+colors"
+  },
+  "alt": {
+   "vendor": "Adafruit",
+   "title": "Silicone Cover Stranded-Core Wire 25 ft 26 AWG, black (product 2517)",
+   "asin": null,
+   "url": "https://www.adafruit.com/product/2517",
+   "pack_qty": 7.62,
+   "price_usd": 4.95,
+   "unit_usd": 0.6496,
+   "confirmed": true,
+   "ship_days": null,
+   "notes": "One colour per spool, $4.95 per 7.62 m. pack_qty and unit_usd are in metres."
+  },
+  "build_note": "BUY. Signal wires (IMU, IR sensors, servo signals). Unit is metres."
+ },
+ {
+  "id": 28,
+  "name": "Dupont jumper wires female-female 10 cm",
+  "qty_per_robot": 16,
+  "amazon": {
+   "title": "Amazon search: dupont jumper wires female to female 10cm 40 pin",
+   "asin": null,
+   "url": "https://www.amazon.com/s?k=dupont+jumper+wires+female+to+female+10cm+40+pin",
+   "pack_qty": 40,
+   "price_usd": 5.99,
+   "unit_usd": 0.1497,
+   "confirmed": false,
+   "notes": "10 cm, female both ends.",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=dupont+jumper+wires+female+to+female+10cm+40+pin"
+  },
+  "alt": {
+   "vendor": "Adafruit",
+   "title": "Premium Female/Female Jumper Wires 20 x 6 in (150 mm) (product 1950)",
+   "asin": null,
+   "url": "https://www.adafruit.com/product/1950",
+   "pack_qty": 20,
+   "price_usd": 1.95,
+   "unit_usd": 0.0975,
+   "confirmed": true,
+   "ship_days": null,
+   "notes": "150 mm, a bit longer than needed. A 20 x 3 in (75 mm) pack is product 1951, also $1.95."
+  },
+  "build_note": "BUY. Push onto the ESP32 header pins."
+ },
+ {
+  "id": 29,
+  "name": "JST-XH 2.5 mm 2-pin connector pair",
+  "qty_per_robot": 2,
+  "amazon": {
+   "title": "Amazon search: JST XH 2 pin connector male female pre-crimped wires",
+   "asin": null,
+   "url": "https://www.amazon.com/s?k=JST+XH+2+pin+connector+male+female+pre-crimped+wires",
+   "pack_qty": 10,
+   "price_usd": 7.99,
+   "unit_usd": 0.799,
+   "confirmed": false,
+   "notes": "Pre-wired plug and socket pairs save buying a crimp tool.",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=JST+XH+2+pin+connector+male+female+pre-crimped+wires"
+  },
+  "alt": {
+   "vendor": "Adafruit",
+   "title": "2.5mm Pitch 2-pin Cable Matching Pair, JST XH compatible (product 4872)",
+   "asin": null,
+   "url": "https://www.adafruit.com/product/4872",
+   "pack_qty": 1,
+   "price_usd": 0.95,
+   "unit_usd": 0.95,
+   "confirmed": true,
+   "ship_days": null,
+   "notes": "$0.95 per pair, wires already fitted."
+  },
+  "build_note": "BUY. On the motor leads so the motors unplug."
+ },
+ {
+  "id": 30,
+  "name": "Male pin header 2.54 mm 40-pin",
+  "qty_per_robot": 1,
+  "amazon": {
+   "title": "20 PCS male header pins 2.54mm 40 pin breakaway",
+   "asin": "B0H93YS1W9",
+   "url": "https://www.amazon.com/dp/B0H93YS1W9",
+   "pack_qty": 20,
+   "price_usd": 6.99,
+   "unit_usd": 0.3495,
+   "confirmed": false,
+   "notes": "2.54 mm breakaway.",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=male+pin+header+2.54mm+40+pin"
+  },
+  "alt": {
+   "vendor": "Adafruit",
+   "title": "Break-away 0.1 in 36-pin strip male header, rainbow, 10 pack (product 4154)",
+   "asin": null,
+   "url": "https://www.adafruit.com/product/4154",
+   "pack_qty": 10,
+   "price_usd": 4.95,
+   "unit_usd": 0.495,
+   "confirmed": true,
+   "ship_days": null,
+   "notes": "36 pins per strip; plenty."
+  },
+  "build_note": "BUY. Servo rail: two 3-pin servo plugs on a scrap of perfboard."
+ },
+ {
+  "id": 31,
+  "name": "Small perfboard (about 2 x 8 or 3 x 7 cm)",
+  "qty_per_robot": 1,
+  "amazon": {
+   "title": "Amazon search: perfboard prototype PCB 2x8cm 3x7cm",
+   "asin": null,
+   "url": "https://www.amazon.com/s?k=perfboard+prototype+PCB+2x8cm+3x7cm",
+   "pack_qty": 20,
+   "price_usd": 7.99,
+   "unit_usd": 0.3995,
+   "confirmed": false,
+   "notes": "Single or double sided; small sizes come in mixed packs.",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=perfboard+prototype+PCB+2x8cm+3x7cm"
+  },
+  "alt": {
+   "vendor": "Adafruit",
+   "title": "Universal Proto-board PCBs 4 x 6 cm, 3 pack (product 4785)",
+   "asin": null,
+   "url": "https://www.adafruit.com/product/4785",
+   "pack_qty": 3,
+   "price_usd": 2.5,
+   "unit_usd": 0.8333,
+   "confirmed": true,
+   "ship_days": null,
+   "notes": "Larger than needed: cut one down with a knife and ruler."
+  },
+  "build_note": "BUY. Servo rail distribution, the battery divider and the IR pull-downs."
+ },
+ {
+  "id": 32,
+  "name": "Heat-shrink tubing assortment",
+  "qty_per_robot": 1,
+  "amazon": {
+   "title": "Amazon search: heat shrink tubing assortment kit",
+   "asin": null,
+   "url": "https://www.amazon.com/s?k=heat+shrink+tubing+assortment+kit",
+   "pack_qty": 1,
+   "price_usd": 7.99,
+   "unit_usd": 7.99,
+   "confirmed": false,
+   "notes": "Mixed sizes; a 2:1 kit is fine.",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=heat+shrink+tubing+assortment+kit"
+  },
+  "alt": {
+   "vendor": "Adafruit",
+   "title": "Pre-Cut Multi-Colored Heat Shrink Pack Kit, 280 pcs (product 4559)",
+   "asin": null,
+   "url": "https://www.adafruit.com/product/4559",
+   "pack_qty": 1,
+   "price_usd": 9.95,
+   "unit_usd": 9.95,
+   "confirmed": true,
+   "ship_days": null,
+   "notes": "Pre-cut lengths."
+  },
+  "build_note": "BUY if you have none. Consumable: one kit lasts many robots."
+ },
+ {
+  "id": 33,
+  "name": "PLA filament 1 kg 1.75 mm",
+  "qty_per_robot": 0.092,
+  "amazon": {
+   "title": "Amazon search: PLA filament 1.75mm 1kg",
+   "asin": null,
+   "url": "https://www.amazon.com/s?k=PLA+filament+1.75mm+1kg",
+   "pack_qty": 1,
+   "price_usd": 15.99,
+   "unit_usd": 15.99,
+   "confirmed": false,
+   "notes": "Any brand; about 92 g per robot.",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=PLA+filament+1.75mm+1kg"
+  },
+  "alt": null,
+  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. About 92 g for the body. Unit is kg."
+ },
+ {
+  "id": 34,
+  "name": "ABS filament 1 kg 1.75 mm",
+  "qty_per_robot": 0.01,
+  "amazon": {
+   "title": "Amazon search: ABS filament 1.75mm 1kg",
+   "asin": null,
+   "url": "https://www.amazon.com/s?k=ABS+filament+1.75mm+1kg",
+   "pack_qty": 1,
+   "price_usd": 17.99,
+   "unit_usd": 17.99,
+   "confirmed": false,
+   "notes": "About 10 g per robot.",
+   "price_source": "typical pack price",
+   "search_url": "https://www.amazon.com/s?k=ABS+filament+1.75mm+1kg"
+  },
+  "alt": null,
+  "build_note": "Often already in a robotics parts drawer; buy if you don't have them. About 10 g for the tail: ABS flexes where PLA would snap. Unit is kg."
+ }
+]

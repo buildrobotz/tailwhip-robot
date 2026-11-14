@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Build plan · Tailwhip robot</title>
+<meta name="description" content="From ordering parts to a robot that rears up on its own: seven milestones, each with a test that tells you it worked.">
+<meta property="og:title" content="Build plan"><meta property="og:description" content="From ordering parts to a robot that rears up on its own: seven milestones, each with a test that tells you it worked.">
+<meta property="og:image" content="https://tailwhip.buildrobotz.com/assets/cad_render_upright.jpg">
+<link rel="icon" href="data:,"><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/style.css"></head>
+<body>
+<div class="crumb"><div class="wrap"><a href="https://buildrobotz.com/">BuildRobotz</a><span aria-hidden="true">/</span><a href="https://buildrobotz.com/robots/">Robots</a><span aria-hidden="true">/</span><span>Tailwhip</span></div></div>
+<header class="top"><div class="wrap"><a class="brand" href="index.html">Tailwhip<span>.</span></a><nav aria-label="Project pages"><a href="index.html">Overview</a><a href="build.html" aria-current="page">Build plan</a><a href="parts.html">Parts</a><a href="mechanical.html">Mechanical</a><a href="electronics.html">Electronics</a><a href="software.html">Software</a><a href="learning.html">Simulation and RL</a><a href="course.html">Learning path</a><a href="risks.html">Limits</a></nav></div></header>
+<div class="wrap"><main>
+<header><div class="eyebrow">BuildRobotz project · Build plan</div><h1>Build plan</h1><p class="lede">From ordering parts to a robot that rears up on its own: seven milestones, each with a test that tells you it worked.</p></header>
+<details class="toc"><summary>On this page</summary><ol><li><a href="#milestone-0-order-measure-print-bench-test">Milestone 0: order, measure, print, bench test</a></li><li><a href="#milestone-1-drives-on-its-tail">Milestone 1: drives on its tail</a></li><li><a href="#milestone-2-pid-balance">Milestone 2: PID balance</a></li><li><a href="#milestone-3-policy-in-simulation">Milestone 3: policy in simulation</a></li><li><a href="#milestone-4-policy-on-the-robot">Milestone 4: policy on the robot</a></li><li><a href="#milestone-5-policy-on-board">Milestone 5: policy on board</a></li><li><a href="#milestone-6-head">Milestone 6: head</a></li></ol></details><div class="note"><b>Read this first: AI-generated, not yet built</b>This design, its code and these pages were generated with AI, and nobody has built or tested a physical Tailwhip yet. The CAD, simulator, trained policy, firmware and print files are complete and checked numerically, and every performance number here comes from simulation. Treat it as a well-worked starting point: measure the parts the pages tell you to, check each step as you go, expect to fix things, and build at your own risk, especially around the 18650 cells. The <a href="risks.html">Limits</a> page lists what to measure and watch.</div><section class="prose"><p>Seven milestones, in order. Each ends with a test; don't move on until it passes. Times are estimates for
+someone who has soldered and 3D printed before.</p>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>#</th>
+<th>Milestone</th>
+<th>Time</th>
+<th>Passes when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="#">0</td>
+<td data-label="Milestone">Order, measure, print, bench test</td>
+<td data-label="Time">1-2 weeks of waiting, 2 evenings of work</td>
+<td data-label="Passes when">Every sensor and actuator works from the laptop; the bench measurements are in <code>host/measurements.json</code></td>
+</tr>
+<tr>
+<td data-label="#">1</td>
+<td data-label="Milestone">Drives on its tail</td>
+<td data-label="Time">1 evening</td>
+<td data-label="Passes when">Driven by keyboard while resting on its tail, 2 m forward and back, turns both ways</td>
+</tr>
+<tr>
+<td data-label="#">2</td>
+<td data-label="Milestone">PID balance</td>
+<td data-label="Time">1-2 evenings</td>
+<td data-label="Passes when">Placed upright by hand, it balances for 60 s and drifts less than 1 m</td>
+</tr>
+<tr>
+<td data-label="#">3</td>
+<td data-label="Milestone">Policy in simulation</td>
+<td data-label="Time">1 hour (mostly waiting)</td>
+<td data-label="Passes when">The policy you trained rears up, balances and survives shoves across the randomised robots</td>
+</tr>
+<tr>
+<td data-label="#">4</td>
+<td data-label="Milestone">Policy on the robot</td>
+<td data-label="Time">1-3 evenings</td>
+<td data-label="Passes when">It rears up by itself 8 times in 10, balances 60 s, and survives a shove that knocks the PID over</td>
+</tr>
+<tr>
+<td data-label="#">5</td>
+<td data-label="Milestone">Policy on board</td>
+<td data-label="Time">1 evening</td>
+<td data-label="Passes when">The same, with the laptop unplugged</td>
+</tr>
+<tr>
+<td data-label="#">6</td>
+<td data-label="Milestone">Head</td>
+<td data-label="Time">1 evening</td>
+<td data-label="Passes when">The ESP32-CAM streams video while it balances, and turning the head doesn't upset it</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="milestone-0-order-measure-print-bench-test">Milestone 0: order, measure, print, bench test</h2>
+<ol>
+<li><strong>Order the parts</strong> on the <a href="parts.html">Parts</a> page. If you don't have them already: TT motors with wheels,
+   SG-90s (or MG90S), an MPU6050, two ESP32 dev boards, an MX1508, two Mini360 bucks, a 2S protection board,
+   a 2 x 18650 holder, and two <strong>good</strong> 18650 cells.</li>
+<li><strong>Install the software.</strong> Arduino IDE with the ESP32 core, and Python 3.10+:
+   <code>bash
+   python -m venv ~/.venvs/tailwhip
+   ~/.venvs/tailwhip/bin/pip install mujoco gymnasium stable-baselines3 numpy manifold3d trimesh pyserial</code></li>
+<li><strong>Train the policy now</strong>, while you wait for parts (milestone 3 below). It takes about an hour on a laptop and
+   you'll want it later.</li>
+<li><strong>Measure before you print.</strong> Calipers on one TT motor and one wheel: the five numbers listed under "Before you
+   print" on the <a href="mechanical.html">Mechanical</a> page. Edit them in <code>cad/tailwhip.py</code> and run
+   <code>python cad/analysis.py &amp;&amp; python cad/export.py</code>. Every check in <code>cad/out/analysis.md</code> should still say PASS.</li>
+<li><strong>Print <code>core_left</code> first</strong> and check that a TT motor sits on its bosses with the bolt holes lined up. Then
+   print the rest (print settings on the <a href="mechanical.html">Mechanical</a> page). The tail is ABS.</li>
+<li><strong>Build the power system on the bench, without the robot</strong>: cells, holder, protection board, fuse, switch, the
+   two Mini360s set to 5.0 V with a meter <strong>before</strong> anything is connected to them. The
+   <a href="electronics.html">Electronics</a> page walks through it with a meter check at every step.</li>
+<li><strong>Flash both ESP32s</strong> (robot and bridge) and run <code>firmware/i2c_scan</code> first to see the MPU6050 at 0x68.</li>
+<li><strong>Assemble</strong> the robot (Mechanical page, Assembly), wire it (Electronics page, wiring table).</li>
+<li><strong>Bench test from the laptop</strong>: <code>python host/bench.py PORT ...</code> has one subcommand per actuator and sensor and
+   one per measurement. Run them all; they write <code>host/measurements.json</code>, which the simulator reads.</li>
+</ol>
+<p><strong>Check:</strong> both wheels spin both ways, the tail and head sweep, the IMU pitch follows your hand, the IR sensors
+count edges when you turn the wheels, the battery voltage reads within 0.1 V of your meter, and
+<code>measurements.json</code> has no empty fields.</p>
+<h2 id="milestone-1-drives-on-its-tail">Milestone 1: drives on its tail</h2>
+<p>Set it down on its tail and run <code>python host/drive.py PORT</code>. Arrow keys drive; the tail stays at the rest angle.</p>
+<p><strong>Check:</strong> 2 m forward and back and turns both ways without tipping. If it pulls to one side, the motors differ:
+note it, the simulator randomises motor strength by 25 % for exactly this reason.</p>
+<h2 id="milestone-2-pid-balance">Milestone 2: PID balance</h2>
+<p>Switch to <code>pid</code> mode and hold the robot upright, then let go. Start from the gains in <code>docs/software.md</code> and tune
+them in the order given there.</p>
+<p><strong>Check:</strong> 60 s upright, less than 1 m of drift with the wheel sensors plugged in. Then unplug the IR sensors and
+check it still balances (it will drift more). This is the baseline the policy has to beat.</p>
+<h2 id="milestone-3-policy-in-simulation">Milestone 3: policy in simulation</h2>
+<pre><code class="language-bash">python sim/train.py               # about 45 minutes on a 10-core laptop; tensorboard --logdir sim/runs to watch
+python sim/evaluate.py            # scores it over 50 randomised robots per test
+python sim/demo.py                # films the whole act to sim/out/demo.mp4
+</code></pre>
+<p>If you ran the bench measurements first, the simulator's nominal robot is your robot.</p>
+<p><strong>Check:</strong> <code>evaluate.py</code> rears up and balances in nearly every randomised robot, and the demo video looks like the
+one on the <a href="index.html">Overview</a>. The <a href="learning.html">Simulation and RL</a> page has the numbers to compare against.</p>
+<h2 id="milestone-4-policy-on-the-robot">Milestone 4: policy on the robot</h2>
+<pre><code class="language-bash">python host/run_policy.py PORT                       # policy runs on the laptop, robot in 'remote' mode
+</code></pre>
+<p>Start with the robot on its tail and give the <code>stand</code> command. Keep a hand near it the first few times.</p>
+<p><strong>Check:</strong> rears up by itself 8 times in 10, balances 60 s, and survives a shove (a push on the battery sleeve) that
+makes the PID version fall. If it twitches or rocks where the simulator was calm, measure the radio delay and the
+backlash again, update <code>measurements.json</code>, retrain from the current policy with
+<code>python sim/train.py --init sim/policies/tailwhip.zip --steps 5000000</code> and try again. That loop is the core of
+sim-to-real.</p>
+<h2 id="milestone-5-policy-on-board">Milestone 5: policy on board</h2>
+<pre><code class="language-bash">python sim/export_policy.py       # writes firmware/tailwhip_robot/policy.h (about 30 KB of flash)
+</code></pre>
+<p>Reflash the robot, unplug the laptop, and switch to <code>onboard</code> mode with the switch sequence in <code>docs/software.md</code>.</p>
+<p><strong>Check:</strong> the same as milestone 4, with no laptop.</p>
+<h2 id="milestone-6-head">Milestone 6: head</h2>
+<p>Fit the ESP32-CAM in the head (its own 5 V, from the logic buck, or a third Mini360 if it browns out) and flash
+the stock camera web server example. Pan the head with the <code>head</code> command while it balances.</p>
+<p><strong>Check:</strong> video streams while it balances, and a full pan doesn't knock it over.</p></section>
+<div class="pager"><a href="index.html">&larr; Overview</a><a href="parts.html">Parts &rarr;</a></div>
+</main></div>
+<footer><div class="wrap">Tailwhip is an open robot project from <a href="https://buildrobotz.com/">BuildRobotz</a>. The design was generated with AI and has not yet been built or tested on hardware; performance figures are MuJoCo simulation results. Build at your own risk. Code, CAD and firmware: <a href="https://github.com/buildrobotz/tailwhip-robot">github.com/buildrobotz/tailwhip-robot</a> (code MIT, docs and CAD CC BY-SA 4.0).<br>
+<a href="https://buildrobotz.com/robots/">More robots to build</a> · <a href="https://ouro.buildrobotz.com/">Ouro, its sister project</a> · <a href="https://buildrobotz.com/">Learn robotics with BuildRobotz</a></div></footer>
+<script>(function(){var a=document.querySelector('nav [aria-current]');if(a&&a.parentNode.scrollWidth>a.parentNode.clientWidth)a.parentNode.scrollLeft=a.offsetLeft-a.parentNode.clientWidth/2+a.offsetWidth/2;
+function op(){var t=location.hash&&document.getElementById(decodeURIComponent(location.hash.slice(1)));for(var e=t;e;e=e.parentElement)if(e.tagName==='DETAILS')e.open=true;if(t)t.scrollIntoView();}
+addEventListener('hashchange',op);op();})();</script>
+
+</body></html>

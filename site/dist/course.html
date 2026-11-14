@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Learning path · Tailwhip robot</title>
+<meta name="description" content="One-hour sessions from the simulator to a robot that gets back up. One thing to do, one thing to learn and one check in each.">
+<meta property="og:title" content="Learning path"><meta property="og:description" content="One-hour sessions from the simulator to a robot that gets back up. One thing to do, one thing to learn and one check in each.">
+<meta property="og:image" content="https://tailwhip.buildrobotz.com/assets/cad_render_upright.jpg">
+<link rel="icon" href="data:,"><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/style.css"></head>
+<body>
+<div class="crumb"><div class="wrap"><a href="https://buildrobotz.com/">BuildRobotz</a><span aria-hidden="true">/</span><a href="https://buildrobotz.com/robots/">Robots</a><span aria-hidden="true">/</span><span>Tailwhip</span></div></div>
+<header class="top"><div class="wrap"><a class="brand" href="index.html">Tailwhip<span>.</span></a><nav aria-label="Project pages"><a href="index.html">Overview</a><a href="build.html">Build plan</a><a href="parts.html">Parts</a><a href="mechanical.html">Mechanical</a><a href="electronics.html">Electronics</a><a href="software.html">Software</a><a href="learning.html">Simulation and RL</a><a href="course.html" aria-current="page">Learning path</a><a href="risks.html">Limits</a></nav></div></header>
+<div class="wrap"><main>
+<header><div class="eyebrow">BuildRobotz project · Learning path</div><h1>Learning path</h1><p class="lede">One-hour sessions from the simulator to a robot that gets back up. One thing to do, one thing to learn and one check in each.</p></header>
+<section class="prose"><p>Twelve sessions of about an hour each. The first five need no hardware, so you can do them while the parts are
+in the post. Each has one thing to do, one idea to learn, and one check so you know it worked.</p>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>#</th>
+<th>Do</th>
+<th>Learn</th>
+<th>Check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="#">1</td>
+<td data-label="Do">Run <code>python sim/test_falls.py</code> and <code>python sim/demo.py</code>, watch the video</td>
+<td data-label="Learn">What the robot is supposed to do; how a MuJoCo model is laid out (bodies, joints, actuators, contacts)</td>
+<td data-label="Check">You can point at the line in <code>sim/tailwhip.xml</code> for the tail joint, the leaf spring and the backlash joint</td>
+</tr>
+<tr>
+<td data-label="#">2</td>
+<td data-label="Do">Open <code>cad/tailwhip.py</code>, change <code>TAIL_PIVOT</code>, rerun <code>cad/analysis.py</code></td>
+<td data-label="Learn">Why the tail pivot sits high and back: torque = force x lever, and the lever that matters is about the pivot</td>
+<td data-label="Check">You can explain why moving the pivot to the axle roughly doubles the servo torque in section 4 of <code>analysis.md</code></td>
+</tr>
+<tr>
+<td data-label="#">3</td>
+<td data-label="Do">In <code>sim/test_falls.py</code>, run the stowed-tail case, then add your own cases (tail angle, shove strength)</td>
+<td data-label="Learn">Static versus dynamic checks: why a bumper under the centre of mass doesn't stop a fall</td>
+<td data-label="Check">You can say in one sentence why the feet are 86 mm long</td>
+</tr>
+<tr>
+<td data-label="#">4</td>
+<td data-label="Do">Read <code>sim/tailwhip_env.py</code> from the top; print one observation</td>
+<td data-label="Learn">What the policy sees: 13 numbers per step, 4 steps stacked, wheel speeds signed from the command</td>
+<td data-label="Check">You can name every one of the 52 inputs</td>
+</tr>
+<tr>
+<td data-label="#">5</td>
+<td data-label="Do">Train for 2 M steps, then 20 M, with tensorboard open</td>
+<td data-label="Learn">How PPO improves a policy; what the reward terms do</td>
+<td data-label="Check">Your policy's <code>evaluate.py</code> numbers are within a few per cent of the ones on the Simulation page</td>
+</tr>
+<tr>
+<td data-label="#">6</td>
+<td data-label="Do">Build the power system on the bench with a meter</td>
+<td data-label="Learn">2S Li-ion, protection boards, buck converters, why the servos get their own 5 V rail</td>
+<td data-label="Check">Both bucks read 5.0 V with no load, and the servo rail stays above 4.8 V while you hold a servo against its stop</td>
+</tr>
+<tr>
+<td data-label="#">7</td>
+<td data-label="Do">Assemble, flash, run every <code>host/bench.py</code> test</td>
+<td data-label="Learn">How each sensor works and how bad it is</td>
+<td data-label="Check"><code>host/measurements.json</code> is filled in</td>
+</tr>
+<tr>
+<td data-label="#">8</td>
+<td data-label="Do">Drive it on its tail with <code>host/drive.py</code></td>
+<td data-label="Learn">Open-loop driving, and the motor dead zone you just measured</td>
+<td data-label="Check">2 m forward and back, turns both ways</td>
+</tr>
+<tr>
+<td data-label="#">9</td>
+<td data-label="Do">Tune the PID balancer</td>
+<td data-label="Learn">The classic inverted-pendulum controller: angle, rate, and the slow speed loop that stops it running away</td>
+<td data-label="Check">60 s upright, less than 1 m drift</td>
+</tr>
+<tr>
+<td data-label="#">10</td>
+<td data-label="Do">Retrain with your measurements, run the policy from the laptop</td>
+<td data-label="Learn">Domain randomisation, and closing the sim-to-real gap by measuring</td>
+<td data-label="Check">It rears up by itself</td>
+</tr>
+<tr>
+<td data-label="#">11</td>
+<td data-label="Do">Shove it, log it, compare with the simulator</td>
+<td data-label="Learn">System identification: where does the real robot differ, and which parameter explains it</td>
+<td data-label="Check">You can name the one parameter you changed and why</td>
+</tr>
+<tr>
+<td data-label="#">12</td>
+<td data-label="Do">Export the policy to the ESP32 and run it with no laptop</td>
+<td data-label="Learn">Running a neural network on a microcontroller: 7,747 numbers, three small matrix multiplies per step</td>
+<td data-label="Check">Same behaviour as session 10 with the laptop unplugged</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="where-to-go-next">Where to go next</h2>
+<ul>
+<li><strong>Position estimation:</strong> the spare LSM303D board has a magnetometer. Add it, fuse heading with the wheel
+  odometry, and teach the policy to go back to where it started.</li>
+<li><strong>Vision:</strong> the ESP32-CAM streams to your laptop. Have the head track a coloured ball, then have the robot follow it.</li>
+<li><strong>A better tail:</strong> the tail is a single servo used as a leg. Try a two-joint tail in the simulator first; the
+  CAD and the model are both parametric.</li>
+</ul></section>
+<div class="pager"><a href="learning.html">&larr; Simulation and RL</a><a href="risks.html">Limits &rarr;</a></div>
+</main></div>
+<footer><div class="wrap">Tailwhip is an open robot project from <a href="https://buildrobotz.com/">BuildRobotz</a>. The design was generated with AI and has not yet been built or tested on hardware; performance figures are MuJoCo simulation results. Build at your own risk. Code, CAD and firmware: <a href="https://github.com/buildrobotz/tailwhip-robot">github.com/buildrobotz/tailwhip-robot</a> (code MIT, docs and CAD CC BY-SA 4.0).<br>
+<a href="https://buildrobotz.com/robots/">More robots to build</a> · <a href="https://ouro.buildrobotz.com/">Ouro, its sister project</a> · <a href="https://buildrobotz.com/">Learn robotics with BuildRobotz</a></div></footer>
+<script>(function(){var a=document.querySelector('nav [aria-current]');if(a&&a.parentNode.scrollWidth>a.parentNode.clientWidth)a.parentNode.scrollLeft=a.offsetLeft-a.parentNode.clientWidth/2+a.offsetWidth/2;
+function op(){var t=location.hash&&document.getElementById(decodeURIComponent(location.hash.slice(1)));for(var e=t;e;e=e.parentElement)if(e.tagName==='DETAILS')e.open=true;if(t)t.scrollIntoView();}
+addEventListener('hashchange',op);op();})();</script>
+
+</body></html>
