@@ -17,6 +17,15 @@ there yourself. Then run `python host/run_policy.py PORT` and type `stand`: the 
 tail, rolls the wheels back under the body and rises. Getting from "PID balances when I hold it upright" to "it
 gets up by itself and survives a shove" is what the rest of the project teaches.
 
+## Where to start: stage 1, then the full robot
+
+Build **[stage 1](stage1.html)** first. It is a bare-minimum balancer: one TT motor with a wheel on each end of its
+shaft, two 18650s, an ESP32, an IMU and a motor driver, kept upright by a PID loop. Its one job is to show that a TT
+motor is fast enough to balance a body, before you build a robot that depends on it. Like the full robot, it is
+designed and simulated but not built yet. Stage 2 (two motors, the body held at a lean by a fixed weight) is
+planned but not designed yet. When stage 1 passes, build the full robot, starting with the
+[Build plan](build.html). The [pages below](#build-it-page-by-page) are in that order.
+
 ## Why this is a good robot to learn on
 
 Plain balancing on two wheels is a solved, hand-written control problem: a PID loop on the tilt angle does it.

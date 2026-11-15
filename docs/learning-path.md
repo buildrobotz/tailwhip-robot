@@ -1,7 +1,8 @@
 # Learning path
 
 Twelve sessions of about an hour each. The first five need no hardware, so you can do them while the parts are
-in the post. Each has one thing to do, one idea to learn, and one check so you know it worked.
+in the post. If you are building the robot, build [stage 1](stage1.html), the one-motor PID balancer, before
+session 6; then carry on here. Each has one thing to do, one idea to learn, and one check so you know it worked.
 
 | # | Do | Learn | Check |
 |---|---|---|---|

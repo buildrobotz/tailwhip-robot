@@ -1,5 +1,10 @@
 # Build plan
 
+**Build [stage 1](stage1.html) first.** It is a one-motor PID balancer made from the same kinds of parts as this robot
+(a TT gearmotor, ESP32, MPU-6050, MX1508 and a 2S 18650 pack), and it answers the question the whole design rests on:
+is a TT motor fast enough to keep a body upright? It passes when it stands for 60 s on a flat floor, recovers when
+released from 8 degrees and survives light pokes. Then start milestone 0 below.
+
 Seven milestones, in order. Each ends with a test; don't move on until it passes. Times are estimates for
 someone who has soldered and 3D printed before.
 

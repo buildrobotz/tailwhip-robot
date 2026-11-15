@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stage 1: tune · Tailwhip robot</title>
+<meta name="description" content="Flash the PID firmware, check the IMU and the motor direction, tune the gains over serial, and test it against the pass criteria.">
+<meta property="og:title" content="Stage 1: flash, bring up and tune"><meta property="og:description" content="Flash the PID firmware, check the IMU and the motor direction, tune the gains over serial, and test it against the pass criteria.">
+<meta property="og:image" content="https://tailwhip.buildrobotz.com/assets/cad_render_upright.jpg">
+<link rel="icon" href="data:,"><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/style.css"></head>
+<body>
+<div class="crumb"><div class="wrap"><a href="https://buildrobotz.com/">BuildRobotz</a><span aria-hidden="true">/</span><a href="https://buildrobotz.com/robots/">Robots</a><span aria-hidden="true">/</span><span>Tailwhip</span></div></div>
+<header class="top"><div class="wrap"><a class="brand" href="index.html">Tailwhip<span>.</span></a><nav aria-label="Project pages"><a href="index.html">Overview</a><a href="stage1.html" aria-current="page">Stage 1</a><a href="build.html">Build plan</a><a href="parts.html">Parts</a><a href="mechanical.html">Mechanical</a><a href="electronics.html">Electronics</a><a href="software.html">Software</a><a href="learning.html">Simulation and RL</a><a href="course.html">Learning path</a><a href="risks.html">Limits</a></nav></div></header>
+<div class="wrap"><main>
+<header><div class="eyebrow">BuildRobotz project · Stage 1: tune</div><h1>Stage 1: flash, bring up and tune</h1><p class="lede">Flash the PID firmware, check the IMU and the motor direction, tune the gains over serial, and test it against the pass criteria.</p></header>
+<nav class="subnav" aria-label="Stage 1 pages"><a href="stage1.html">1. Why and results</a><a href="stage1-print.html">2. Print and assemble</a><a href="stage1-wiring.html">3. Circuit and wiring</a><a href="stage1-firmware.html" aria-current="page">4. Flash and tune</a></nav><details class="toc"><summary>On this page</summary><ol><li><a href="#the-firmware">The firmware</a></li><li><a href="#flash-it">Flash it</a></li><li><a href="#bring-up">Bring-up</a></li><li><a href="#pass-criteria">Pass criteria</a></li><li><a href="#after-stage-1">After stage 1</a></li></ol></details><div class="note"><b>Read this first: designed and simulated, not built</b>Designed and simulated. Not printed, not built. The firmware compiles for the ESP32 but has not run on hardware. Every motor and mass figure is an estimate carried over from the published Tailwhip. Like the rest of Tailwhip, the design, its code and these pages were generated with AI. Measure what the pages tell you to, check each step with a meter, expect to fix things, and build at your own risk, especially around the 18650 cells.</div>
+<section class="prose"><h4>The sketch</h4><p><a class="btn" href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/firmware/stage1_balance/stage1_balance.ino">stage1_balance.ino on GitHub</a> <a class="btn" href="https://github.com/buildrobotz/tailwhip-robot/raw/main/stage1/firmware/stage1_balance/stage1_balance.ino">Download the sketch</a></p></section>
+<section class="prose"><h2 id="the-firmware">The firmware</h2>
+<p><a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/firmware/stage1_balance/stage1_balance.ino"><code>firmware/stage1_balance/stage1_balance.ino</code></a>, board "ESP32 Dev Module". No radio, no laptop in the loop.</p>
+<ul>
+<li>400 Hz loop: read the IMU, complementary filter for pitch, PID, one PWM pair to the MX1508.</li>
+<li>Arms itself when held within 5 degrees of upright for half a second; lets go past 22 degrees.</li>
+<li>Serial at 115200: gains, trim, direction flip, save to flash, a 50 Hz CSV stream, an open-loop motor test.</li>
+<li>Default gains come from <code>sim.py tune</code>: kp 1.62, kd 0.37, kv 1.94, kx 0.11 (per rad, rad/s, m/s, m).</li>
+<li>The filter and PID are the same code path <a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/sim.py"><code>sim.py</code></a> simulates. Change one, change the other.</li>
+</ul>
+<h2 id="flash-it">Flash it</h2>
+<p>Use the same toolchain as the full robot (<a href="electronics.html#set-up-the-firmware-toolchain">its setup</a>): the Arduino IDE or
+<code>arduino-cli</code> with the esp32 core, board <strong>ESP32 Dev Module</strong>. The sketch needs no extra libraries. It has been checked to
+compile with <code>arduino-cli</code> and esp32 core 3.3.12. From the top of the repository:</p>
+<pre><code class="language-bash">arduino-cli compile -b esp32:esp32:esp32 stage1/firmware/stage1_balance
+arduino-cli upload  -b esp32:esp32:esp32 -p /dev/cu.usbserial-XXXX stage1/firmware/stage1_balance
+arduino-cli monitor -p /dev/cu.usbserial-XXXX -c baudrate=115200
+</code></pre>
+<p>Type <code>help</code> in the serial monitor for the commands:</p>
+<pre><code>kp|kd|ki|kv|kx|dz &lt;value&gt;   gains and dead-zone compensation
+trim &lt;deg&gt;                  balance point (+ if it creeps forward)
+dir &lt;1|-1&gt;                  flip if the wheels drive the wrong way
+show | save | defaults      print, store in flash, restore
+stream &lt;0|1&gt;                CSV at 50 Hz: ms,pitch_deg,rate_dps,u,v_est,vbat
+motor &lt;u&gt; &lt;ms&gt;              bench: run the motor at u (-1..1) for ms, robot off the ground
+cal                         recalibrate the gyro (hold it still)
+</code></pre>
+<h2 id="bring-up">Bring-up</h2>
+<p>Do the <a href="stage1-wiring.html#power-up-checklist">power-up checklist</a> on the Circuit and wiring page first: it flashes this sketch at
+step 0 and checks the IMU and the motor one connection at a time. Then:</p>
+<ol>
+<li>Set the Mini360 to 5.0 V on the bench before it touches the ESP32.</li>
+<li>Flash, open the serial monitor, type <code>show</code>. Tilt it forward: pitch must go positive.</li>
+<li>Wheels off the ground, <code>motor 0.3 1000</code>. The wheels must turn the way that would drive it forward; if not,
+   <code>dir -1</code>. Count turns in a <code>motor 1 3000</code> run to get the no-load speed.</li>
+<li>Hold it upright and still through power-on (gyro calibration), then let it arm in your hands.</li>
+<li>Tune: creeps one way, change <code>trim</code>; falls over slowly, raise <code>kp</code>; shakes hard, lower <code>kd</code>; runs away,
+   raise <code>kv</code>. <code>save</code> when it stands.</li>
+<li><code>stream 1</code>, log 20 s, and compare the wobble with <a href="assets/stage1_plot_nominal.jpg"><code>out/plot_nominal.png</code></a>.</li>
+</ol>
+<h2 id="pass-criteria">Pass criteria</h2>
+<p><strong>Stage 1 passes when</strong> the real robot stands for 60 s on a flat floor, recovers when released from 8 degrees,
+and survives light pokes; and its measured wobble, motor speed and dead zone have been fed back into <a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/sim.py"><code>sim.py</code></a>.</p>
+<h2 id="after-stage-1">After stage 1</h2>
+<p>Stage 2 adds a second TT motor, wheel sensors and a bar that holds the body at a lean (see <a href="stage1.html#the-three-stages">the three stages</a>);
+it is planned but not designed yet. Stage 1's core, electronics and firmware carry into it. Until then, the next step is the full robot:
+start at the <a href="build.html">Build plan</a>.</p></section>
+<div class="pager"><a href="stage1-wiring.html">&larr; Stage 1: wiring</a><a href="build.html">Build plan &rarr;</a></div>
+</main></div>
+<footer><div class="wrap">Tailwhip is an open robot project from <a href="https://buildrobotz.com/">BuildRobotz</a>. The design was generated with AI and has not yet been built or tested on hardware; performance figures are MuJoCo simulation results. Build at your own risk. Code, CAD and firmware: <a href="https://github.com/buildrobotz/tailwhip-robot">github.com/buildrobotz/tailwhip-robot</a> (code MIT, docs and CAD CC BY-SA 4.0).<br>
+<a href="https://buildrobotz.com/robots/">More robots to build</a> · <a href="https://ouro.buildrobotz.com/">Ouro, its sister project</a> · <a href="https://buildrobotz.com/">Learn robotics with BuildRobotz</a></div></footer>
+<script>(function(){var a=document.querySelector('nav [aria-current]');if(a&&a.parentNode.scrollWidth>a.parentNode.clientWidth)a.parentNode.scrollLeft=a.offsetLeft-a.parentNode.clientWidth/2+a.offsetWidth/2;
+function op(){var t=location.hash&&document.getElementById(decodeURIComponent(location.hash.slice(1)));for(var e=t;e;e=e.parentElement)if(e.tagName==='DETAILS')e.open=true;if(t)t.scrollIntoView();}
+addEventListener('hashchange',op);op();})();</script>
+
+</body></html>

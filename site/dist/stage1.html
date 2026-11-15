@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stage 1 · Tailwhip robot</title>
+<meta name="description" content="Build this first. One TT motor with a wheel on each end of its shaft, two 18650s, an ESP32, an IMU and a motor driver, kept upright by a PID loop. Its one job is to show that a TT motor is fast enough to balance a body.">
+<meta property="og:title" content="Stage 1: the bare-minimum balancer"><meta property="og:description" content="Build this first. One TT motor with a wheel on each end of its shaft, two 18650s, an ESP32, an IMU and a motor driver, kept upright by a PID loop. Its one job is to show that a TT motor is fast enough to balance a body.">
+<meta property="og:image" content="https://tailwhip.buildrobotz.com/assets/cad_render_upright.jpg">
+<link rel="icon" href="data:,"><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/style.css"></head>
+<body>
+<div class="crumb"><div class="wrap"><a href="https://buildrobotz.com/">BuildRobotz</a><span aria-hidden="true">/</span><a href="https://buildrobotz.com/robots/">Robots</a><span aria-hidden="true">/</span><span>Tailwhip</span></div></div>
+<header class="top"><div class="wrap"><a class="brand" href="index.html">Tailwhip<span>.</span></a><nav aria-label="Project pages"><a href="index.html">Overview</a><a href="stage1.html" aria-current="page">Stage 1</a><a href="build.html">Build plan</a><a href="parts.html">Parts</a><a href="mechanical.html">Mechanical</a><a href="electronics.html">Electronics</a><a href="software.html">Software</a><a href="learning.html">Simulation and RL</a><a href="course.html">Learning path</a><a href="risks.html">Limits</a></nav></div></header>
+<div class="wrap"><main>
+<header><div class="eyebrow">BuildRobotz project · Stage 1</div><h1>Stage 1: the bare-minimum balancer</h1><p class="lede">Build this first. One TT motor with a wheel on each end of its shaft, two 18650s, an ESP32, an IMU and a motor driver, kept upright by a PID loop. Its one job is to show that a TT motor is fast enough to balance a body.</p></header>
+<nav class="subnav" aria-label="Stage 1 pages"><a href="stage1.html" aria-current="page">1. Why and results</a><a href="stage1-print.html">2. Print and assemble</a><a href="stage1-wiring.html">3. Circuit and wiring</a><a href="stage1-firmware.html">4. Flash and tune</a></nav><details class="toc"><summary>On this page</summary><ol><li><a href="#why-it-comes-first">Why it comes first</a></li><li><a href="#the-three-stages">The three stages</a></li><li><a href="#what-the-simulation-says">What the simulation says</a></li><li><a href="#parts">Parts</a></li><li><a href="#risks">Risks</a></li><li><a href="#reference">Reference</a></li></ol></details><div class="note"><b>Read this first: designed and simulated, not built</b>Designed and simulated. Not printed, not built. The firmware compiles for the ESP32 but has not run on hardware. Every motor and mass figure is an estimate carried over from the published Tailwhip. Like the rest of Tailwhip, the design, its code and these pages were generated with AI. Measure what the pages tell you to, check each step with a meter, expect to fix things, and build at your own risk, especially around the 18650 cells.</div>
+<section class="videos"><figure><video src="assets/video/stage1_sim.mp4" poster="assets/video/stage1_sim_poster.jpg" controls muted loop playsinline preload="metadata"></video><figcaption><b>Simulation, PID</b><br>The nominal robot in MuJoCo running the firmware's filter and PID: released at 8 deg, then shoved forward and back (0.05 N s each). The run plotted below.</figcaption></figure><figure class="fig"><img src="assets/stage1_render_hero.jpg" alt="Stage 1, rendered from the CAD" loading="lazy"><figcaption><b>Design</b><br>Front: the IMU on the core; BMS, switch and junction board on the mast. Rendered from the CAD.</figcaption></figure></section>
+<dl class="facts"><div><dt>Wheels</dt><dd>2 on one TT motor</dd></div><div><dt>Mass</dt><dd>about 347 g</dd></div><div><dt>Height</dt><dd>189 mm</dd></div><div><dt>Parts</dt><dd>about $34</dd></div><div><dt>Brain</dt><dd>PID at 400 Hz</dd></div><div><dt>Stays up (sim)</dt><dd>86 %</dd></div></dl>
+<section class="prose"><h2 id="why-it-comes-first">Why it comes first</h2>
+<p>Build this before the full Tailwhip. One TT motor, a wheel on each end of its shaft, two 18650s on top, an ESP32,
+an IMU and a motor driver. One question: <strong>is a TT motor fast enough to keep a body upright with a PID loop?</strong></p>
+<p>The full robot counts on its TT motors to catch every fall. Stage 1 tests that one assumption with as little else as possible, so that if a TT motor is too slow or too weak, you find out with a robot that costs about $34 and four prints.</p>
+<h2 id="the-three-stages">The three stages</h2>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>Stage</th>
+<th>Robot</th>
+<th>Proves</th>
+<th>Adds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="Stage"><strong>1 (this)</strong></td>
+<td data-label="Robot">One TT motor, two wheels on one shaft, PID</td>
+<td data-label="Proves">A TT motor can balance a body at all</td>
+<td data-label="Adds">Nothing: the minimum</td>
+</tr>
+<tr>
+<td data-label="Stage">2</td>
+<td data-label="Robot">Two TT motors, body held at a lean, a fixed weight on a bar or tail</td>
+<td data-label="Proves">The body can stand at an angle if a weight balances it; steering</td>
+<td data-label="Adds">Second motor, wheel sensors, the bar</td>
+</tr>
+<tr>
+<td data-label="Stage">3</td>
+<td data-label="Robot">The full Tailwhip</td>
+<td data-label="Proves">A moving tail as the counterweight; creature behaviours</td>
+<td data-label="Adds">Four servos, shells, learned control</td>
+</tr>
+</tbody>
+</table></div>
+<p>Each stage reuses the one before: stage 1's core, electronics and firmware carry into stage 2.</p>
+<p><strong>Stage 1 passes when</strong> the real robot stands for 60 s on a flat floor, recovers when released from 8 degrees,
+and survives light pokes; and its measured wobble, motor speed and dead zone have been fed back into <a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/sim.py"><code>sim.py</code></a>.</p>
+<h2 id="what-the-simulation-says">What the simulation says</h2>
+<p>Full results are under <a href="#reference">Reference</a> at the bottom of this page.</p>
+<ul>
+<li><strong>It balances.</strong> The nominal robot stands, recovers from a release at 13 degrees either way, and takes a
+  50 mN s shove at battery height (a 50 g ball arriving at 1 m/s).</li>
+<li><strong>Left alone, 60 of 60 randomised robots stand for 20 s.</strong> With a random start lean and two shoves of
+  20-50 mN s, 257 of 300 (86 %) stay up. Nine in ten recover from a 9 degree release and a 30 mN s shove.</li>
+<li><strong>The TT's speed is enough, with a little to spare.</strong> A shove uses up to 0.65 of the 0.68 m/s available.
+  A 30-60 rpm gearmotor recovers from nothing in the same model; the TT's 200 rpm gets 14 degrees in that sweep.</li>
+<li><strong>Torque, not speed, is the tighter limit.</strong> Doubling the stall torque takes the recoverable lean from 14 to
+  20 degrees. That is the case for stage 2's second motor.</li>
+<li><strong>A lower battery helps.</strong> This was the surprise: with the centre of mass 66 mm above the axle instead of
+  86 mm it recovers 16 degrees, not 14, because the motor has less to hold. The mast could be 20 mm shorter.</li>
+<li><strong>It will wobble.</strong> About +-1 degree at 4 Hz, from the 5 degrees of slop in the gearbox. That is normal for a
+  TT balancer, and it is the first thing to compare against the real robot.</li>
+<li><strong>It will wander.</strong> There are no wheel sensors, so it drifts about 40 cm in 20 s. Stage 2 fixes that.</li>
+<li><strong>Getting up by itself is a coin toss.</strong> A fixed kick off the crash bar works for the nominal robot and 57 %
+  of the randomised ones. Stand it up by hand.</li>
+</ul>
+<p><img alt="nominal run" src="assets/stage1_plot_nominal.jpg" /><img alt="limits" src="assets/stage1_plot_limits.jpg" /><img alt="what limits it" src="assets/stage1_plot_sweeps.jpg" />
+Not covered: the model is left-right symmetric, so nothing tests the narrow track. See risks.</p>
+<h2 id="parts">Parts</h2>
+<p>Prices are the published Tailwhip BOM's pack unit prices, mostly unconfirmed.</p>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>Part</th>
+<th>Qty</th>
+<th>About</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="Part">Dual-shaft TT gearmotor 1:48</td>
+<td data-label="Qty">1</td>
+<td data-label="About">$3.00</td>
+</tr>
+<tr>
+<td data-label="Part">65 mm TT wheel</td>
+<td data-label="Qty">2</td>
+<td data-label="About">$4.00</td>
+</tr>
+<tr>
+<td data-label="Part">ESP32 DevKit (classic WROOM-32)</td>
+<td data-label="Qty">1</td>
+<td data-label="About">$7.00</td>
+</tr>
+<tr>
+<td data-label="Part">GY-521 MPU-6050</td>
+<td data-label="Qty">1</td>
+<td data-label="About">$2.60</td>
+</tr>
+<tr>
+<td data-label="Part">MX1508 motor driver</td>
+<td data-label="Qty">1</td>
+<td data-label="About">$1.60</td>
+</tr>
+<tr>
+<td data-label="Part">Mini360 buck (set to 5.0 V)</td>
+<td data-label="Qty">1</td>
+<td data-label="About">$0.90</td>
+</tr>
+<tr>
+<td data-label="Part">2S BMS with balancing</td>
+<td data-label="Qty">1</td>
+<td data-label="About">$1.60</td>
+</tr>
+<tr>
+<td data-label="Part">2 x 18650 holder, series</td>
+<td data-label="Qty">1</td>
+<td data-label="About">$1.75</td>
+</tr>
+<tr>
+<td data-label="Part">18650 cells</td>
+<td data-label="Qty">2</td>
+<td data-label="About">on hand</td>
+</tr>
+<tr>
+<td data-label="Part">PTC fuse 3 A, power switch</td>
+<td data-label="Qty">1 each</td>
+<td data-label="About">$1.30</td>
+</tr>
+<tr>
+<td data-label="Part">470 uF 16 V, 100 nF (2), 100k (3), 33k</td>
+<td data-label="Qty"></td>
+<td data-label="About">$0.95</td>
+</tr>
+<tr>
+<td data-label="Part">JST-XH 2-pin pair</td>
+<td data-label="Qty">2</td>
+<td data-label="About">$1.60</td>
+</tr>
+<tr>
+<td data-label="Part">DC 5.5 x 2.1 mm jack on a pigtail</td>
+<td data-label="Qty">1</td>
+<td data-label="About">$0.70</td>
+</tr>
+<tr>
+<td data-label="Part">Perfboard scrap, header pins, four 20 cm jumpers</td>
+<td data-label="Qty"></td>
+<td data-label="About">$1.35</td>
+</tr>
+<tr>
+<td data-label="Part">M3 x 20 + nuts (4), M3 x 12 self-tap (4), M3 x 16 self-tap (2), M2.5 x 8 self-tap (2), 3 x 22 mm pins (2)</td>
+<td data-label="Qty"></td>
+<td data-label="About">$2.00</td>
+</tr>
+<tr>
+<td data-label="Part">Zip ties (12), 10 mm strap, wire</td>
+<td data-label="Qty"></td>
+<td data-label="About">$2.00</td>
+</tr>
+<tr>
+<td data-label="Part">PLA</td>
+<td data-label="Qty">98 g</td>
+<td data-label="About">$1.60</td>
+</tr>
+<tr>
+<td data-label="Part"><strong>Total</strong></td>
+<td data-label="Qty"></td>
+<td data-label="About"><strong>about $34</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>An 8.4 V 1 A Li-ion charger is about $10 more if you do not have one.</p>
+<h2 id="risks">Risks</h2>
+<ol>
+<li><strong>Narrow track.</strong> 52 mm between wheel centres; it tips sideways past about 20 degrees of roll. Flat floor only.</li>
+<li><strong>Estimates.</strong> Stall torque (0.08 N m), no-load speed (200 rpm), slop (5 degrees) and dead zone are guesses
+   until bring-up step 3 (<a href="stage1-firmware.html#bring-up">Flash and tune</a>). The torque sweep shows the result is sensitive to the first.</li>
+<li><strong>Cheek plates.</strong> The core is 2.3 mm thick where it passes between the gearbox and each wheel.</li>
+<li><strong>No steering.</strong> Both wheels are on one shaft. It goes where it is pointed.</li>
+<li><strong>Wheel fit.</strong> Each wheel sits on 5.5 mm of a 9.1 mm stub; check for wobble.</li>
+<li><strong>Motor driver margin.</strong> The MX1508's weaker channel is rated below the simulated current peaks; see
+   <a href="stage1-wiring.html"><code>docs/electronics.md</code></a> for the stronger channel and fallback boards.</li>
+</ol>
+<h2 id="reference">Reference</h2>
+<details class="ref" id="simulation-results-in-full"><summary>Simulation results in full</summary>
+<p>Generated by <code>sim.py test</code>. MuJoCo, 800 Hz physics, the firmware's filter and PID at 400 Hz, IMU only. Motor and gearbox figures are estimates until the bench measurements exist.</p>
+<p>Gains (u per rad, per rad/s, per m/s, per m): kp 1.62, kd 0.37, kv 1.94, kx 0.11, ki 0, dead-zone compensation 0.1.</p>
+<h4 id="does-it-stay-up">Does it stay up</h4>
+<ul>
+<li><strong>Nominal robot, 20 s, released at 8 deg and shoved twice (0.05 N s):</strong> stays up. Pitch rms 3.1 deg, ends 5 cm from where it started, motor saturated 3 % of the time, peak wheel speed 0.65 m/s of 0.68 available.</li>
+<li><strong>300 randomised robots, 20 s, random start lean up to 5 deg, two shoves of 0.02-0.05 N s:</strong> <strong>257 stay up (86 %)</strong>. Median pitch rms 2.3 deg, median drift 41 cm (90th percentile 134 cm), 90th-percentile peak wheel speed 0.64 m/s.</li>
+<li>The ones that fell, on average: mu 0.694, stall 0.0686, w0 20.1, backlash_deg 5.51, motor_tau 0.0178, deadzone 0.0975, vbat 7.61, mass 0.987, com_dz -0.000755.</li>
+<li><strong>Left alone (no shoves), 60 randomised robots, 20 s:</strong> 60 stay up; median wobble about its own balance point 0.77 deg rms, median drift 47 cm.</li>
+</ul>
+<h4 id="how-much-it-can-take">How much it can take</h4>
+<ul>
+<li><strong>Release angle:</strong> the nominal robot recovers from <strong>13 deg</strong> either way; 90 % of randomised robots recover from 9 deg.</li>
+<li><strong>Shove at battery height:</strong> nominal <strong>50 mN s</strong>; 90 % of randomised robots take 30 mN s. For scale, 50 mN s is a 50 g ball arriving at 1 m/s.</li>
+</ul>
+<h4 id="what-limits-it">What limits it</h4>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>Motor no-load speed (rpm)</th>
+<th>30</th>
+<th>60</th>
+<th>90</th>
+<th>120</th>
+<th>160</th>
+<th>200</th>
+<th>250</th>
+<th>300</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="Motor no-load speed (rpm)">Largest lean recovered (deg)</td>
+<td data-label="30">0</td>
+<td data-label="60">0</td>
+<td data-label="90">8</td>
+<td data-label="120">10</td>
+<td data-label="160">12</td>
+<td data-label="200">14</td>
+<td data-label="250">16</td>
+<td data-label="300">16</td>
+</tr>
+</tbody>
+</table></div>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>Centre of mass above axle (mm)</th>
+<th>26</th>
+<th>46</th>
+<th>66</th>
+<th>86</th>
+<th>106</th>
+<th>126</th>
+<th>146</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="Centre of mass above axle (mm)">Largest lean recovered (deg)</td>
+<td data-label="26">20</td>
+<td data-label="46">18</td>
+<td data-label="66">16</td>
+<td data-label="86">14</td>
+<td data-label="106">12</td>
+<td data-label="126">12</td>
+<td data-label="146">12</td>
+</tr>
+</tbody>
+</table></div>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>Stall torque at 6 V (N m)</th>
+<th>0.03</th>
+<th>0.04</th>
+<th>0.06</th>
+<th>0.08</th>
+<th>0.1</th>
+<th>0.12</th>
+<th>0.16</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="Stall torque at 6 V (N m)">Largest lean recovered (deg)</td>
+<td data-label="0.03">4</td>
+<td data-label="0.04">8</td>
+<td data-label="0.06">12</td>
+<td data-label="0.08">14</td>
+<td data-label="0.1">16</td>
+<td data-label="0.12">18</td>
+<td data-label="0.16">20</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="getting-up-by-itself">Getting up by itself</h4>
+<p>Lying on a crash bar at 25 deg, a fixed kick (roll away for 0 ms, then full power under the body, hand over to the PID inside 15 deg) gets <strong>57 %</strong> of 40 randomised robots back up; nominal robot: yes.</p>
+</details><details class="ref" id="files"><summary>Files</summary>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>File</th>
+<th>What</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/stage1.py"><code>stage1.py</code></a></td>
+<td>Geometry, mass table, design check, renders, print STLs</td>
+</tr>
+<tr>
+<td><a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/sim.py"><code>sim.py</code></a></td>
+<td>MuJoCo model, the firmware's controller, gain search, all experiments, the clip</td>
+</tr>
+<tr>
+<td><a href="https://github.com/buildrobotz/tailwhip-robot/tree/main/stage1/firmware/stage1_balance"><code>firmware/stage1_balance/</code></a></td>
+<td>The ESP32 sketch</td>
+</tr>
+<tr>
+<td><a href="stage1-wiring.html"><code>docs/electronics.md</code></a>, <a href="assets/stage1_schematic.svg"><code>docs/schematic.svg</code></a>, <a href="assets/stage1_wiring.svg"><code>docs/wiring.svg</code></a></td>
+<td>Electronics design and diagrams</td>
+</tr>
+<tr>
+<td><a href="stage1-print.html"><code>docs/mechanical.md</code></a></td>
+<td>Printed parts, print settings, fasteners, assembly order</td>
+</tr>
+<tr>
+<td><a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/out/design.md"><code>out/design.md</code></a>, <a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/out/sim.md"><code>out/sim.md</code></a></td>
+<td>Generated numbers</td>
+</tr>
+<tr>
+<td><a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/out/gains.json"><code>out/gains.json</code></a>, <a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/out/results.json"><code>out/results.json</code></a>, <a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/out/model.json"><code>out/model.json</code></a></td>
+<td>Gains, raw results, the numbers the sim is built from</td>
+</tr>
+</tbody>
+</table></div></section></details>
+<div class="pager"><a href="index.html">&larr; Overview</a><a href="stage1-print.html">Stage 1: print &rarr;</a></div>
+</main></div>
+<footer><div class="wrap">Tailwhip is an open robot project from <a href="https://buildrobotz.com/">BuildRobotz</a>. The design was generated with AI and has not yet been built or tested on hardware; performance figures are MuJoCo simulation results. Build at your own risk. Code, CAD and firmware: <a href="https://github.com/buildrobotz/tailwhip-robot">github.com/buildrobotz/tailwhip-robot</a> (code MIT, docs and CAD CC BY-SA 4.0).<br>
+<a href="https://buildrobotz.com/robots/">More robots to build</a> · <a href="https://ouro.buildrobotz.com/">Ouro, its sister project</a> · <a href="https://buildrobotz.com/">Learn robotics with BuildRobotz</a></div></footer>
+<script>(function(){var a=document.querySelector('nav [aria-current]');if(a&&a.parentNode.scrollWidth>a.parentNode.clientWidth)a.parentNode.scrollLeft=a.offsetLeft-a.parentNode.clientWidth/2+a.offsetWidth/2;
+function op(){var t=location.hash&&document.getElementById(decodeURIComponent(location.hash.slice(1)));for(var e=t;e;e=e.parentElement)if(e.tagName==='DETAILS')e.open=true;if(t)t.scrollIntoView();}
+addEventListener('hashchange',op);op();})();</script>
+
+</body></html>

@@ -1,0 +1,1567 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stage 1: wiring · Tailwhip robot</title>
+<meta name="description" content="Every pin of every board and every wire, end to end: the schematic, the wire-by-wire drawing, the IMU wiring, and a power-up checklist with a meter reading at each step.">
+<meta property="og:title" content="Stage 1: circuit and wiring"><meta property="og:description" content="Every pin of every board and every wire, end to end: the schematic, the wire-by-wire drawing, the IMU wiring, and a power-up checklist with a meter reading at each step.">
+<meta property="og:image" content="https://tailwhip.buildrobotz.com/assets/cad_render_upright.jpg">
+<link rel="icon" href="data:,"><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/style.css"></head>
+<body>
+<div class="crumb"><div class="wrap"><a href="https://buildrobotz.com/">BuildRobotz</a><span aria-hidden="true">/</span><a href="https://buildrobotz.com/robots/">Robots</a><span aria-hidden="true">/</span><span>Tailwhip</span></div></div>
+<header class="top"><div class="wrap"><a class="brand" href="index.html">Tailwhip<span>.</span></a><nav aria-label="Project pages"><a href="index.html">Overview</a><a href="stage1.html" aria-current="page">Stage 1</a><a href="build.html">Build plan</a><a href="parts.html">Parts</a><a href="mechanical.html">Mechanical</a><a href="electronics.html">Electronics</a><a href="software.html">Software</a><a href="learning.html">Simulation and RL</a><a href="course.html">Learning path</a><a href="risks.html">Limits</a></nav></div></header>
+<div class="wrap"><main>
+<header><div class="eyebrow">BuildRobotz project · Stage 1: wiring</div><h1>Stage 1: circuit and wiring</h1><p class="lede">Every pin of every board and every wire, end to end: the schematic, the wire-by-wire drawing, the IMU wiring, and a power-up checklist with a meter reading at each step.</p></header>
+<nav class="subnav" aria-label="Stage 1 pages"><a href="stage1.html">1. Why and results</a><a href="stage1-print.html">2. Print and assemble</a><a href="stage1-wiring.html" aria-current="page">3. Circuit and wiring</a><a href="stage1-firmware.html">4. Flash and tune</a></nav><details class="toc"><summary>On this page</summary><ol><li><a href="#how-it-works-block-diagram-in-words">How it works (block diagram in words)</a></li><li><a href="#parts-on-this-page">Parts on this page</a></li><li><a href="#battery-safety-and-charging">Battery safety and charging</a></li><li><a href="#power-tree-and-current-budget">Power tree and current budget</a></li><li><a href="#protection-chain-cells-bms-ptc-switch-rail">Protection chain: cells → BMS → PTC → switch → rail</a></li><li><a href="#mini360-setting-it-to-50-v">Mini360: setting it to 5.0 V</a></li><li><a href="#battery-sense-divider-maths-and-adc-range">Battery sense: divider maths and ADC range</a></li><li><a href="#mx1508">MX1508</a></li><li><a href="#imu-wiring">IMU wiring</a></li><li><a href="#esp32-pin-map">ESP32 pin map</a></li><li><a href="#decoupling">Decoupling</a></li><li><a href="#grounds">Grounds</a></li><li><a href="#board-positions">Board positions</a></li><li><a href="#wire-list">Wire list</a></li><li><a href="#connector-plan">Connector plan</a></li><li><a href="#power-up-checklist">Power-up checklist</a></li><li><a href="#troubleshooting">Troubleshooting</a></li><li><a href="#reference">Reference</a></li></ol></details><div class="note"><b>Read this first: designed and simulated, not built</b>Designed and simulated. Not printed, not built. The firmware compiles for the ESP32 but has not run on hardware. Every motor and mass figure is an estimate carried over from the published Tailwhip. Like the rest of Tailwhip, the design, its code and these pages were generated with AI. Measure what the pages tell you to, check each step with a meter, expect to fix things, and build at your own risk, especially around the 18650 cells.</div>
+<figure class="fig"><div class="svgwrap native"><a href="assets/stage1_schematic.svg"><img src="assets/stage1_schematic.svg" alt="Schematic" width="1700" height="1330"></a></div><figcaption><b>SCHEMATIC</b> · full size: scroll inside the frame, or open the image on its own</figcaption></figure><figure class="fig"><div class="svgwrap native"><a href="assets/stage1_wiring.svg"><img src="assets/stage1_wiring.svg" alt="Every wire, on the robot" width="1780" height="1460"></a></div><figcaption><b>EVERY WIRE, ON THE ROBOT</b> · full size: scroll inside the frame, or open the image on its own</figcaption></figure>
+<section class="prose"><h4>Download the drawings</h4><p><a class="btn" href="assets/stage1_schematic.svg" download="tailwhip_stage1_schematic.svg">schematic.svg</a> <a class="btn" href="assets/stage1_wiring.svg" download="tailwhip_stage1_wiring.svg">wiring.svg</a> <a class="btn" href="assets/stage1_electronics.json" download="tailwhip_stage1_electronics.json">electronics.json</a> <a class="btn" href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/docs/tools/gen_electronics.py">gen_electronics.py (makes all three)</a></p></section>
+<section class="prose"><blockquote>
+<p><strong>AI-generated, designed and simulated, not built.</strong> Nothing on this page has been wired, powered or measured.
+Every number is tagged [D] datasheet or seller listing, [E] estimate, [C] chosen by this design, or [S] from the
+stage 1 simulation (<a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/sim.py"><code>sim.py</code></a>). The meter readings in the power-up checklist are gates: do not connect the next
+part until you get the reading the table gives.</p>
+</blockquote>
+<p>This page covers the stage 1 balancer only: one dual-shaft TT motor, two 18650 cells, an ESP32, a GY-521 and an
+MX1508. It gives you the circuit, where every wire goes on the robot, the current each part draws, and the order to
+power it up in. Board positions, mounts and cable routes follow the final <a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/stage1.py"><code>stage1.py</code></a> and <a href="stage1-print.html"><code>mechanical.md</code></a>. The published Tailwhip's electronics page (<a href="electronics.html"><code>docs/electronics.md</code></a>) uses the same parts and the same
+reference numbers where a part is shared, so stage 1 carries into stage 2 without rewiring the power section.</p>
+<p>Drawings:</p>
+<ul>
+<li><a href="assets/stage1_schematic.svg"><code>schematic.svg</code></a>: the full circuit, every pin of every board by the name printed on it.</li>
+<li><a href="assets/stage1_wiring.svg"><code>wiring.svg</code></a>: the robot itself, both faces of the mast unfolded, with every wire drawn end to end in
+  the colour to use. You should be able to wire the robot from this drawing alone.</li>
+<li><a href="assets/stage1_electronics.json"><code>electronics.json</code></a>: the same model in machine-readable form (parts, every pin, nets, wires,
+  ESP32 pin map, power budget).</li>
+</ul>
+<p>All three come from <a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/docs/tools/gen_electronics.py"><code>tools/gen_electronics.py</code></a>. It checks that every net is joined end to end by a wire or an
+on-board connection (nothing implied), that every pin of every board is drawn, that the pin numbers and constants in
+<a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/firmware/stage1_balance/stage1_balance.ino"><code>../firmware/stage1_balance/stage1_balance.ino</code></a> match the circuit, and that no labels overlap.</p>
+<hr />
+<h2 id="how-it-works-block-diagram-in-words">How it works (block diagram in words)</h2>
+<pre><code>2 x 18650 (BT1, unprotected) -- B+ / BM / B- --&gt; 2S BMS (U3)
+U3 P+ --&gt; F1 PTC 3 A --&gt; SW1 power switch --&gt; K2 plug --&gt; JB --&gt; VBAT_SW, 6.0-8.4 V
+                     \--&gt; J1 charge jack (also on U3 P-), before the switch
+VBAT_SW --&gt; U4 MX1508 + pad (470 uF C1 across + / -) --&gt; MOTOR-A --&gt; K1 plug --&gt; M1 TT motor (100 nF C3 across the tabs)
+        --&gt; U1 Mini360 (5.0 V) --&gt; U5 ESP32 5V pin --&gt; DevKit regulator --&gt; 3V3 --&gt; U6 GY-521
+        --&gt; R1 100k / R2 33k divider on JB --&gt; VSENSE --&gt; ESP32 GPIO36
+ESP32 GPIO25, GPIO26 --&gt; MX1508 IN1, IN2 (100k pull-downs R3, R4)
+ESP32 GPIO21 (SDA), GPIO22 (SCL) &lt;--&gt; GY-521 SDA, SCL (pull-ups on the GY-521)
+GND = BMS P-. Everything else's ground returns there.
+</code></pre>
+<p>The cells have no protection of their own, so the first thing their current meets is the <strong>BMS</strong>. It disconnects the
+pack on over-discharge (about 2.5 V per cell), over-charge, over-current and short circuit, and it balances the two
+cells near full charge. From the BMS output the current goes through the <strong>PTC fuse</strong> and the <strong>power switch</strong> to the
+<strong>K2 plug</strong> and into the <strong>junction board</strong>, which is the robot's battery rail (VBAT_SW) and its star ground.</p>
+<p>The <strong>MX1508</strong> takes VBAT_SW directly. The ESP32 drives its IN1 and IN2 with 20 kHz PWM in slow-decay mode; its
+MOTOR-A outputs drive the TT motor through the K1 plug. The <strong>Mini360</strong> buck makes 5.0 V from VBAT_SW for the ESP32's
+5V pin; the DevKit's own regulator makes 3.3 V from that, and the GY-521 runs from the ESP32's 3V3 pin. A
+100k / 33k divider scales the battery to 0.248 of its voltage for the ESP32's ADC on GPIO36, so the firmware can
+cap the motor voltage at 6.0 V and stop at a low battery.</p>
+<hr />
+<h2 id="parts-on-this-page">Parts on this page</h2>
+<p>Per robot. Prices are the published Tailwhip BOM's pack unit prices (<a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/docs/bom.json"><code>docs/bom.json</code></a>), mostly unconfirmed.</p>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>Ref</th>
+<th>Part</th>
+<th>Qty</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="Ref">BT1</td>
+<td data-label="Part">18650 Li-ion cell, genuine high-drain, flat top, unprotected</td>
+<td data-label="Qty">2</td>
+<td data-label="Notes">Matched pair. In a 2 x 18650 series holder with leads (about 41 x 77.5 x 20.5 mm).</td>
+</tr>
+<tr>
+<td data-label="Ref">U3</td>
+<td data-label="Part">2S BMS with balancing, 10 A (e.g. HX-2S-JH20)</td>
+<td data-label="Qty">1</td>
+<td data-label="Notes">About 50 x 22 mm [D]. Needs the cell-middle (BM) wire.</td>
+</tr>
+<tr>
+<td data-label="Ref">F1</td>
+<td data-label="Part">PTC resettable fuse, radial, 3 A hold / 6 A trip, 16 V or more (RUEF300, MF-R300)</td>
+<td data-label="Qty">1</td>
+<td data-label="Notes"></td>
+</tr>
+<tr>
+<td data-label="Ref">SW1</td>
+<td data-label="Part">Pololu 2810 mini MOSFET slide switch (3 A continuous [D]), or a KCD11 rocker rated 3 A</td>
+<td data-label="Qty">1</td>
+<td data-label="Notes">Not an SS12D00 slide switch (0.3-0.5 A [D]).</td>
+</tr>
+<tr>
+<td data-label="Ref">J1</td>
+<td data-label="Part">DC 5.5 x 2.1 mm female jack, pigtail</td>
+<td data-label="Qty">1</td>
+<td data-label="Notes"><strong>Added.</strong> Charge input.</td>
+</tr>
+<tr>
+<td data-label="Ref">K1, K2</td>
+<td data-label="Part">JST-XH 2-pin connector pair (pre-wired plug and socket, or header + housing)</td>
+<td data-label="Qty">2</td>
+<td data-label="Notes"><strong>Added.</strong> K1 motor plug, K2 power plug. XH is rated 3 A [D JST].</td>
+</tr>
+<tr>
+<td data-label="Ref">JB</td>
+<td data-label="Part">Perfboard, 8 x 5 holes, cut to about 21 x 13 mm, plus a 2-pin XH header and one male header pin</td>
+<td data-label="Qty">1</td>
+<td data-label="Notes"><strong>Added.</strong> Junction board, on rails on the mast front.</td>
+</tr>
+<tr>
+<td data-label="Ref">R1</td>
+<td data-label="Part">100 kΩ 1 % 1/4 W</td>
+<td data-label="Qty">1</td>
+<td data-label="Notes">Divider top, on JB.</td>
+</tr>
+<tr>
+<td data-label="Ref">R2</td>
+<td data-label="Part">33 kΩ 1 % 1/4 W</td>
+<td data-label="Qty">1</td>
+<td data-label="Notes">Divider bottom, on JB.</td>
+</tr>
+<tr>
+<td data-label="Ref">C2</td>
+<td data-label="Part">100 nF ceramic 50 V</td>
+<td data-label="Qty">1</td>
+<td data-label="Notes">Across R2, on JB.</td>
+</tr>
+<tr>
+<td data-label="Ref">U4</td>
+<td data-label="Part">MX1508 dual H-bridge module</td>
+<td data-label="Qty">1</td>
+<td data-label="Notes">Solder a 4-pin male header into IN1-IN4.</td>
+</tr>
+<tr>
+<td data-label="Ref">C1</td>
+<td data-label="Part">470 µF 16 V low-ESR electrolytic</td>
+<td data-label="Qty">1</td>
+<td data-label="Notes">Standing on the MX1508 + and - pads.</td>
+</tr>
+<tr>
+<td data-label="Ref">R3, R4</td>
+<td data-label="Part">100 kΩ 1/4 W</td>
+<td data-label="Qty">2</td>
+<td data-label="Notes"><strong>Added.</strong> IN1 and IN2 pull-downs, under the MX1508.</td>
+</tr>
+<tr>
+<td data-label="Ref">U1</td>
+<td data-label="Part">Mini360 adjustable buck (MP2307)</td>
+<td data-label="Qty">1</td>
+<td data-label="Notes"><strong>Set to 5.00 V before the ESP32 is connected.</strong></td>
+</tr>
+<tr>
+<td data-label="Ref">U5</td>
+<td data-label="Part">ESP32 DevKitC, 38-pin, ESP32-WROOM-32 (classic)</td>
+<td data-label="Qty">1</td>
+<td data-label="Notes">A 30-pin DevKit works too: see the pin map.</td>
+</tr>
+<tr>
+<td data-label="Ref">U6</td>
+<td data-label="Part">GY-521 MPU-6050</td>
+<td data-label="Qty">1</td>
+<td data-label="Notes">Solder its 8-pin header.</td>
+</tr>
+<tr>
+<td data-label="Ref">M1</td>
+<td data-label="Part">Dual-shaft TT gearmotor 1:48</td>
+<td data-label="Qty">1</td>
+<td data-label="Notes"></td>
+</tr>
+<tr>
+<td data-label="Ref">C3</td>
+<td data-label="Part">100 nF ceramic 50 V</td>
+<td data-label="Qty">1</td>
+<td data-label="Notes"><strong>Added.</strong> Across the motor tabs, in the pocket above the can.</td>
+</tr>
+<tr>
+<td data-label="Ref"></td>
+<td data-label="Part">8.4 V 1 A Li-ion CC/CV charger, 5.5 x 2.1 mm plug</td>
+<td data-label="Qty">1</td>
+<td data-label="Notes"><strong>Added</strong> (if you have none). Must say 8.4 V.</td>
+</tr>
+<tr>
+<td data-label="Ref"></td>
+<td data-label="Part">Dupont F-F jumpers: 4 of 20 cm, 4 of 10 cm</td>
+<td data-label="Qty"></td>
+<td data-label="Notes"><strong>20 cm ones added</strong> (IMU). One 10 cm jumper is cut in half for W15/W16.</td>
+</tr>
+<tr>
+<td data-label="Ref"></td>
+<td data-label="Part">22 AWG silicone wire red/black, 26 AWG red/black/orange, heat-shrink</td>
+<td data-label="Qty"></td>
+<td data-label="Notes"></td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="battery-safety-and-charging">Battery safety and charging</h2>
+<p>Read this before you put cells in the holder. It is the same as the published robot, because the pack is the same.</p>
+<ul>
+<li><strong>The cells are unprotected.</strong> Nothing inside them stops an over-discharge, an over-charge or a short. The BMS does
+  that job, so it is wired before anything else and nothing ever connects to the cells except through it.
+  <strong>Never connect anything to B-</strong> other than the cell: everything else's ground is P-.</li>
+<li><strong>Genuine high-drain cells, a matched pair:</strong> same model and age, within 0.05 V of each other before they go in
+  (Molicel P28A, Samsung 25R or 30Q, Sony VTC6). Never "UltraFire", "GTF" or "9900 mAh" cells.</li>
+<li><strong>Check each cell first:</strong> 3.0 to 4.2 V on the meter. Retire a cell under 2.5 V, dented, with a torn wrap, or warm
+  at rest.</li>
+<li><strong>Wire the BMS in this order:</strong> B- first, then BM, then B+. Undo it in reverse. Many 2S boards read 0 V on P+ / P-
+  until a charger has been connected once.</li>
+<li><strong>Charge</strong> with SW1 <strong>off</strong>, through J1, with an <strong>8.4 V CC/CV Li-ion charger</strong> at about 1 A, on a non-flammable
+  surface, attended. The pack is about 2.5-3 Ah, so a charge from empty takes about 3 h [E]. The BMS stops the charge
+  if a cell goes over about 4.25-4.3 V [E listings] and bleeds the higher cell near full [D listing]. Once a month,
+  measure both cells at full charge: more than 0.05 V apart, charge each one alone in a single-cell smart charger.</li>
+<li><strong>J1 accepts any 5.5 x 2.1 mm plug,</strong> including 9 V and 12 V wall adapters. Label it "8.4 V Li-ion only". Check
+  the charger's plug is centre positive with the meter before first use.</li>
+<li><strong>Switch off after every run.</strong> The firmware stops driving the motor at 6.4 V (3.2 V per cell), but the ESP32 and
+  the buck keep drawing about 50 mA [E] until the BMS cuts off at about 2.5 V per cell. The cells survive that, but it
+  is a deep discharge.</li>
+<li><strong>No reverse-polarity protection</strong> except what the Pololu switch has. Check the holder's polarity with the meter at
+  power-up step 2, before any board is connected.</li>
+</ul>
+<hr />
+<h2 id="power-tree-and-current-budget">Power tree and current budget</h2>
+<pre><code>BT1 2S pack, 6.0-8.4 V (7.4 V nominal)
+ └─ U3 BMS (10 A) ─ F1 PTC (3 A hold) ─ SW1 (3 A) ─ K2 (3 A) ─ JB = VBAT_SW
+     ├─ J1 charge jack (on P+ / P-, before F1 and SW1)
+     ├─ U4 MX1508 + (C1 470 µF) ─ M1 TT motor         average 0.44 A, peaks 1.6 A at the motor [S]
+     ├─ U1 Mini360 ─ 5.0 V ─ U5 ESP32 5V pin            60 mA typical, 120 mA peak [E]
+     │                         └─ DevKit regulator ─ 3V3 ─ U6 GY-521   5 mA [D/E]
+     └─ R1 + R2 divider                                 63 µA at 8.4 V [C]
+</code></pre>
+<h3 id="loads">Loads</h3>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>Load</th>
+<th>Rail</th>
+<th>Typical (A)</th>
+<th>Peak (A)</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="Load">ESP32 DevKit, CPU at 240 MHz, no radio</td>
+<td data-label="Rail">5 V</td>
+<td data-label="Typical (A)">0.06</td>
+<td data-label="Peak (A)">0.12</td>
+<td data-label="Source">[D] ESP32 datasheet: 30-68 mA in modem-sleep at 240 MHz (the firmware never starts the radio); [E] plus the DevKit's regulator, USB bridge chip and LED</td>
+</tr>
+<tr>
+<td data-label="Load">GY-521 MPU-6050</td>
+<td data-label="Rail">3V3</td>
+<td data-label="Typical (A)">0.005</td>
+<td data-label="Peak (A)">0.005</td>
+<td data-label="Source">[D] 3.8-3.9 mA for the chip; [E] plus the board's LED and regulator</td>
+</tr>
+<tr>
+<td data-label="Load">Battery divider</td>
+<td data-label="Rail">VBAT_SW</td>
+<td data-label="Typical (A)">0.00006</td>
+<td data-label="Peak (A)">0.00006</td>
+<td data-label="Source">[C] 8.4 V / 133 kΩ</td>
+</tr>
+<tr>
+<td data-label="Load">Mini360 losses</td>
+<td data-label="Rail">VBAT_SW</td>
+<td data-label="Typical (A)">0.01</td>
+<td data-label="Peak (A)">0.02</td>
+<td data-label="Source">[E] about 85 % efficient</td>
+</tr>
+<tr>
+<td data-label="Load">TT motor, balancing</td>
+<td data-label="Rail">motor</td>
+<td data-label="Typical (A)">0.44 (mean of |I|)</td>
+<td data-label="Peak (A)">1.65</td>
+<td data-label="Source">[S] <a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/sim.py"><code>sim.py</code></a> nominal runs, motor current = 1.5 A x (V/6 V - ω/ω0): mean 0.41-0.44 A, peak 1.55-1.65 A</td>
+</tr>
+<tr>
+<td data-label="Load">TT motor, stalled at the 6.0 V cap</td>
+<td data-label="Rail">motor</td>
+<td data-label="Typical (A)">1.5</td>
+<td data-label="Peak (A)">1.5</td>
+<td data-label="Source">[D] Adafruit 3777: 1.5 A stall, 0.16 A no load at 6 V</td>
+</tr>
+<tr>
+<td data-label="Load">TT motor, full-speed reversal</td>
+<td data-label="Rail">motor</td>
+<td data-label="Typical (A)"></td>
+<td data-label="Peak (A)">about 3</td>
+<td data-label="Source">[E] (6 V + 6 V back-EMF) / 4 Ω, for tens of ms. Not seen in the simulated runs</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="at-the-battery">At the battery</h3>
+<p>In slow decay the battery supplies the motor only during the drive part of each PWM cycle, so battery current is
+about duty x motor current, and part of the time the motor returns current to the pack.</p>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>Case</th>
+<th>Logic (pack side)</th>
+<th>Motor (pack side)</th>
+<th><strong>Pack current</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="Case">Switched on, waiting (not armed)</td>
+<td data-label="Logic (pack side)">0.05 A</td>
+<td data-label="Motor (pack side)">0</td>
+<td data-label="Pack current"><strong>≈ 0.06 A</strong> [E]</td>
+</tr>
+<tr>
+<td data-label="Case">Balancing on a flat floor</td>
+<td data-label="Logic (pack side)">0.05 A</td>
+<td data-label="Motor (pack side)">0.09-0.13 A mean [S]</td>
+<td data-label="Pack current"><strong>≈ 0.15-0.2 A</strong> [S+E]</td>
+</tr>
+<tr>
+<td data-label="Case">Recovering from a shove</td>
+<td data-label="Logic (pack side)">0.06 A</td>
+<td data-label="Motor (pack side)">up to 1.0-1.34 A [S]</td>
+<td data-label="Pack current"><strong>≈ 1.4 A</strong> for a moment [S+E]</td>
+</tr>
+<tr>
+<td data-label="Case">Motor stalled at the 6.0 V cap (held, wheel blocked)</td>
+<td data-label="Logic (pack side)">0.06 A</td>
+<td data-label="Motor (pack side)">1.5 A x duty 0.71-0.94</td>
+<td data-label="Pack current"><strong>≈ 1.1-1.5 A</strong> [D+E]</td>
+</tr>
+<tr>
+<td data-label="Case">Worst second: full-speed reversal</td>
+<td data-label="Logic (pack side)">0.06 A</td>
+<td data-label="Motor (pack side)">up to about 2-3 A</td>
+<td data-label="Pack current"><strong>≈ 3 A</strong> for tens of ms [E]</td>
+</tr>
+</tbody>
+</table></div>
+<p>A pair of 2500-3000 mAh cells (about 2.5 Ah usable [E]) runs this for many hours of balancing. Charge, not run time,
+is the limit you will hit.</p>
+<h3 id="what-gives-out-first">What gives out first</h3>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>Part</th>
+<th>Rating</th>
+<th>Stage 1 load</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="Part"><strong>MX1508, its weaker channel</strong></td>
+<td data-label="Rating">0.8 A continuous, 1.5 A peak [D datasheet via the BOM]; the other channel 1.5 A / 2 A peak</td>
+<td data-label="Stage 1 load">0.44 A mean, 1.65 A peaks [S]; 1.5 A stall</td>
+<td data-label="Verdict">Fine on the stronger channel. On the weaker channel the peaks are just over its rating. Modules do not say which is which: see "MX1508".</td>
+</tr>
+<tr>
+<td data-label="Part">Mini360 U1</td>
+<td data-label="Rating">about 1 A continuous in practice [E]; 1.8 A listed [D listing]</td>
+<td data-label="Stage 1 load">0.06-0.12 A</td>
+<td data-label="Verdict">Plenty of margin. Runs cool.</td>
+</tr>
+<tr>
+<td data-label="Part">PTC F1</td>
+<td data-label="Rating">3 A hold, 6 A trip [D]</td>
+<td data-label="Stage 1 load">under 1.5 A except for a reversal</td>
+<td data-label="Verdict">Never trips in normal use. It is there for a short in the wiring.</td>
+</tr>
+<tr>
+<td data-label="Part">SW1, K1, K2</td>
+<td data-label="Rating">3 A [D]</td>
+<td data-label="Stage 1 load">as F1</td>
+<td data-label="Verdict">Fine.</td>
+</tr>
+<tr>
+<td data-label="Part">BMS</td>
+<td data-label="Rating">10 A [D listing]</td>
+<td data-label="Stage 1 load">under 3 A</td>
+<td data-label="Verdict">Fine.</td>
+</tr>
+<tr>
+<td data-label="Part">Cells</td>
+<td data-label="Rating">15 A or more for any genuine high-drain 18650 [D]</td>
+<td data-label="Stage 1 load">under 3 A (about 1 C)</td>
+<td data-label="Verdict">Fine.</td>
+</tr>
+<tr>
+<td data-label="Part">26 AWG wires (W6, W13-W16)</td>
+<td data-label="Rating">about 2 A [E] for short runs</td>
+<td data-label="Stage 1 load">under 0.2 A</td>
+<td data-label="Verdict">Fine.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="voltage-sag">Voltage sag</h3>
+<p>Two good cells (15-20 mΩ each [E]), the BMS MOSFETs (about 10 mΩ [E]), the fuse (50-100 mΩ [E]), the switch, K2 and
+22 AWG leads come to roughly 0.15-0.2 Ω. That is 0.03 V at 0.2 A and 0.3 V at 1.5 A. The firmware reads the battery
+10 times a second and sets duty = u x 6.0 V / VBAT, so a sag does not change what u = 1 means until VBAT is below
+6.0 V.</p>
+<hr />
+<h2 id="protection-chain-cells-bms-ptc-switch-rail">Protection chain: cells → BMS → PTC → switch → rail</h2>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>Part</th>
+<th>Protects against</th>
+<th>Why it is needed even with the others</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="Part"><strong>U3 BMS</strong></td>
+<td data-label="Protects against">Over-discharge (about 2.5 V per cell), over-charge (about 4.25-4.3 V), over-current, short circuit; balances the cells</td>
+<td data-label="Why it is needed even with the others">The cells are unprotected. Without it, a stuck motor or a forgotten switch drains a cell to 0 V and a short has nothing to stop it.</td>
+</tr>
+<tr>
+<td data-label="Part"><strong>F1 PTC 3 A</strong></td>
+<td data-label="Protects against">A sustained overload or a short in the wiring after the BMS</td>
+<td data-label="Why it is needed even with the others">The BMS's short-circuit trip is set high (tens of amps [E]) to suit 10 A loads; a partial short of a few amps (a pinched wire, a damaged MX1508) is under it and would cook 26 AWG wire. The PTC trips at 6 A in seconds and resets when it cools.</td>
+</tr>
+<tr>
+<td data-label="Part"><strong>SW1</strong></td>
+<td data-label="Protects against">Leaving it on</td>
+<td data-label="Why it is needed even with the others">It is the only way to turn the robot off without unplugging. It must carry all the motor current: 3 A rated, not a 0.3 A slide switch. The Pololu 2810 also has reverse-voltage protection [D Pololu].</td>
+</tr>
+<tr>
+<td data-label="Part"><strong>K2 plug</strong></td>
+<td data-label="Protects against">Mistakes during power-up and repairs</td>
+<td data-label="Why it is needed even with the others">Unplug it and every board is off the battery while the BMS, fuse and switch stay testable.</td>
+</tr>
+</tbody>
+</table></div>
+<p>The charge jack J1 sits on the BMS output, before the fuse and the switch, so the charge current passes the BMS (which
+stops an over-charge) and not the switch.</p>
+<hr />
+<h2 id="mini360-setting-it-to-50-v">Mini360: setting it to 5.0 V</h2>
+<p>There is no manufacturer datasheet for "Mini360": it is an MP2307-type synchronous buck on a 17 x 11 mm board, input
+4.75-23 V, about 340 kHz, output set by a tiny pot [D listings]. <strong>It ships set to a random voltage, often 10 V or
+more, which kills an ESP32 at once.</strong></p>
+<ol>
+<li>Wire it as the wiring list says (W13, W14 to the MX1508 pads; W15, W16 jumper halves on OUT+ and OUT-), but do
+   <strong>not</strong> push W15 and W16 onto the ESP32 yet.</li>
+<li>Plug K2, switch on. Meter on DC volts across the two loose Dupont ends of W15 (red, +) and W16 (black, -).</li>
+<li>Turn the pot a little at a time with a small screwdriver, giving the meter a second to settle, until it reads
+   <strong>5.00 ± 0.05 V</strong>. On most boards clockwise lowers the voltage [E]; if it does not move, try the other way.</li>
+<li>Switch off and on again and check it still reads 5.00 V. Put a dab of nail varnish on the pot. Write "5V" on the
+   board.</li>
+<li>Only then push W15 and W16 onto the ESP32's 5V and GND pins.</li>
+</ol>
+<p>Below about 6 V in, the Mini360 cannot hold 5.0 V out and its output follows the input down [E]; the ESP32 keeps
+working to about 4.5 V on its 5V pin (the DevKit's AMS1117 needs about 1.1 V of headroom [D]). The firmware stops the
+motor at 6.4 V, well above that.</p>
+<hr />
+<h2 id="battery-sense-divider-maths-and-adc-range">Battery sense: divider maths and ADC range</h2>
+<p>R1 100 kΩ from VBAT_SW to VSENSE, R2 33 kΩ from VSENSE to GND, C2 100 nF across R2. VSENSE goes to GPIO36 (SVP).</p>
+<p>VSENSE = VBAT x 33 / (100 + 33) = <strong>0.248 x VBAT</strong>. The firmware multiplies back by 133 / 33 = 4.03 (<code>BATT_DIV</code>).</p>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>Pack</th>
+<th>VSENSE (GPIO36)</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="Pack">8.4 V</td>
+<td data-label="VSENSE (GPIO36)">2.08 V</td>
+<td data-label="Meaning">Full</td>
+</tr>
+<tr>
+<td data-label="Pack">7.4 V</td>
+<td data-label="VSENSE (GPIO36)">1.84 V</td>
+<td data-label="Meaning">Nominal</td>
+</tr>
+<tr>
+<td data-label="Pack">6.4 V</td>
+<td data-label="VSENSE (GPIO36)">1.59 V</td>
+<td data-label="Meaning">Firmware low-battery stop (<code>LOW_BATT_MV</code> 6400, for 2 s)</td>
+</tr>
+<tr>
+<td data-label="Pack">6.0 V</td>
+<td data-label="VSENSE (GPIO36)">1.49 V</td>
+<td data-label="Meaning">Below this u = 1 can no longer reach 6.0 V</td>
+</tr>
+<tr>
+<td data-label="Pack">5.0 V</td>
+<td data-label="VSENSE (GPIO36)">1.24 V</td>
+<td data-label="Meaning">BMS cut-off (about 2.5 V per cell)</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><strong>ADC range check.</strong> The firmware sets 11 dB attenuation on GPIO36. Espressif gives the usable range at 11 dB as
+  150-2450 mV [D ESP-IDF ADC docs, ESP32]. The full pack gives 2.08 V, inside it with 0.37 V to spare; the highest
+  pack voltage the ADC could read is 2.45 x 4.03 = <strong>9.9 V</strong>, above anything a 2S pack can reach.</li>
+<li><strong>Accuracy.</strong> <code>analogReadMilliVolts()</code> uses the chip's factory calibration; expect within about ±2-3 % [E], plus
+  1 % from each resistor, so the reading is within about ±0.2 V at 8 V [E]. Compare it with the meter at power-up
+  step 6.</li>
+<li><strong>Source impedance and C2.</strong> The divider looks like 100k ∥ 33k = 24.8 kΩ to the ADC. That is too high for the ADC's
+  sampling capacitor to charge fully in one sample [E]; C2 holds the voltage steady and supplies the sample. The
+  divider and C2 form a 2.5 ms low-pass, far faster than the firmware's 10 Hz reading and its own smoothing.</li>
+<li><strong>Drain.</strong> 63 µA at 8.4 V, and only with SW1 on: the divider is on the switched side.</li>
+<li><strong>Why GPIO36:</strong> an ADC1 channel (ADC2 does not work with the radio on, which matters in stage 2), input only, no
+  internal pull resistors to upset the divider.</li>
+<li><strong>If the divider fails:</strong> with R2 open, GPIO36 reads high, the firmware thinks the pack is fuller than it is and
+  drives a lower duty: the motor gets less than 6 V, not more. With the W17 jumper off, GPIO36 floats and the reading
+  means nothing. If R1 is open, VSENSE
+  reads 0 and the firmware assumes 7.4 V; on a full pack the motor then gets up to 6.8 V average for that run. Check
+  the reading at step 6.</li>
+</ul>
+<hr />
+<h2 id="mx1508">MX1508</h2>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Supply</td>
+<td>2-9.6 V [D datasheet via the BOM]; listings say 2-10 V. A full 2S pack is 8.4 V, 1.2 V under the limit. The motor supply is also the chip's supply; there is no separate logic pin.</td>
+</tr>
+<tr>
+<td>Current</td>
+<td>One channel 1.5 A continuous / 2 A peak, the other 0.8 A / 1.5 A [D datasheet via the BOM]. Modules do not say which is which.</td>
+</tr>
+<tr>
+<td>Control</td>
+<td>Two inputs per motor, <strong>no enable pin</strong>. IN1/IN2 high/low = forward, low/high = reverse, high/high = <strong>brake</strong> (motor shorted), low/low = <strong>coast</strong> (bridge off).</td>
+</tr>
+<tr>
+<td>Inputs</td>
+<td>Driven at 3.3 V by the ESP32 (works on common modules [E]). R3, R4 100 kΩ pull them low when the ESP32 is not driving them.</td>
+</tr>
+<tr>
+<td>PWM</td>
+<td>20 kHz, 10-bit, from the ESP32's LEDC [C]. 80 MHz / 20 kHz = 4000 counts per period, so up to 11 bits would fit [D ESP32 LEDC]; 10 bits gives 1024 steps, about 8 mV each at the motor on a full pack. 20 kHz is above hearing.</td>
+</tr>
+<tr>
+<td>Decay</td>
+<td><strong>Slow decay</strong> [C]: one input held high, the other PWM-ed with the duty inverted. In the off-time the motor is shorted through the bridge, so the average motor voltage is duty x VBAT at any speed or load. That is the motor model the simulator uses. u = 0 brakes, exactly as the simulator's 0 V does. <code>coast()</code> (both low) is used when it is waiting or has fallen, so a falling robot does not have its wheels locked.</td>
+</tr>
+<tr>
+<td>Voltage cap</td>
+<td><code>V_MOTOR_MAX</code> = 6.0 V [C]: duty = u x 6.0 / VBAT, so u = 1 is 6.0 V average whatever the charge. On a full pack the largest duty is 6.0 / 8.4 = 0.71; at the 6.4 V low-battery stop it is 0.94. The TT motor is rated 3-6 V [D]. The peak voltage across the motor in each PWM pulse is still the full pack voltage; that is normal for a PWM-driven brushed motor and the 6 V rating is about average voltage (heat and brush wear).</td>
+</tr>
+<tr>
+<td>Bench command</td>
+<td><code>motor &lt;u&gt; &lt;ms&gt;</code> goes through the same <code>drive()</code>, so it is capped at 6.0 V too.</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>If channel A is the weak one.</strong> Symptoms: the robot balances, then cuts out or gets weak after a few seconds of
+hard work, and one side of the MX1508 is hot to the touch. Move W18 and W19 to IN3 and IN4, and W20 and W21 to
+MOTOR-B, and move R3 and R4 to IN3 and IN4. No firmware change. If both channels struggle, a DRV8833 module (1.5 A
+RMS, 2 A peak per channel [D TI]) or a TB6612FNG module (1.2 A continuous, 3.2 A peak per channel [D Toshiba]) uses
+the same two-input control; the TB6612 also needs its STBY pin tied high.</p>
+<hr />
+<h2 id="imu-wiring">IMU wiring</h2>
+<p>The GY-521 sits 2 mm off the front face of the core, close to the axle, on two M2.5 self-tappers. Its cable is four
+20 cm Dupont female-female jumpers: up the front of the core (tied at the core's two front tunnels, z 48 and 63),
+under the mast plate to the robot-right side at z 69, up outside the robot-right flanges, and round the flange's
+edge at z 98 to the back. W24 lands on the ESP32's lower header row; W25-W27 carry on up beside the antenna end of
+the board to the upper row. The other four GY-521 pins are not
+connected.</p>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>GY-521 pin (printed)</th>
+<th>Goes to ESP32 DevKit pin (printed)</th>
+<th>Wire</th>
+<th>Colour</th>
+<th>Where that ESP32 pin is</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="GY-521 pin (printed)"><strong>VCC</strong></td>
+<td data-label="Goes to ESP32 DevKit pin (printed)"><strong>3V3</strong></td>
+<td data-label="Wire">W24</td>
+<td data-label="Colour">red</td>
+<td data-label="Where that ESP32 pin is">Row A (the row with 3V3 ... 5V), the pin at the antenna end: 19th from the USB end</td>
+</tr>
+<tr>
+<td data-label="GY-521 pin (printed)"><strong>GND</strong></td>
+<td data-label="Goes to ESP32 DevKit pin (printed)"><strong>GND</strong></td>
+<td data-label="Wire">W25</td>
+<td data-label="Colour">black</td>
+<td data-label="Where that ESP32 pin is">Row B (the row with GND ... CLK), the pin at the antenna end: 19th from the USB end</td>
+</tr>
+<tr>
+<td data-label="GY-521 pin (printed)"><strong>SCL</strong></td>
+<td data-label="Goes to ESP32 DevKit pin (printed)"><strong>IO22</strong> (D22, GPIO22)</td>
+<td data-label="Wire">W26</td>
+<td data-label="Colour">yellow</td>
+<td data-label="Where that ESP32 pin is">Row B, 3rd from the antenna end: 17th from the USB end</td>
+</tr>
+<tr>
+<td data-label="GY-521 pin (printed)"><strong>SDA</strong></td>
+<td data-label="Goes to ESP32 DevKit pin (printed)"><strong>IO21</strong> (D21, GPIO21)</td>
+<td data-label="Wire">W27</td>
+<td data-label="Colour">blue</td>
+<td data-label="Where that ESP32 pin is">Row B, 6th from the antenna end: 14th from the USB end</td>
+</tr>
+<tr>
+<td data-label="GY-521 pin (printed)">XDA</td>
+<td data-label="Goes to ESP32 DevKit pin (printed)">not connected</td>
+<td data-label="Wire"></td>
+<td data-label="Colour"></td>
+<td data-label="Where that ESP32 pin is">Auxiliary I2C master for an external magnetometer. Unused.</td>
+</tr>
+<tr>
+<td data-label="GY-521 pin (printed)">XCL</td>
+<td data-label="Goes to ESP32 DevKit pin (printed)">not connected</td>
+<td data-label="Wire"></td>
+<td data-label="Colour"></td>
+<td data-label="Where that ESP32 pin is">Same.</td>
+</tr>
+<tr>
+<td data-label="GY-521 pin (printed)">AD0</td>
+<td data-label="Goes to ESP32 DevKit pin (printed)">not connected</td>
+<td data-label="Wire"></td>
+<td data-label="Colour"></td>
+<td data-label="Where that ESP32 pin is">Pulled low on the GY-521 [E], so the address is <strong>0x68</strong>, which the firmware expects (<code>MPU = 0x68</code>). Tied to 3V3 it would be 0x69 and the firmware would not find the sensor.</td>
+</tr>
+<tr>
+<td data-label="GY-521 pin (printed)">INT</td>
+<td data-label="Goes to ESP32 DevKit pin (printed)">not connected</td>
+<td data-label="Wire"></td>
+<td data-label="Colour"></td>
+<td data-label="Where that ESP32 pin is">Interrupt output. The firmware polls the sensor at 400 Hz instead.</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><strong>Supply.</strong> VCC to the ESP32's <strong>3V3</strong>, not 5V. The GY-521's own regulator then drops it to about 3.1-3.2 V [E],
+  inside the MPU-6050's 2.375-3.46 V [D]. Its SCL and SDA pull-ups go to that regulated rail, so the bus idles at about
+  3.2 V, above the ESP32's 2.5 V logic-high threshold [D] and never above 3.3 V.</li>
+<li><strong>Pull-ups.</strong> Already on the GY-521 (2.2-4.7 kΩ depending on the board [E]). Add none. The ESP32's weak internal
+  pull-ups are switched on by <code>Wire</code> as well; they do no harm.</li>
+<li><strong>Speed.</strong> 400 kHz (<code>Wire.begin(21, 22, 400000)</code>). With about 20 cm of jumper the bus is around 50 pF [E]; with a
+  4.7 kΩ pull-up the rise time is about 0.85 x 4.7 kΩ x 50 pF = 0.2 µs, inside the 0.3 µs fast-mode limit [D I2C
+  spec]. Twist SCL and SDA loosely together with GND, and keep them away from the motor leads (the motor leads are on
+  the back, the I2C wires on the front).</li>
+<li><strong>Mounting.</strong> Chip facing <strong>forward</strong> (away from the core), the silkscreen <strong>X arrow pointing up</strong> (<code>readImu()</code>
+  maps body x = chip z, body y = -chip y, body z = chip x). Solder the header with its pins on the chip side,
+  pointing forward, so the board lies flat on its posts. <strong>Check the X arrow before you screw it down:</strong> if it runs
+  across the header, mount the board 21 mm wide and 16 mm tall, header along the top (as drawn); if it runs along the
+  header, mount it 16 wide and 21 tall with the header on one side. The printed mount has pilots for both
+  (<a href="stage1-print.html"><code>mechanical.md</code></a>, GY-521 orientation). Only if you must mount it some other way, change the six mapping lines in
+  <code>readImu()</code>.</li>
+<li><strong>Confirm it works</strong> (power-up step 6):
+  1. Flash <a href="https://github.com/buildrobotz/tailwhip-robot/tree/main/firmware/i2c_scan"><code>firmware/i2c_scan</code></a> (in the published robot's folder; same pins, 21 and 22). It must print <code>SDA=1 SCL=1</code>
+     and find <code>0x68</code> (WHO_AM_I 0x68, or 0x70 for an MPU-6500 clone, which also works).
+  2. Flash <code>stage1_balance</code>. The banner must not say <code>MPU-6050 not found</code>. Type <code>show</code>: with the robot upright,
+     pitch reads near 0 deg.
+  3. Tilt the robot forward: pitch must go <strong>positive</strong>. Tilt it back: negative. If the sign is wrong, the board is
+     mounted differently from the drawing.</li>
+</ul>
+<hr />
+<h2 id="esp32-pin-map">ESP32 pin map</h2>
+<p>The board is an ESP32 DevKitC, 38 pins (Espressif's layout). Its two header rows are called <strong>row A</strong> (3V3, EN, SVP
+... 5V, Espressif's J1) and <strong>row B</strong> (GND, IO23, IO22 ... CLK, J3). On the robot it lies across the back of the mast
+with the module facing the mast, USB toward the robot's left, on four corner pads with two zip ties between the header
+rows, so the pins point back at you and the printed labels are on the far side. <strong>Count pins from the USB end.</strong> Row A is the lower row.</p>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>GPIO</th>
+<th>Printed label</th>
+<th>Row, pin from USB end</th>
+<th>Net</th>
+<th>Dir</th>
+<th>Use</th>
+<th>Checks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="GPIO">25</td>
+<td data-label="Printed label">IO25 (D25)</td>
+<td data-label="Row, pin from USB end">A, 11</td>
+<td data-label="Net">M_IN1</td>
+<td data-label="Dir">out</td>
+<td data-label="Use">MX1508 IN1, LEDC PWM 20 kHz</td>
+<td data-label="Checks">Not a strapping pin. Floats at reset: R3 pull-down.</td>
+</tr>
+<tr>
+<td data-label="GPIO">26</td>
+<td data-label="Printed label">IO26 (D26)</td>
+<td data-label="Row, pin from USB end">A, 10</td>
+<td data-label="Net">M_IN2</td>
+<td data-label="Dir">out</td>
+<td data-label="Use">MX1508 IN2</td>
+<td data-label="Checks">Not a strapping pin. Floats at reset: R4 pull-down.</td>
+</tr>
+<tr>
+<td data-label="GPIO">21</td>
+<td data-label="Printed label">IO21 (D21)</td>
+<td data-label="Row, pin from USB end">B, 14</td>
+<td data-label="Net">SDA</td>
+<td data-label="Dir">i/o</td>
+<td data-label="Use">GY-521 SDA</td>
+<td data-label="Checks">Fine.</td>
+</tr>
+<tr>
+<td data-label="GPIO">22</td>
+<td data-label="Printed label">IO22 (D22)</td>
+<td data-label="Row, pin from USB end">B, 17</td>
+<td data-label="Net">SCL</td>
+<td data-label="Dir">out</td>
+<td data-label="Use">GY-521 SCL</td>
+<td data-label="Checks">Fine.</td>
+</tr>
+<tr>
+<td data-label="GPIO">36</td>
+<td data-label="Printed label">SVP (VP)</td>
+<td data-label="Row, pin from USB end">A, 17</td>
+<td data-label="Net">VSENSE</td>
+<td data-label="Dir">in</td>
+<td data-label="Use">Battery divider, ADC1_CH0, 11 dB</td>
+<td data-label="Checks">Input only, no internal pulls: right for an ADC.</td>
+</tr>
+<tr>
+<td data-label="GPIO">2</td>
+<td data-label="Printed label">IO2 (D2)</td>
+<td data-label="Row, pin from USB end">B, 15</td>
+<td data-label="Net">LED</td>
+<td data-label="Dir">out</td>
+<td data-label="Use">On-board LED, no wire</td>
+<td data-label="Checks">Strapping pin: must be low or open to enter download mode; the LED and its resistor hold it low. Fine.</td>
+</tr>
+<tr>
+<td data-label="GPIO">-</td>
+<td data-label="Printed label">5V (VIN)</td>
+<td data-label="Row, pin from USB end">A, 1</td>
+<td data-label="Net">5V</td>
+<td data-label="Dir">pwr</td>
+<td data-label="Use">From Mini360 OUT+ (W15)</td>
+<td data-label="Checks">See "USB and the battery together".</td>
+</tr>
+<tr>
+<td data-label="GPIO">-</td>
+<td data-label="Printed label">GND</td>
+<td data-label="Row, pin from USB end">A, 6</td>
+<td data-label="Net">GND</td>
+<td data-label="Dir">pwr</td>
+<td data-label="Use">To Mini360 OUT- (W16)</td>
+<td data-label="Checks"></td>
+</tr>
+<tr>
+<td data-label="GPIO">-</td>
+<td data-label="Printed label">3V3</td>
+<td data-label="Row, pin from USB end">A, 19</td>
+<td data-label="Net">3V3</td>
+<td data-label="Dir">pwr</td>
+<td data-label="Use">To GY-521 VCC (W24)</td>
+<td data-label="Checks">The DevKit regulator's output, about 10 mA used.</td>
+</tr>
+<tr>
+<td data-label="GPIO">-</td>
+<td data-label="Printed label">GND</td>
+<td data-label="Row, pin from USB end">B, 19</td>
+<td data-label="Net">GND</td>
+<td data-label="Dir">pwr</td>
+<td data-label="Use">To GY-521 GND (W25)</td>
+<td data-label="Checks"></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Avoided, and why:</strong> GPIO0, 5, 12 and 15 are strapping pins (GPIO12 in particular sets the flash voltage at reset
+and must stay low); GPIO6-11 (SD0-SD3, CMD, CLK) are the flash; GPIO1 and 3 are the USB serial; GPIO34, 35 and 39 are
+input only. None of them is used. Every unused pin is left open.</p>
+<p><strong>30-pin DevKit instead?</strong> Same GPIOs, different positions: wire by the printed label (D25, D26, D21, D22, VP, VIN,
+3V3, GND), not by position. On the common 30-pin DOIT board, VP, D25, D26 and VIN are on one row and D21, D22, GND and
+3V3 on the other.</p>
+<p><strong>USB and the battery together.</strong> You need both while tuning (the motor runs from the battery, the serial monitor
+from USB). Espressif's DevKitC guide says to use only one power source at a time; many DevKit boards have a diode
+between the USB 5 V and the 5V pin that makes both together safe, some do not [D Espressif DevKitC guide; E clones].
+Check yours at power-up step 0: with USB only, measure the 5V pin to GND. About 4.6-4.8 V means there is a diode;
+5.0 V means there is none, and you must not plug USB in while SW1 is on (use a USB cable with the 5 V wire cut, or a
+USB isolator).</p>
+<p><strong>USB alone, switch off.</strong> With USB plugged in and SW1 off, the ESP32's 5 V rail can feed backwards through the
+Mini360 into the battery rail and the MX1508, which may sit at about 4-4.7 V [E]. The firmware then sees a low battery
+after 2 s and will not balance, which is safe, but the bench command <code>motor</code> does not check the battery and would
+draw the motor current from your laptop's USB port. Do not run <code>motor</code> without SW1 on.</p>
+<hr />
+<h2 id="decoupling">Decoupling</h2>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>Part</th>
+<th>Where</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="Part"><strong>C1 470 µF 16 V low-ESR</strong></td>
+<td data-label="Where">Legs on the MX1508 + and - pads, stripe to -</td>
+<td data-label="Why">Supplies the motor's 20 kHz pulse current locally so the pack leads do not have to, and catches the motor's inductive kick when the bridge switches. Ripple: at 1.5 A and duty 0.71 the capacitor carries about 1.5 x √(0.71 x 0.29) = 0.7 A RMS [E] for a moment, and about 0.2 A RMS while balancing; a 470 µF 16 V low-ESR part handles that [E]. Voltage ripple about 1.5 A x 0.29 x 50 µs / 470 µF = 0.05 V.</td>
+</tr>
+<tr>
+<td data-label="Part"><strong>C2 100 nF</strong></td>
+<td data-label="Where">Across R2 on JB</td>
+<td data-label="Why">Holds VSENSE steady for the ADC (see "Battery sense").</td>
+</tr>
+<tr>
+<td data-label="Part"><strong>C3 100 nF ceramic</strong></td>
+<td data-label="Where">Across the motor tabs, legs short, in the 5 mm pocket above the can</td>
+<td data-label="Why">Brush noise at the source [D Pololu]. It adds a small charging spike on each PWM edge (about 0.8 µC at 8.4 V), harmless for the MX1508. If you see the MX1508 warm at standstill, try 10 nF.</td>
+</tr>
+<tr>
+<td data-label="Part">On-board</td>
+<td data-label="Where">Mini360, ESP32 DevKit, GY-521</td>
+<td data-label="Why">Each has its own input and output capacitors [E]. Nothing extra is needed.</td>
+</tr>
+<tr>
+<td data-label="Part">If the ESP32 resets when the motor starts</td>
+<td data-label="Where">100 µF across the ESP32's 5V and GND pins</td>
+<td data-label="Why">Not in the design. Add it only if step 7 shows resets (<code>rst:</code> lines in the serial monitor).</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="grounds">Grounds</h2>
+<p>One star point: <strong>JB GND</strong>, fed from BMS P- through K2 (W8). From there:</p>
+<ul>
+<li>W12 (22 AWG) to the MX1508's - pad: all motor return current.</li>
+<li>The Mini360's IN- comes off the MX1508's - pad (W14, 26 AWG); its OUT- is the same copper; W16 takes it to the
+  ESP32. No motor current flows through the ESP32 or the I2C ground.</li>
+<li>The GY-521's ground comes from the ESP32's other GND pin (W25).</li>
+<li>R2 and C2 go to JB GND on the perfboard.</li>
+<li>SW1 GND (W6) goes straight to BMS P-: the Pololu switch needs it to turn its MOSFET on.</li>
+</ul>
+<hr />
+<h2 id="board-positions">Board positions</h2>
+<p>From the final <a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/stage1.py"><code>stage1.py</code></a> (body frame: x forward, y left, z up, origin on the axle, mm). Mounts, ties and cable
+routes are in <a href="stage1-print.html"><code>mechanical.md</code></a>.</p>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>Board</th>
+<th>Where</th>
+<th>Box (mm)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="Board">U5 ESP32</td>
+<td data-label="Where">Back of the mast, lying across, module toward the plate, pins pointing back, USB to the robot's left; four corner pads, two ties</td>
+<td data-label="Box (mm)">y -27.5..27.5, z 100..128</td>
+</tr>
+<tr>
+<td data-label="Board">U4 MX1508</td>
+<td data-label="Where">Back, below the ESP32, robot-right side, clear of the gusset at y = 0; rails and one tie</td>
+<td data-label="Box (mm)">y -27..-2.3, z 76.5..97.5</td>
+</tr>
+<tr>
+<td data-label="Board">U1 Mini360</td>
+<td data-label="Where">Back, below the ESP32, robot-left side; rails and one tie</td>
+<td data-label="Box (mm)">y 4..21.2, z 80..91.2</td>
+</tr>
+<tr>
+<td data-label="Board">K1 motor plug</td>
+<td data-label="Where">Back face of the core, lying vertical, tied through the core's upper back tunnel (z 67.5)</td>
+<td data-label="Box (mm)">y -3.8..3.8, z 60..78</td>
+</tr>
+<tr>
+<td data-label="Board">C3</td>
+<td data-label="Where">Across the motor tabs, in the 5 mm pocket above the can</td>
+<td data-label="Box (mm)">z 59..64</td>
+</tr>
+<tr>
+<td data-label="Board">U3 BMS</td>
+<td data-label="Where">Front of the mast, top; rails and one tie</td>
+<td data-label="Box (mm)">y -25..25, z 101..123</td>
+</tr>
+<tr>
+<td data-label="Board">SW1</td>
+<td data-label="Where">Front, below the BMS, robot-left side, slider forward</td>
+<td data-label="Box (mm)">y 6..21.2, z 77..92.2</td>
+</tr>
+<tr>
+<td data-label="Board">JB</td>
+<td data-label="Where">Front, below the BMS, robot-right side; rails and one tie; the mated K2 plug points forward</td>
+<td data-label="Box (mm)">y -25.5..-4.5, z 79..92</td>
+</tr>
+<tr>
+<td data-label="Board">J1</td>
+<td data-label="Where">Hangs vertically in front of the robot-left front flange, socket pointing down, two ties</td>
+<td data-label="Box (mm)">centre x 15.8, y 28; z 100..114</td>
+</tr>
+<tr>
+<td data-label="Board">U6 GY-521</td>
+<td data-label="Where">2 mm off the front face of the core, near the axle, chip forward, two M2.5 screws</td>
+<td data-label="Box (mm)">y -10.5..10.5, z 16..32</td>
+</tr>
+<tr>
+<td data-label="Board">BT1 holder</td>
+<td data-label="Where">On the separate battery tray on top of the mast, under the strap; leads out of the tray's robot-right notch</td>
+<td data-label="Box (mm)">tray z 132..146</td>
+</tr>
+</tbody>
+</table></div>
+<p>The two faces of the mast connect in two places. W17 and the four IMU jumpers go round the robot-right (-y) edge of
+the mast at z 98. W11 and W12 pass under the plate's bottom edge at y -15, where the plate overhangs the core. The
+motor leads leave the core through the slot in its back (z 59..64) straight into K1.</p>
+<hr />
+<h2 id="wire-list">Wire list</h2>
+<p>Every wire, point to point. Lengths are estimates from the <a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/stage1.py"><code>stage1.py</code></a> positions plus slack: cut long and trim.
+Refs and pins are as printed on each board. "F-F jumper" = Dupont female-female jumper wire.</p>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>Id</th>
+<th>From</th>
+<th>To</th>
+<th>Net</th>
+<th>Colour</th>
+<th>AWG</th>
+<th>mm</th>
+<th>Ends</th>
+<th>Route / note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="Id">W1</td>
+<td data-label="From">Holder + (red lead)</td>
+<td data-label="To">BMS B+</td>
+<td data-label="Net">CELL+</td>
+<td data-label="Colour">red</td>
+<td data-label="AWG">22</td>
+<td data-label="mm">70</td>
+<td data-label="Ends">solder / solder</td>
+<td data-label="Route / note">Holder lead, shortened: out of the tray's robot-right notch, down outside the front-right flange (tie at z 124), round its front edge into the BMS at z 119</td>
+</tr>
+<tr>
+<td data-label="Id">W2</td>
+<td data-label="From">Holder - (black lead)</td>
+<td data-label="To">BMS B-</td>
+<td data-label="Net">CELL-</td>
+<td data-label="Colour">black</td>
+<td data-label="AWG">22</td>
+<td data-label="mm">70</td>
+<td data-label="Ends">solder / solder</td>
+<td data-label="Route / note">With W1</td>
+</tr>
+<tr>
+<td data-label="Id">W3</td>
+<td data-label="From">Holder cell middle (the strap joining the cells)</td>
+<td data-label="To">BMS BM</td>
+<td data-label="Net">CELL_MID</td>
+<td data-label="Colour">orange</td>
+<td data-label="AWG">26</td>
+<td data-label="mm">150</td>
+<td data-label="Ends">solder / solder</td>
+<td data-label="Route / note">Soldered to the strap at the robot-left end of the holder, along the holder to the notch, then with W1</td>
+</tr>
+<tr>
+<td data-label="Id">W4</td>
+<td data-label="From">BMS P+</td>
+<td data-label="To">F1 lead 1</td>
+<td data-label="Net">PACK+</td>
+<td data-label="Colour">red</td>
+<td data-label="AWG">22</td>
+<td data-label="mm">15</td>
+<td data-label="Ends">solder / solder</td>
+<td data-label="Route / note">F1 in heat-shrink</td>
+</tr>
+<tr>
+<td data-label="Id">W5</td>
+<td data-label="From">F1 lead 2</td>
+<td data-label="To">SW1 VIN</td>
+<td data-label="Net">VBAT_F</td>
+<td data-label="Colour">red</td>
+<td data-label="AWG">22</td>
+<td data-label="mm">20</td>
+<td data-label="Ends">solder / solder</td>
+<td data-label="Route / note">Straight down from the BMS to the switch below it</td>
+</tr>
+<tr>
+<td data-label="Id">W6</td>
+<td data-label="From">BMS P-</td>
+<td data-label="To">SW1 GND</td>
+<td data-label="Net">GND</td>
+<td data-label="Colour">black</td>
+<td data-label="AWG">26</td>
+<td data-label="mm">30</td>
+<td data-label="Ends">solder / solder</td>
+<td data-label="Route / note">Switch gate ground (leave out with a mechanical rocker)</td>
+</tr>
+<tr>
+<td data-label="Id">W7</td>
+<td data-label="From">SW1 VOUT</td>
+<td data-label="To">K2 pin 1 (+)</td>
+<td data-label="Net">VBAT_SW</td>
+<td data-label="Colour">red</td>
+<td data-label="AWG">22</td>
+<td data-label="mm">40</td>
+<td data-label="Ends">solder / XH crimp</td>
+<td data-label="Route / note">Across the front to the K2 plug on JB</td>
+</tr>
+<tr>
+<td data-label="Id">W8</td>
+<td data-label="From">BMS P-</td>
+<td data-label="To">K2 pin 2 (-)</td>
+<td data-label="Net">GND</td>
+<td data-label="Colour">black</td>
+<td data-label="AWG">22</td>
+<td data-label="mm">50</td>
+<td data-label="Ends">solder / XH crimp</td>
+<td data-label="Route / note">Under the BMS to the K2 plug</td>
+</tr>
+<tr>
+<td data-label="Id">W9</td>
+<td data-label="From">J1 centre (+, red)</td>
+<td data-label="To">BMS P+</td>
+<td data-label="Net">PACK+</td>
+<td data-label="Colour">red</td>
+<td data-label="AWG">22</td>
+<td data-label="mm">60</td>
+<td data-label="Ends">solder / solder</td>
+<td data-label="Route / note">Jack pigtail, shortened; the jack hangs in front of the robot-left front flange, socket down, leads up and round to the BMS output pads</td>
+</tr>
+<tr>
+<td data-label="Id">W10</td>
+<td data-label="From">J1 sleeve (-, black)</td>
+<td data-label="To">BMS P-</td>
+<td data-label="Net">GND</td>
+<td data-label="Colour">black</td>
+<td data-label="AWG">22</td>
+<td data-label="mm">60</td>
+<td data-label="Ends">solder / solder</td>
+<td data-label="Route / note">With W9</td>
+</tr>
+<tr>
+<td data-label="Id">W11</td>
+<td data-label="From">JB VB</td>
+<td data-label="To">MX1508 +</td>
+<td data-label="Net">VBAT_SW</td>
+<td data-label="Colour">red</td>
+<td data-label="AWG">22</td>
+<td data-label="mm">60</td>
+<td data-label="Ends">solder / solder</td>
+<td data-label="Route / note">Down from JB, under the bottom edge of the mast plate at y -15, up to the MX1508 on the back</td>
+</tr>
+<tr>
+<td data-label="Id">W12</td>
+<td data-label="From">JB GND</td>
+<td data-label="To">MX1508 -</td>
+<td data-label="Net">GND</td>
+<td data-label="Colour">black</td>
+<td data-label="AWG">22</td>
+<td data-label="mm">60</td>
+<td data-label="Ends">solder / solder</td>
+<td data-label="Route / note">With W11. All motor current returns on it</td>
+</tr>
+<tr>
+<td data-label="Id">W13</td>
+<td data-label="From">MX1508 +</td>
+<td data-label="To">Mini360 IN+</td>
+<td data-label="Net">VBAT_SW</td>
+<td data-label="Colour">red</td>
+<td data-label="AWG">26</td>
+<td data-label="mm">40</td>
+<td data-label="Ends">solder / solder</td>
+<td data-label="Route / note">Across the MX1508 to the Mini360 beside it</td>
+</tr>
+<tr>
+<td data-label="Id">W14</td>
+<td data-label="From">MX1508 -</td>
+<td data-label="To">Mini360 IN-</td>
+<td data-label="Net">GND</td>
+<td data-label="Colour">black</td>
+<td data-label="AWG">26</td>
+<td data-label="mm">40</td>
+<td data-label="Ends">solder / solder</td>
+<td data-label="Route / note">With W13</td>
+</tr>
+<tr>
+<td data-label="Id">W15</td>
+<td data-label="From">Mini360 OUT+</td>
+<td data-label="To">ESP32 5V (row A, pin 1 from USB)</td>
+<td data-label="Net">5V</td>
+<td data-label="Colour">red</td>
+<td data-label="AWG">26</td>
+<td data-label="mm">60</td>
+<td data-label="Ends">solder / Dupont</td>
+<td data-label="Route / note">Half of a 10 cm F-F jumper, bare end soldered to the pad. <strong>Only after the Mini360 is set to 5.00 V</strong></td>
+</tr>
+<tr>
+<td data-label="Id">W16</td>
+<td data-label="From">Mini360 OUT-</td>
+<td data-label="To">ESP32 GND (row A, pin 6 from USB)</td>
+<td data-label="Net">GND</td>
+<td data-label="Colour">black</td>
+<td data-label="AWG">26</td>
+<td data-label="mm">60</td>
+<td data-label="Ends">solder / Dupont</td>
+<td data-label="Route / note">The other half of the same jumper</td>
+</tr>
+<tr>
+<td data-label="Id">W17</td>
+<td data-label="From">JB VS (1-pin header)</td>
+<td data-label="To">ESP32 SVP (row A, pin 17 from USB)</td>
+<td data-label="Net">VSENSE</td>
+<td data-label="Colour">violet</td>
+<td data-label="AWG">jumper</td>
+<td data-label="mm">100</td>
+<td data-label="Ends">Dupont / Dupont</td>
+<td data-label="Route / note">10 cm F-F jumper, round the robot-right edge of the mast at z 98</td>
+</tr>
+<tr>
+<td data-label="Id">W18</td>
+<td data-label="From">ESP32 IO25 (row A, pin 11 from USB)</td>
+<td data-label="To">MX1508 IN1</td>
+<td data-label="Net">M_IN1</td>
+<td data-label="Colour">white</td>
+<td data-label="AWG">jumper</td>
+<td data-label="mm">100</td>
+<td data-label="Ends">Dupont / Dupont</td>
+<td data-label="Route / note">10 cm F-F jumper</td>
+</tr>
+<tr>
+<td data-label="Id">W19</td>
+<td data-label="From">ESP32 IO26 (row A, pin 10 from USB)</td>
+<td data-label="To">MX1508 IN2</td>
+<td data-label="Net">M_IN2</td>
+<td data-label="Colour">grey</td>
+<td data-label="AWG">jumper</td>
+<td data-label="mm">100</td>
+<td data-label="Ends">Dupont / Dupont</td>
+<td data-label="Route / note">10 cm F-F jumper</td>
+</tr>
+<tr>
+<td data-label="Id">W20</td>
+<td data-label="From">MX1508 MOTOR-A (first pad)</td>
+<td data-label="To">K1 pin 1</td>
+<td data-label="Net">MOT_1</td>
+<td data-label="Colour">red</td>
+<td data-label="AWG">22</td>
+<td data-label="mm">40</td>
+<td data-label="Ends">solder / XH crimp</td>
+<td data-label="Route / note">From the MX1508's motor pads beside the gusset down to K1 on the back of the core</td>
+</tr>
+<tr>
+<td data-label="Id">W21</td>
+<td data-label="From">MX1508 MOTOR-A (second pad)</td>
+<td data-label="To">K1 pin 2</td>
+<td data-label="Net">MOT_2</td>
+<td data-label="Colour">black</td>
+<td data-label="AWG">22</td>
+<td data-label="mm">40</td>
+<td data-label="Ends">solder / XH crimp</td>
+<td data-label="Route / note">With W20</td>
+</tr>
+<tr>
+<td data-label="Id">W22</td>
+<td data-label="From">K1 pin 1</td>
+<td data-label="To">Motor tab 1</td>
+<td data-label="Net">MOT_1</td>
+<td data-label="Colour">red</td>
+<td data-label="AWG">22</td>
+<td data-label="mm">60</td>
+<td data-label="Ends">XH crimp / solder</td>
+<td data-label="Route / note">Soldered to the tab with C3, out of the slot in the back of the core (z 59..64) into K1</td>
+</tr>
+<tr>
+<td data-label="Id">W23</td>
+<td data-label="From">K1 pin 2</td>
+<td data-label="To">Motor tab 2</td>
+<td data-label="Net">MOT_2</td>
+<td data-label="Colour">black</td>
+<td data-label="AWG">22</td>
+<td data-label="mm">60</td>
+<td data-label="Ends">XH crimp / solder</td>
+<td data-label="Route / note">With W22</td>
+</tr>
+<tr>
+<td data-label="Id">W24</td>
+<td data-label="From">ESP32 3V3 (row A, pin 19 from USB)</td>
+<td data-label="To">GY-521 VCC</td>
+<td data-label="Net">3V3</td>
+<td data-label="Colour">red</td>
+<td data-label="AWG">jumper</td>
+<td data-label="mm">200</td>
+<td data-label="Ends">Dupont / Dupont</td>
+<td data-label="Route / note">20 cm F-F jumper: up the front of the core (ties at z 48 and 63), under the plate to the robot-right side, up outside the flanges, round the edge at z 98 to the lower header row</td>
+</tr>
+<tr>
+<td data-label="Id">W25</td>
+<td data-label="From">ESP32 GND (row B, pin 19 from USB)</td>
+<td data-label="To">GY-521 GND</td>
+<td data-label="Net">GND</td>
+<td data-label="Colour">black</td>
+<td data-label="AWG">jumper</td>
+<td data-label="mm">200</td>
+<td data-label="Ends">Dupont / Dupont</td>
+<td data-label="Route / note">20 cm F-F jumper, with W24, then up beside the antenna end of the ESP32 to the upper header row</td>
+</tr>
+<tr>
+<td data-label="Id">W26</td>
+<td data-label="From">ESP32 IO22 (row B, pin 17 from USB)</td>
+<td data-label="To">GY-521 SCL</td>
+<td data-label="Net">SCL</td>
+<td data-label="Colour">yellow</td>
+<td data-label="AWG">jumper</td>
+<td data-label="mm">200</td>
+<td data-label="Ends">Dupont / Dupont</td>
+<td data-label="Route / note">20 cm F-F jumper, as W25; twist loosely with W27</td>
+</tr>
+<tr>
+<td data-label="Id">W27</td>
+<td data-label="From">ESP32 IO21 (row B, pin 14 from USB)</td>
+<td data-label="To">GY-521 SDA</td>
+<td data-label="Net">SDA</td>
+<td data-label="Colour">blue</td>
+<td data-label="AWG">jumper</td>
+<td data-label="mm">200</td>
+<td data-label="Ends">Dupont / Dupont</td>
+<td data-label="Route / note">20 cm F-F jumper, as W25</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Joins with no wire:</strong> C1's legs on the MX1508 + and - pads (stripe to -); R3 from the IN1 header pin to the - pad
+and R4 from IN2 to -, on the underside of the MX1508; C3's legs on the two motor tabs; on JB, the K2 header, R1 (VB
+to VS), R2 and C2 (VS to GND), joined by solder bridges or tinned wire on the perfboard.</p>
+<p><strong>Motor polarity does not matter at the wiring stage.</strong> Power-up step 7 checks the direction; the firmware's
+<code>dir -1</code> reverses it without re-soldering.</p>
+<h3 id="build-the-junction-board">Build the junction board</h3>
+<p>A piece of perfboard 8 holes wide by 5 tall, cut to about 21 x 13 mm to fit the rails. Top = up the robot.</p>
+<ol>
+<li>Solder the 2-pin XH header (K2) near the top edge, standing so the mated plug points forward: pin 1 (+) toward
+   the middle of the robot, pin 2 (-) toward the edge.</li>
+<li>A <strong>VB</strong> bus row from K2 pin 1 down the left side, a <strong>GND</strong> bus row from K2 pin 2 along the bottom.</li>
+<li><strong>R1</strong> 100k from VB to a <strong>VS</strong> pad; <strong>R2</strong> 33k from VS to GND; <strong>C2</strong> 100 nF beside R2, VS to GND.</li>
+<li>One male header pin on VS, pointing out, for the W17 jumper.</li>
+<li>Solder pads on VB and GND for W11 and W12.</li>
+</ol>
+<p>Check with the meter before it goes on the robot: VB to GND about 133 kΩ; VS to GND about 33 kΩ (it rises for a
+moment while C2 charges); VB to VS about 100 kΩ; VB to GND never under 100 kΩ.</p>
+<hr />
+<h2 id="connector-plan">Connector plan</h2>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>What comes apart</th>
+<th>How</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="What comes apart">Cells from the robot</td>
+<td data-label="How">Take the cells out of the holder</td>
+<td data-label="Why">The real battery disconnect: for storage, transport and charging off the robot.</td>
+</tr>
+<tr>
+<td data-label="What comes apart">Battery, BMS, fuse, switch from every board</td>
+<td data-label="How"><strong>K2</strong> XH plug on JB</td>
+<td data-label="Why">Power-up checks one step at a time; isolate a fault.</td>
+</tr>
+<tr>
+<td data-label="What comes apart">Core and motor from the mast</td>
+<td data-label="How"><strong>K1</strong> XH plug, tied to the back of the core</td>
+<td data-label="Why">Take the core off (four M3 self-tappers) without cutting the motor leads.</td>
+</tr>
+<tr>
+<td data-label="What comes apart">ESP32</td>
+<td data-label="How">All eight wires are Dupont females on its header pins</td>
+<td data-label="Why">Pull it off the mast and replace or flash it on the bench.</td>
+</tr>
+<tr>
+<td data-label="What comes apart">GY-521</td>
+<td data-label="How">Four Dupont females on its header</td>
+<td data-label="Why">Replace or remount it.</td>
+</tr>
+<tr>
+<td data-label="What comes apart">MX1508 inputs</td>
+<td data-label="How">Dupont females on its IN header</td>
+<td data-label="Why"></td>
+</tr>
+<tr>
+<td data-label="What comes apart">MX1508 power and motor pads, Mini360 pads, BMS pads, switch, fuse</td>
+<td data-label="How">Soldered</td>
+<td data-label="Why">Small pads with no room for connectors. Replace by unsoldering 2-4 wires.</td>
+</tr>
+</tbody>
+</table></div>
+<p>K1 and K2 are polarised, so they cannot go in backwards. Crimp red to pin 1 on both halves of each, and check with
+the meter at the step that first uses them.</p>
+<hr />
+<h2 id="power-up-checklist">Power-up checklist</h2>
+<p>Each step has the reading to expect. <strong>Do not go on until you get it.</strong> Meter on DC volts unless the step says
+otherwise. Motor unplugged at K1 until step 7.</p>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>#</th>
+<th>Connect</th>
+<th>Do</th>
+<th>Expect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="#">0</td>
+<td data-label="Connect">ESP32 alone on USB. Nothing else.</td>
+<td data-label="Do">Measure its 5V pin to GND and its 3V3 pin to GND. Flash <code>stage1_balance</code>, open the serial monitor at 115200.</td>
+<td data-label="Expect">5V pin: 4.6-4.8 V (diode on the board) or 5.0 V (no diode: see "USB and the battery together") [E]. 3V3: 3.30 ± 0.1 V. Serial: <code>MPU-6050 not found ...</code>. The LED blinks fast (5 Hz).</td>
+</tr>
+<tr>
+<td data-label="#">1</td>
+<td data-label="Connect">Each cell, out of the holder</td>
+<td data-label="Do">Measure it</td>
+<td data-label="Expect">3.0-4.2 V each, within 0.05 V of each other.</td>
+</tr>
+<tr>
+<td data-label="#">2</td>
+<td data-label="Connect">Cells in the holder; BMS wired B-, BM, B+ (W2, W3, W1). Nothing on P+ / P-.</td>
+<td data-label="Do">Measure B+ to B-, BM to B-, then P+ to P-.</td>
+<td data-label="Expect">B+ to B- = the sum of the two cells. BM to B- = the cell at the B- end. P+ to P- = the sum, or 0 V until a charger has been plugged in once (plug it in for a second). Red probe on the side you think is +: the reading must be positive.</td>
+</tr>
+<tr>
+<td data-label="#">3</td>
+<td data-label="Connect">F1, SW1 (W4, W5, W6), J1 (W9, W10), K2 housing (W7, W8). K2 not plugged in.</td>
+<td data-label="Do">SW1 off, then on. Measure across the K2 housing (pin 1 to pin 2) and across J1 (centre to sleeve).</td>
+<td data-label="Expect">SW1 off: 0 V at K2. On: the pack voltage at K2, positive on pin 1. J1: the pack voltage, centre positive, with SW1 on or off. Switch off.</td>
+</tr>
+<tr>
+<td data-label="#">4</td>
+<td data-label="Connect">JB built and checked (see "Build the junction board"). JB on the robot with W11, W12; MX1508 with C1, R3, R4; Mini360 with W13, W14, W15, W16. W15, W16, W17, W18, W19 not on the ESP32. Ohm check first, K2 unplugged.</td>
+<td data-label="Do">Meter on ohms, JB side of K2: pin 1 to pin 2.</td>
+<td data-label="Expect">Climbs as C1 charges, then settles in the kΩ range or higher. <strong>Under 100 Ω: a short. Stop.</strong></td>
+</tr>
+<tr>
+<td data-label="#">5</td>
+<td data-label="Connect">Plug K2. SW1 on.</td>
+<td data-label="Do">Measure: MX1508 + to -; JB VS to GND; MX1508 MOTOR-A pad to pad; the loose W15 to W16 Dupont ends. Then set the Mini360 (see "Mini360: setting it to 5.0 V").</td>
+<td data-label="Expect">MX1508: pack voltage. VS: 0.248 x pack (2.08 V at 8.4 V, 1.84 V at 7.4 V). MOTOR-A: 0 V (R3, R4 hold IN1, IN2 low). W15 to W16: random until set, then <strong>5.00 ± 0.05 V</strong>. Pack current, meter in series at K2 (10 A range): under 20 mA [E]. Switch off.</td>
+</tr>
+<tr>
+<td data-label="#">6</td>
+<td data-label="Connect">Push W15, W16 onto the ESP32 (5V, GND), W17 (SVP), W18 (IO25), W19 (IO26); then the GY-521 (W24-W27). USB unplugged.</td>
+<td data-label="Do">Hold the robot upright and still, SW1 on. Measure the ESP32's 5V and 3V3 pins. Then plug USB in (only if step 0 found a diode) and type <code>show</code>. Flash <a href="https://github.com/buildrobotz/tailwhip-robot/tree/main/firmware/i2c_scan"><code>firmware/i2c_scan</code></a> once if anything looks wrong.</td>
+<td data-label="Expect">5V: 5.0 V. 3V3: 3.30 ± 0.1 V. After about 1 s of gyro calibration the LED blinks at 2 Hz (waiting), and goes solid once it arms (held within 5 deg for 0.5 s; the motor is unplugged, so nothing moves). <code>show</code>: <code>vbat</code> within 0.2 V of your meter on the pack; pitch near 0 deg upright; <strong>tilt forward: pitch positive</strong>. <code>i2c_scan</code>: <code>SDA=1 SCL=1</code>, <code>0x68</code>. Pack current about 0.06 A [E].</td>
+</tr>
+<tr>
+<td data-label="#">7</td>
+<td data-label="Connect">SW1 off. Plug K1 (motor plug, on the back of the core). Robot on a stand, wheels off the ground. SW1 on, USB in.</td>
+<td data-label="Do"><code>motor 0.3 1000</code>, then <code>motor -0.3 1000</code>. Meter across the MOTOR-A pads during a <code>motor 0.5 3000</code>.</td>
+<td data-label="Expect">The wheels turn for 1 s each way, the top of the tyre moving forward for +0.3 (else <code>dir -1</code>, <code>save</code>). Meter: about 0.5 x 6.0 = 3 V average [E] (a meter shows the average of the PWM roughly). No reset messages in the serial monitor.</td>
+</tr>
+<tr>
+<td data-label="#">8</td>
+<td data-label="Connect">Meter in series at K2 (10 A range), robot on the stand.</td>
+<td data-label="Do">Idle, then <code>motor 1 3000</code>.</td>
+<td data-label="Expect">Idle about 0.06 A [E]; no-load full speed about 0.2 A [E: 0.16 A x duty + logic]. <strong>Write both down</strong>, with the no-load wheel speed from bring-up step 3 (<a href="stage1-firmware.html#bring-up">Flash and tune</a>).</td>
+</tr>
+</tbody>
+</table></div>
+<p>Then carry on with the <a href="stage1-firmware.html#bring-up">bring-up on the Flash and tune page</a> (gains, trim, <code>stream 1</code>).</p>
+<hr />
+<h2 id="troubleshooting">Troubleshooting</h2>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Likely cause</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="Symptom">0 V at BMS P+ / P-</td>
+<td data-label="Likely cause">BMS waiting for a charger, or BM wire missing</td>
+<td data-label="Fix">Plug the charger in for a second. Check the B-, BM, B+ order.</td>
+</tr>
+<tr>
+<td data-label="Symptom">ESP32 resets when the motor starts</td>
+<td data-label="Likely cause">5 V from the wrong place, or the ESP32 ground only through a thin path</td>
+<td data-label="Fix">W15/W16 must come from the Mini360. JB GND to MX1508 - must be W12, 22 AWG. Then add 100 µF across the ESP32's 5V and GND.</td>
+</tr>
+<tr>
+<td data-label="Symptom"><code>MPU-6050 not found</code></td>
+<td data-label="Likely cause">A loose jumper, SDA and SCL swapped, or VCC on 5V</td>
+<td data-label="Fix">Check W24-W27 against "IMU wiring". <code>i2c_scan</code> must show <code>SDA=1 SCL=1</code>.</td>
+</tr>
+<tr>
+<td data-label="Symptom">Pitch goes negative when tilted forward</td>
+<td data-label="Likely cause">GY-521 mounted differently from the drawing</td>
+<td data-label="Fix">Remount X-up, chip forward, or change <code>readImu()</code>.</td>
+</tr>
+<tr>
+<td data-label="Symptom">Wheel twitches at switch-on</td>
+<td data-label="Likely cause">R3 or R4 missing or not reaching the - pad</td>
+<td data-label="Fix">Check IN1 and IN2 to - on ohms (about 100 kΩ each, ESP32 unplugged).</td>
+</tr>
+<tr>
+<td data-label="Symptom">Motor weak or cutting out after hard work, one side of the MX1508 hot</td>
+<td data-label="Likely cause">The weak MX1508 channel</td>
+<td data-label="Fix">Move to channel B (see "MX1508").</td>
+</tr>
+<tr>
+<td data-label="Symptom"><code>vbat</code> far from the meter</td>
+<td data-label="Likely cause">Divider wrong, or W17 loose</td>
+<td data-label="Fix">Measure VS: it must be 0.248 x pack.</td>
+</tr>
+<tr>
+<td data-label="Symptom">Robot idles, LED blinking 1 Hz</td>
+<td data-label="Likely cause">Low battery (6.4 V for 2 s)</td>
+<td data-label="Fix">Charge. A reset clears it.</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="reference">Reference</h2>
+<details class="ref" id="what-changed-from-the-first-pass-wiring"><summary>What changed from the first-pass wiring</summary>
+<p>The first pass in <a href="stage1.html"><code>../README.md</code></a> was right in its pins and its main power path. This design adds or changes:</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Change</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>R3, R4: 100 kΩ pull-downs on MX1508 IN1 and IN2</strong> [C]</td>
+<td>From reset until <code>setup()</code> runs (a few hundred ms) GPIO25 and GPIO26 are inputs with no pull [D ESP32 datasheet, IO_MUX reset state]. A floating IN pin can switch the bridge on for a moment and kick the wheel. The MX1508 may have internal pull-downs, but no datasheet available here says so for certain [E]. Two resistors make it certain: the motor stays in coast until the firmware drives the pins.</td>
+</tr>
+<tr>
+<td><strong>C3: 100 nF ceramic across the motor tabs</strong> [C]</td>
+<td>Brush noise suppression at the source, as Pololu recommends for brushed gearmotors [D Pololu]. It keeps commutator spikes off the long motor leads and away from the I2C wires and the ESP32.</td>
+</tr>
+<tr>
+<td><strong>JB, a small junction board</strong> on the mast front [C]</td>
+<td>The divider (R1, R2, C2) needs a home, and the battery rail needs one point where the MX1508 feed and the divider tap meet. JB carries both, plus the K2 power plug header. <a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/stage1.py"><code>stage1.py</code></a> gives it rails on the mast front.</td>
+</tr>
+<tr>
+<td><strong>K1 and K2, two JST-XH 2-pin connectors</strong> [C]</td>
+<td>K1, tied to the back of the core, lets the core (motor) come off the mast; K2 separates the battery and switch from everything they feed, so each step of the power-up can be checked before the next part is connected.</td>
+</tr>
+<tr>
+<td><strong>J1 charge jack and an 8.4 V charger</strong> [C]</td>
+<td>The first-pass list had no way to charge the pack in place. Same jack and charger as the published robot.</td>
+</tr>
+<tr>
+<td><strong>The Mini360 is fed from the MX1508 pads</strong>, not from a separate tap [C]</td>
+<td>Shortest wires on the back of the mast. The ESP32's ground then reaches the battery through the Mini360 and the MX1508's - pad, so no motor current flows through the ESP32.</td>
+</tr>
+<tr>
+<td><strong>IMU on 20 cm jumpers</strong>, not 10 cm [C]</td>
+<td>The ESP32's I2C pins are on the back of the mast, about 16 cm along the cable route from the GY-521 on the front of the core (<a href="stage1-print.html"><code>mechanical.md</code></a>). 10 cm jumpers do not reach.</td>
+</tr>
+<tr>
+<td><strong>MX1508 channel A only; IN3, IN4, MOTOR-B not connected</strong></td>
+<td>Stated, so nobody wonders. See "MX1508" for the case where channel A turns out to be the weak one.</td>
+</tr>
+<tr>
+<td><strong>No firmware change</strong></td>
+<td>Every pin and constant in the sketch matches this circuit; the generator checks it. Two optional firmware tweaks are listed at the end.</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+</details><details class="ref" id="firmware-notes-no-change-made"><summary>Firmware notes (no change made)</summary>
+<p>The sketch matches this circuit: IN1/IN2 on GPIO25/26, SDA/SCL on 21/22, battery on GPIO36 through 100k over 33k,
+LED on GPIO2, MPU-6050 at 0x68, 20 kHz 10-bit slow-decay PWM, 6.0 V cap, 6.4 V low-battery stop. Two optional
+changes, for whoever owns the firmware:</p>
+<ol>
+<li>Make the bench <code>motor</code> command refuse to run while <code>lowBatt</code> is set (today it is checked before the low-battery
+   branch), so it cannot drive the motor from USB power through the Mini360.</li>
+<li>If step 6 shows the battery reading off by more than 0.1 V, add a <code>BATT_CAL</code> factor as the published robot has.</li>
+</ol>
+<hr />
+</details><details class="ref" id="sources-for-the-numbers"><summary>Sources for the numbers</summary>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Figure</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ESP32 current 30-68 mA at 240 MHz, no radio; GPIO reset states; logic-high 0.75 x VDD; strapping pins</td>
+<td>Espressif ESP32 datasheet [D]</td>
+</tr>
+<tr>
+<td>ADC 11 dB usable 150-2450 mV</td>
+<td>Espressif ESP-IDF ADC documentation, ESP32 [D]</td>
+</tr>
+<tr>
+<td>DevKitC: one power source at a time; header J1 / J3 layout</td>
+<td>Espressif ESP32-DevKitC user guide [D]</td>
+</tr>
+<tr>
+<td>LEDC resolution: 80 MHz / frequency</td>
+<td>Espressif LEDC documentation [D]</td>
+</tr>
+<tr>
+<td>MPU-6050 2.375-3.46 V, 3.8-3.9 mA, address 0x68 / 0x69 by AD0</td>
+<td>InvenSense MPU-6050 datasheet [D]</td>
+</tr>
+<tr>
+<td>TT motor 1.5 A stall, 0.16 A no load at 6 V</td>
+<td>Adafruit 3777 [D]</td>
+</tr>
+<tr>
+<td>MX1508 2-9.6 V; 1.5 A / 0.8 A continuous channels</td>
+<td>MX1508 datasheet as quoted in the published BOM [D]</td>
+</tr>
+<tr>
+<td>Mini360 4.75-23 V, 1.8 A</td>
+<td>Seller listings [D listings]; 1 A in practice [E]</td>
+</tr>
+<tr>
+<td>PTC 3 A hold / 6 A trip</td>
+<td>Littelfuse RUEF300 [D]</td>
+</tr>
+<tr>
+<td>Pololu 2810: 3 A continuous, reverse-voltage protection</td>
+<td>Pololu product page [D]</td>
+</tr>
+<tr>
+<td>JST-XH 3 A</td>
+<td>JST XH catalogue [D]</td>
+</tr>
+<tr>
+<td>100 nF across motor terminals</td>
+<td>Pololu, "Dealing with motor noise" [D]</td>
+</tr>
+<tr>
+<td>DRV8833 1.5 A RMS / 2 A peak; TB6612FNG 1.2 A / 3.2 A</td>
+<td>TI and Toshiba datasheets [D]</td>
+</tr>
+<tr>
+<td>Motor current while balancing, mean 0.41-0.44 A, peak 1.55-1.65 A</td>
+<td><a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/sim.py"><code>sim.py</code></a> nominal runs, current from the simulator's motor model [S]</td>
+</tr>
+<tr>
+<td>Everything marked [E]</td>
+<td>Estimates. Measure at the power-up steps.</td>
+</tr>
+</tbody>
+</table></div></section></details>
+<div class="pager"><a href="stage1-print.html">&larr; Stage 1: print</a><a href="stage1-firmware.html">Stage 1: tune &rarr;</a></div>
+</main></div>
+<footer><div class="wrap">Tailwhip is an open robot project from <a href="https://buildrobotz.com/">BuildRobotz</a>. The design was generated with AI and has not yet been built or tested on hardware; performance figures are MuJoCo simulation results. Build at your own risk. Code, CAD and firmware: <a href="https://github.com/buildrobotz/tailwhip-robot">github.com/buildrobotz/tailwhip-robot</a> (code MIT, docs and CAD CC BY-SA 4.0).<br>
+<a href="https://buildrobotz.com/robots/">More robots to build</a> · <a href="https://ouro.buildrobotz.com/">Ouro, its sister project</a> · <a href="https://buildrobotz.com/">Learn robotics with BuildRobotz</a></div></footer>
+<script>(function(){var a=document.querySelector('nav [aria-current]');if(a&&a.parentNode.scrollWidth>a.parentNode.clientWidth)a.parentNode.scrollLeft=a.offsetLeft-a.parentNode.clientWidth/2+a.offsetWidth/2;
+function op(){var t=location.hash&&document.getElementById(decodeURIComponent(location.hash.slice(1)));for(var e=t;e;e=e.parentElement)if(e.tagName==='DETAILS')e.open=true;if(t)t.scrollIntoView();}
+addEventListener('hashchange',op);op();})();</script>
+
+</body></html>
