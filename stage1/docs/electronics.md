@@ -10,6 +10,11 @@ MX1508. It gives you the circuit, where every wire goes on the robot, the curren
 power it up in. Board positions, mounts and cable routes follow the final `stage1.py` and [`mechanical.md`](mechanical.md). The published Tailwhip's electronics page (`docs/electronics.md`) uses the same parts and the same
 reference numbers where a part is shared, so stage 1 carries into stage 2 without rewiring the power section.
 
+Stage 1 is built in two milestones. **Milestone A** balances on the IMU alone: everything on this page except the
+section "Milestone B: wheel sensor". **Milestone B** adds one wheel sensor so the robot can hold its position. It
+plugs in without re-soldering anything on the robot. Every milestone B item is marked (B) in the tables and drawn
+dashed in both drawings.
+
 Drawings:
 
 - [`schematic.svg`](schematic.svg): the full circuit, every pin of every board by the name printed on it.
@@ -100,6 +105,7 @@ Per robot. Prices are the published Tailwhip BOM's pack unit prices (`docs/bom.j
 | | 8.4 V 1 A Li-ion CC/CV charger, 5.5 x 2.1 mm plug | 1 | **Added** (if you have none). Must say 8.4 V. |
 | | Dupont F-F jumpers: 4 of 20 cm, 4 of 10 cm | | **20 cm ones added** (IMU). One 10 cm jumper is cut in half for W15/W16. |
 | | 22 AWG silicone wire red/black, 26 AWG red/black/orange, heat-shrink | | |
+| U7, U8, K3, R5, C4, C5 | **(B)** Wheel sensor parts | | See "Milestone B: wheel sensor", Parts. |
 
 ---
 
@@ -153,6 +159,7 @@ BT1 2S pack, 6.0-8.4 V (7.4 V nominal)
 | TT motor, balancing | motor | 0.44 (mean of \|I\|) | 1.65 | [S] `sim.py` nominal runs, motor current = 1.5 A x (V/6 V - ω/ω0): mean 0.41-0.44 A, peak 1.55-1.65 A |
 | TT motor, stalled at the 6.0 V cap | motor | 1.5 | 1.5 | [D] Adafruit 3777: 1.5 A stall, 0.16 A no load at 6 V |
 | TT motor, full-speed reversal | motor | | about 3 | [E] (6 V + 6 V back-EMF) / 4 Ω, for tens of ms. Not seen in the simulated runs |
+| **(B)** TCRT5000 wheel sensor | 3V3 | 0.02 | 0.025 | [E] IR LED 10-20 mA, LM393 0.4 mA [D], two indicator LEDs. About 10 mA more at the pack |
 
 ### At the battery
 
@@ -342,14 +349,16 @@ rows, so the pins point back at you and the printed labels are on the far side. 
 | 22 | IO22 (D22) | B, 17 | SCL | out | GY-521 SCL | Fine. |
 | 36 | SVP (VP) | A, 17 | VSENSE | in | Battery divider, ADC1_CH0, 11 dB | Input only, no internal pulls: right for an ADC. |
 | 2 | IO2 (D2) | B, 15 | LED | out | On-board LED, no wire | Strapping pin: must be low or open to enter download mode; the LED and its resistor hold it low. Fine. |
+| 34 | IO34 (D34) | A, 15 | IR_D0 | in | **(B)** Wheel sensor D0 (W30) | Input only, no internal pulls: R5 100k pull-down and C4 10 nF at K3. Not a strapping pin. Open in milestone A (the firmware detects a floating input). |
 | - | 5V (VIN) | A, 1 | 5V | pwr | From Mini360 OUT+ (W15) | See "USB and the battery together". |
-| - | GND | A, 6 | GND | pwr | To Mini360 OUT- (W16) | |
-| - | 3V3 | A, 19 | 3V3 | pwr | To GY-521 VCC (W24) | The DevKit regulator's output, about 10 mA used. |
+| - | GND | A, 6 | GND | pwr | To Mini360 OUT- (W16); (B) also the wheel sensor through the Y-lead W29 | |
+| - | 3V3 | A, 19 | 3V3 | pwr | To GY-521 VCC (W24); (B) also the wheel sensor through the Y-lead W28 | The DevKit regulator's output: about 10 mA used, 30 mA with the sensor. |
 | - | GND | B, 19 | GND | pwr | To GY-521 GND (W25) | |
 
 **Avoided, and why:** GPIO0, 5, 12 and 15 are strapping pins (GPIO12 in particular sets the flash voltage at reset
 and must stay low); GPIO6-11 (SD0-SD3, CMD, CLK) are the flash; GPIO1 and 3 are the USB serial; GPIO34, 35 and 39 are
-input only. None of them is used. Every unused pin is left open.
+input only. None of them is used, except GPIO34 for the milestone B wheel sensor (input only is right for it). Every
+unused pin is left open.
 
 **30-pin DevKit instead?** Same GPIOs, different positions: wire by the printed label (D25, D26, D21, D22, VP, VIN,
 3V3, GND), not by position. On the common 30-pin DOIT board, VP, D25, D26 and VIN are on one row and D21, D22, GND and
@@ -454,6 +463,8 @@ Refs and pins are as printed on each board. "F-F jumper" = Dupont female-female 
 | W26 | ESP32 IO22 (row B, pin 17 from USB) | GY-521 SCL | SCL | yellow | jumper | 200 | Dupont / Dupont | 20 cm F-F jumper, as W25; twist loosely with W27 |
 | W27 | ESP32 IO21 (row B, pin 14 from USB) | GY-521 SDA | SDA | blue | jumper | 200 | Dupont / Dupont | 20 cm F-F jumper, as W25 |
 
+Milestone B wires W28-W37 are listed in "Milestone B: wheel sensor".
+
 **Joins with no wire:** C1's legs on the MX1508 + and - pads (stripe to -); R3 from the IN1 header pin to the - pad
 and R4 from IN2 to -, on the underside of the MX1508; C3's legs on the two motor tabs; on JB, the K2 header, R1 (VB
 to VS), R2 and C2 (VS to GND), joined by solder bridges or tinned wire on the perfboard.
@@ -487,9 +498,10 @@ moment while C2 charges); VB to VS about 100 kΩ; VB to GND never under 100 kΩ.
 | ESP32 | All eight wires are Dupont females on its header pins | Pull it off the mast and replace or flash it on the bench. |
 | GY-521 | Four Dupont females on its header | Replace or remount it. |
 | MX1508 inputs | Dupont females on its IN header | |
+| **(B)** Wheel sensor | **K3** JST-XH 3-pin plug just above the module on the back of the core. The cable's ESP32 end is Dupont, with Y-leads on 3V3 and GND | Milestone B goes on without soldering on the robot. Unplugging K3 takes the robot back to milestone A, with R5 holding GPIO34 low. A keyed plug, because a loose 3-pin Dupont housing on the module header can go on shifted by one and short 3V3 to GND. |
 | MX1508 power and motor pads, Mini360 pads, BMS pads, switch, fuse | Soldered | Small pads with no room for connectors. Replace by unsoldering 2-4 wires. |
 
-K1 and K2 are polarised, so they cannot go in backwards. Crimp red to pin 1 on both halves of each, and check with
+K1, K2 and K3 are polarised, so they cannot go in backwards. Crimp red to pin 1 on both halves of each, and check with
 the meter at the step that first uses them.
 
 ---
@@ -511,7 +523,236 @@ otherwise. Motor unplugged at K1 until step 7.
 | 7 | SW1 off. Plug K1 (motor plug, on the back of the core). Robot on a stand, wheels off the ground. SW1 on, USB in. | `motor 0.3 1000`, then `motor -0.3 1000`. Meter across the MOTOR-A pads during a `motor 0.5 3000`. | The wheels turn for 1 s each way, the top of the tyre moving forward for +0.3 (else `dir -1`, `save`). Meter: about 0.5 x 6.0 = 3 V average [E] (a meter shows the average of the PWM roughly). No reset messages in the serial monitor. |
 | 8 | Meter in series at K2 (10 A range), robot on the stand. | Idle, then `motor 1 3000`. | Idle about 0.06 A [E]; no-load full speed about 0.2 A [E: 0.16 A x duty + logic]. **Write both down**, with the no-load wheel speed from the README's bench step 3. |
 
-Then carry on with the README's bring-up (gains, trim, `stream 1`).
+Then carry on with the README's bring-up (gains, trim, `stream 1`). For milestone B, continue with steps B0-B4 in
+"Milestone B: wheel sensor".
+
+---
+
+## Milestone B: wheel sensor
+
+> **Milestone A builders: skip this whole section.** Milestone A balances on the IMU alone, and everything above this
+> section is a complete build without it. Milestone B adds one wheel sensor so the robot can hold its position. In
+> both drawings the milestone B parts sit inside a dashed outline, and their wires are dashed.
+
+### What it is
+
+The sensor is a **TCRT5000 reflective IR sensor with its LM393 comparator module**, the part the published Tailwhip
+uses. It reads a printed ring on the inside of the **left** wheel. The ring is 0.6 mm matte black PLA with 16 sector
+windows that show the wheel's yellow rim (`mechanical.md`). The firmware counts both edges of every window: **32
+edges per turn**, 11.25 deg or 6.4 mm of travel each.
+
+The only place the ring can be seen is under the core, and the module (32 x 14 mm) does not fit there. So the
+mechanical design splits it in two:
+
+- **U8**, the bare TCRT5000, is desoldered from the module and pushed into a clip printed under `core_left`, at
+  (x 0, y 6.4, z -20.5) mm. Its lenses face the ring 2.5 mm away.
+- **U7**, the module board (comparator, trimmer, LEDs), sits on rails on the **back** of the core (y -7..7,
+  z 14..46), trimmer and LEDs facing back.
+- A **60 mm four-wire pigtail** (W34-W37) joins U8's four legs to U7's four sensor pads.
+- The module's **three-wire cable** (VCC, GND, D0) goes through the **K3** plug, just above the module. It then runs
+  up the back of the core (tied with K1 at z 67.5), behind the MX1508, to the ESP32's **row A**.
+
+The firmware (`PIN_IR = 34`, present in the sketch) counts edges on an interrupt with a 1 ms lockout. It trusts the
+sensor after 8 believable edges, and falls back to milestone A by itself if the sensor goes quiet or is noisy.
+
+| Connection | From | To | Wire |
+|---|---|---|---|
+| 3V3 | ESP32 **3V3** (row A, 19th pin from the USB end), Y-lead shared with the IMU's W24 | K3 pin 1, then module **VCC** | W28, W31 |
+| GND | ESP32 **GND** (row A, 6th pin from the USB end), Y-lead shared with W16 | K3 pin 2, then module **GND** | W29, W32 |
+| D0 | ESP32 **IO34** (D34, GPIO34; row A, 15th pin from the USB end) | K3 pin 3, then module **D0** (printed DO on some boards) | W30, W33 |
+| A0 (AO) | not connected | | |
+| IR LED anode | module sensor pad **A** | U8 leg **A** | W34 (red) |
+| IR LED cathode | module sensor pad **K** | U8 leg **K** | W35 (black) |
+| Detector collector | module sensor pad **C** | U8 leg **C** | W36 (white) |
+| Detector emitter | module sensor pad **E** | U8 leg **E** | W37 (blue) |
+
+### Which leg goes to which pad
+
+The TCRT5000 has an IR LED (anode A, cathode K) and a phototransistor (collector C, emitter E) side by side. Vishay
+numbers the legs C, E, A, K [D Vishay TCRT5000]. On the common module the LED side is the one with the clear or blue
+lens, and the detector has the black lens [E]. **Don't go by the lens colour or the silkscreen. Identify both ends with
+the meter before you cut anything:**
+
+1. **The module pads, module unpowered and the sensor still on it.** Diode test from the module's GND pin: the pads
+   that beep to GND are **K** and **E**. Of the other two, the one with a few hundred ohms to the VCC pin is **A** (the
+   LED resistor). The one with about 10 kΩ to VCC is **C** (the detector pull-up) [E typical module]. Mark each pad
+   with a fine pen, on the board, before anything moves.
+2. **The sensor's legs, after it is off the board.** Diode test across each pair. The LED pair reads about 1.1-1.2 V
+   one way (red probe on **A**) and open the other way. The detector pair reads open both ways in the dark. Under a
+   phone torch or daylight it may read a little one way: the red probe on that reading is **C** [E]. Mark the legs.
+3. Join A to A, K to K, C to C, E to E.
+
+**What a wrong pair does.** At 3.3 V nothing is damaged: the TCRT5000's reverse limits are 5 V for both the LED and
+the detector [D Vishay]. A reversed LED stays dark. A reversed or swapped detector reads nothing. The module then never
+switches, and its D0 LED stays one way whatever is in front of the sensor. Swapped the other way round (LED where the
+detector goes), the LED gets only the 10 kΩ pull-up current and stays dark. So a wrong pair costs you a re-solder, not
+a part. The exception is 5 V: never power the module from 5 V during this test.
+
+### Taking the sensor off and extending it without cooking it
+
+- **Cut, don't desolder, if you can.** Snip the four legs close to the module board, leaving the sensor's legs as long
+  as possible. Then clean the four pads with solder wick, or solder the pigtail to the leg stubs left in the board.
+  The sensor never sees the iron for long. If you desolder instead, use a pump or wick, 330-350 °C [E], under
+  3 seconds a joint, and let it cool between joints.
+- **Joints on the legs.** Solder each pigtail wire at least 2 mm from the body (Vishay's limit is 260 °C for 10 s at
+  2 mm or more [D]). Hold the leg with tweezers between the joint and the body as a heat sink. Tin wire and leg first,
+  then join them in one touch of about 1 s.
+- **Leg length.** The clip's lead slot lets the legs stick out about 2.5 mm behind the body (`stage1.py`). Cut each leg
+  to about 4 mm, stagger the four joints along the wires so they cannot touch, and put 1.5 mm heat-shrink over each.
+  Don't bend a leg at the body.
+- **The wire.** Four-core, 28-30 AWG, about 60 mm. Twist the LED pair (A, K) together and the detector pair (C, E)
+  together, about one turn per centimetre.
+
+### Does the 60 mm pigtail beside the motor need anything?
+
+The detector side is the sensitive one. Its collector node feeds the LM393 input through a pull-up of about 10 kΩ
+[E], which is a high-impedance node. A wire beside the motor can couple the motor's PWM edges (8 V in tens of ns) into
+it. 2 pF of coupling [E] at about 160 V/µs gives roughly 0.3 mA [E], a spike of volts on a 10 kΩ node for a fraction
+of a microsecond. The comparator has no hysteresis on most modules [E], so near its threshold that becomes extra
+edges. The run is short and mostly under the core, away from the motor leads, so the risk is modest. The fixes are
+cheap, so this design includes them:
+
+- **Twist the detector pair (C, E) and the LED pair (A, K).** Twisting cancels most of the coupled pick-up and costs
+  nothing.
+- **C5, 10 nF across the module's C and E pads** [C]. With the 10 kΩ pull-up it is a 0.1 ms low-pass on the detector
+  signal. At top speed a window lasts 9.4 ms, so the edges barely move. The TCRT5000 itself is slower than that filter
+  anyway: 10 µs rise and fall, but much slower at the low light levels it sees [D Vishay]. Solder C5 on the module's
+  underside, legs short.
+- **No shielding is needed** at these lengths [E]. If you still see stray counts with the robot still and the motor
+  running (`irw 1`), first move the pigtail further from the motor leads. Then double C5 to 22 nF.
+
+The LED pair carries a steady 10-20 mA and is not sensitive.
+
+### The alternative: a bare TCRT5000 and two resistors into GPIO34
+
+You could drop the module entirely. Run the LED from 3V3 through a resistor (about 120 Ω, 17 mA [E]), give the
+phototransistor a pull-up (10-47 kΩ, picked by trial), and wire the collector straight to GPIO34. Fewer parts, no
+desoldering, and only one 4-wire cable.
+
+**I recommend keeping the module**, for a beginner especially:
+
+- **It sets its own threshold.** The comparator gives clean digital edges at a threshold you set with the trimmer, and
+  its D0 LED shows you when it switches. That makes the setup in "Adjusting the trimmer" something you can see.
+- **The bare version has no threshold you can turn.** It depends on the pull-up value, the ring's contrast, the gap and
+  the room light. It is set by changing resistors.
+- **Slow edges miscount.** The bare collector voltage moves slowly as a window edge crosses the spot, over
+  milliseconds at low wheel speed. GPIO34's input has no Schmitt trigger [E], so a slow edge can fire several
+  interrupts more than 1 ms apart. The firmware's lockout would not catch them, and the count would be wrong at
+  exactly the low speeds where balancing lives. Reading it on the ADC with hysteresis in software would fix that, but
+  it is a firmware change, and the agreed firmware uses an edge interrupt.
+- **It matches the published robot**, so the same skills, parts and firmware carry into stage 2.
+
+The bare version is worth it only if you have no module, or the module refuses to switch on your ring.
+
+### Design
+
+- **Supply: 3.3 V, from the ESP32's only 3V3 pin.** The D0 pull-up goes to the module's own VCC [E]; on 5 V it would
+  put 5 V on GPIO34, which is a 3.3 V pin.
+- **Sharing the 3V3 pin (the split).** The IMU's W24 already sits on it. The split is a **Y-lead (W28)** made off the
+  robot, in place of a joint on JB: JB has no 3.3 V, and a splice on the robot would mean soldering there. W28's
+  Dupont female goes on the 3V3 pin. About 3 cm along, the wire splits: one branch ends in a single male header pin
+  that W24's female plugs onto, the other runs to K3. The ground is split the same way (W29) on the row-A GND pin
+  with W16. That keeps the whole sensor cable on row A, as the mechanical route expects. The IMU now reaches 3V3
+  through one more Dupont contact. A contact is good for an amp or more [E] and the IMU draws 5 mA, so the extra
+  contact is a reliability matter, not a current one. Tie the Y-lead to the ESP32's tie so nothing pulls on it.
+- **3V3 budget.** The module draws about 15-25 mA at 3.3 V [E]: the IR LED through its series resistor (10-20 mA
+  [E]), the LM393 (0.4 mA [D TI LM393]) and its two indicator LEDs (1-2 mA each [E]). The DevKit's AMS1117 regulator
+  is rated 800 mA [D]. With the ESP32 (no radio, 30-68 mA [D]) and the GY-521 (5 mA) it carries under 0.1 A and
+  dissipates about (5.0 - 3.3) V x 0.1 A = 0.17 W [E]. The Mini360 sees about 25 mA more. At the pack it is about
+  10 mA [E].
+- **Output stage.** The LM393's output is open collector [D] with a pull-up of about 10 kΩ on the module [E]. A
+  strong reflection (a window, showing the yellow rim) drives D0 low and lights the D0 LED [D listings]. A black bar
+  lets it rise. With R5 the high level is 3.3 x 100 / (100 + 10) = **3.0 V**, above the ESP32's 2.5 V logic-high
+  threshold (0.75 x 3.3 V [D]). The low level is under 0.4 V [D LM393].
+- **R5, 100 kΩ pull-down on GPIO34.** GPIO34 has no internal pull resistors [D ESP32]. With the module unplugged it
+  would float and pick up the motor's PWM as false edges. R5 holds it at 0 V, which the firmware reads as "no
+  sensor". R5 is on the robot side of K3, so it stays when the module is unplugged.
+- **C4, 10 nF on D0.** The cable is tied with K1, right beside the motor leads. C4 with the module pull-up gives a
+  0.1 ms rise time constant. The fall is fast because the LM393 sinks it. Spikes are filtered and real edges barely
+  move.
+- **Edge rate against the firmware.** The fastest the wheel turns is no load, about 200 rpm = 21 rad/s [E, the
+  simulator's figure]. That is 3.3 turns/s x 32 = **107 edges/s, one every 9.4 ms**. The simulator's largest
+  balancing speed, 0.64 m/s [S], gives 100 edges/s. The firmware ignores edges closer than **1 ms**
+  (`IR_LOCKOUT_US`). That is a 9x margin, and it could count up to 1000 edges/s. The two 0.1 ms filters are about 1 %
+  of the shortest edge spacing.
+- **Chatter.** With no comparator hysteresis, D0 can toggle a few times within microseconds at a window edge. The
+  1 ms lockout drops the repeats. If counts still double, turn the trimmer a little away from the switching point.
+- **Light.** Sunlight and incandescent light contain IR and can hold D0 one way. The clip shades the sensor. Check the
+  switching with the room lights on.
+- **Milestone A, no cable fitted.** GPIO34 then floats. The firmware counts edges during the 1 s gyro calibration,
+  when the robot is still. More than 4 edges means a floating input, and it stays on the IMU. If you plan
+  milestone B, you can fit the cable (W28-W30 with R5 and C4) at milestone A: it holds GPIO34 low and changes nothing
+  else.
+
+### Parts (milestone B)
+
+| Ref | Part | Qty | About | Notes |
+|---|---|---|---|---|
+| U7, U8 | TCRT5000 IR reflective module, LM393, digital DO, blue trimmer, 3.3-5 V | 1 | $0.80 (10-pack $7.99, published BOM) | U8 is its own sensor, moved to the clip |
+| K3 | JST-XH 3-pin wire-to-wire pair (pre-crimped plug and socket leads) | 1 | ~$0.80 [E] | The sensor plug |
+| R5 | 100 kΩ 1/4 W | 1 | (resistor kit) | Pull-down, at K3 |
+| C4, C5 | 10 nF ceramic, 50 V | 2 | ~$0.10 each [E] | C4 at K3, C5 on the module's C-E pads |
+| | Four-core wire, 28-30 AWG, 10 cm (or four strands of ribbon cable) | 1 | ~$0.20 [E] | Sensor pigtail W34-W37 |
+| | Dupont F-F jumpers, 20 cm | 3 | ~$0.15 each [E] | W28, W29, W30; two become Y-leads |
+| | Male header pins | 2 | (from the 40-pin strip) | The Y-leads' branch pins |
+| | 1.5 mm heat-shrink, 26 AWG wire | | | Leg joints, Y splices, R5/C4 |
+
+### Wires (milestone B)
+
+| Id | From | To | Net | Colour | AWG | mm | Ends | Route / note |
+|---|---|---|---|---|---|---|---|---|
+| W28 | ESP32 3V3 (row A, pin 19 from USB) | K3 pin 1 | 3V3 | red | jumper | 130 | Dupont (Y) / XH crimp | Y-lead: one Dupont female on the 3V3 pin, splitting 3 cm along into a male pin for W24 and this run. Behind the MX1508, down the back of the core (tied with K1) to K3 |
+| W29 | ESP32 GND (row A, pin 6 from USB) | K3 pin 2 | GND | black | jumper | 130 | Dupont (Y) / XH crimp | Y-lead on the row-A GND pin, shared with W16 the same way; with W28 |
+| W30 | ESP32 IO34 (row A, pin 15 from USB) | K3 pin 3 | IR_D0 | green | jumper | 130 | Dupont / XH crimp | With W28; a 20 cm jumper, far end cut and crimped into K3 |
+| W31 | K3 pin 1 | Module VCC | 3V3 | red | 26 | 40 | XH crimp / Dupont | Module lead |
+| W32 | K3 pin 2 | Module GND | GND | black | 26 | 40 | XH crimp / Dupont | Module lead |
+| W33 | K3 pin 3 | Module D0 | IR_D0 | green | 26 | 40 | XH crimp / Dupont | Module lead. Leave A0 empty |
+| W34 | Module sensor pad A | U8 leg A | IR_A | red | 28-30 | 60 | solder / solder | Sensor pigtail, LED pair, twisted with W35. Out of the back of the clip, under the core, up the slot in the back crash-arm root |
+| W35 | Module sensor pad K | U8 leg K | GND | black | 28-30 | 60 | solder / solder | LED pair |
+| W36 | Module sensor pad C | U8 leg C | IR_C | white | 28-30 | 60 | solder / solder | Detector pair, twisted with W37 |
+| W37 | Module sensor pad E | U8 leg E | GND | blue | 28-30 | 60 | solder / solder | Detector pair |
+
+**Joins with no wire:** R5 and C4 across K3 pins 3 and 2 on the robot side, soldered to the wire ends behind the XH
+housing, in heat-shrink. C5 across the module's C and E sensor pads, on its underside.
+
+**Lengths** are estimates from the `stage1.py` route [E]. From row A down to K3 just above the module is about 10 cm,
+so a 20 cm jumper has plenty to spare.
+
+### Fitting it: no soldering on the robot
+
+Do this after milestone A works, alongside the mechanical steps in `mechanical.md` (Milestone B, steps 1-6).
+
+1. **Module and sensor, on the bench.** Identify the pads and legs ("Which leg goes to which pad"). Take the sensor off,
+   then solder the pigtail and C5.
+2. **Sensor cable, on the bench.** Make the two Y-leads (W28, W29). Crimp W28, W29 and W30 into the K3 socket in the
+   order 3V3, GND, D0 (pins 1, 2, 3). Solder R5 and C4 across pins 3 and 2 behind the housing, and heat-shrink them.
+   Make the module lead: three Dupont females for the module's VCC, GND and D0, crimped into the K3 plug in the same
+   order.
+3. **On the robot.** Fit the sensor, ring, wheel and module as `mechanical.md` says. Unplug W24 (3V3) and W16 (GND)
+   from the ESP32. Plug the Y-leads' females onto 3V3 (row A, 19th pin from USB) and GND (row A, 6th from USB), and
+   plug W24 and W16 onto the Y-leads' male pins. Plug W30 onto IO34 (row A, 15th from USB). Tie the cable with K1 and
+   plug K3.
+
+**Back to milestone A:** unplug K3. R5 keeps IO34 low, and the firmware falls back to the IMU by itself.
+
+### Adjusting the trimmer
+
+With the robot on and the wheels off the ground, turn the left wheel slowly by hand. The D0 LED must follow the ring:
+**on over each window** (yellow rim), off over each bar (black). If it stays one way, turn the blue trimmer slowly
+until it starts to follow. Find the trimmer positions where it stops following on each side, and set it midway between
+them. Check again with the room lights on.
+
+### Power-up (milestone B)
+
+Do these after step 8 of the main checklist, with the robot otherwise working.
+
+| # | Connect | Do | Expect |
+|---|---|---|---|
+| B0 | Module with its sensor still on it, on the bench, powered from a 3.3 V supply (or the ESP32's 3V3 and GND on the bench) | Hold the black ring material, then the wheel's yellow rim, 2-3 mm in front of the sensor. | Power LED on. Yellow rim: D0 LED on, D0 under 0.4 V. Black: D0 LED off, D0 at 3.3 V (no R5 on the bench). If neither changes it, turn the trimmer. This proves the module before you take it apart. |
+| B1 | SW1 off. Sensor cable fitted, K3 not plugged. | Ohms on the K3 socket, pin 3 to pin 2. Then SW1 on: volts on pins 1-2 and 3-2. | About 100 kΩ (R5; C4 makes it climb for a moment). SW1 on: pins 1-2 = 3.30 ± 0.1 V; pins 3-2 = 0 V. `show` and balancing work as before: milestone A is unchanged. |
+| B2 | SW1 off. Sensor in its clip, module on the core, pigtail done. Meter on ohms across the module's A and K pads, then C and E (module unpowered). | Check the pigtail. | A-K: about 1.1-1.2 V in diode test one way, open the other. C-E: open in the dark. No pad shorted to another. |
+| B3 | Plug K3. SW1 on, wheels off the ground. | Set the trimmer (above). Type `irw 1` and turn the left wheel exactly one turn by hand. | Power LED on. D0 LED on over each of the 16 windows. The edge count goes up by **32** a turn, with no double counts. D0: under 0.4 V over a window, about 3.0 V over a bar [E]. |
+| B4 | Robot on the stand. | `motor 1 3000` with `irw 1`; then `motor 0.3 1000` with the wheel held still by hand for a moment. | About 100 edges/s at no-load speed [E]. No counts while the wheel is held still with the motor driving: a count then means noise (see the pigtail section). Pack current about 10 mA higher than in step 8 [E]. |
 
 ---
 
@@ -527,10 +768,13 @@ Then carry on with the README's bring-up (gains, trim, `stream 1`).
 | Motor weak or cutting out after hard work, one side of the MX1508 hot | The weak MX1508 channel | Move to channel B (see "MX1508"). |
 | `vbat` far from the meter | Divider wrong, or W17 loose | Measure VS: it must be 0.248 x pack. |
 | Robot idles, LED blinking 1 Hz | Low battery (6.4 V for 2 s) | Charge. A reset clears it. |
+| **(B)** No wheel counts while the wheel turns, D0 LED never changes | Pigtail pair swapped, trimmer, sunlight, or K3 not plugged | Steps B2-B3; check A, K, C, E against "Which leg goes to which pad". |
+| **(B)** Counts while the wheel is still, or twice per edge | Comparator chatter at a window edge, or noise on the pigtail or cable | Turn the trimmer a little; check C5 and C4; twist the pigtail pairs; move them from the motor leads. |
+| **(B)** D0 reads 5 V | Module powered from 5 V | VCC must come from 3V3 (W28). |
 
 ---
 
-## Firmware notes (no change made)
+## Firmware notes (no change made here)
 
 The sketch matches this circuit: IN1/IN2 on GPIO25/26, SDA/SCL on 21/22, battery on GPIO36 through 100k over 33k,
 LED on GPIO2, MPU-6050 at 0x68, 20 kHz 10-bit slow-decay PWM, 6.0 V cap, 6.4 V low-battery stop. Two optional
@@ -539,6 +783,9 @@ changes, for whoever owns the firmware:
 1. Make the bench `motor` command refuse to run while `lowBatt` is set (today it is checked before the low-battery
    branch), so it cannot drive the motor from USB power through the Mini360.
 2. If step 6 shows the battery reading off by more than 0.1 V, add a `BATT_CAL` factor as the published robot has.
+3. **(B)** The sketch now has the wheel sensor: `PIN_IR = 34` (the generator checks it against this circuit), a
+   1 ms lockout, trust after 8 believable edges, and a floating-input check during gyro calibration. Both a steady low
+   (R5, module unplugged) and a floating pin (milestone A, no cable) end up as "no sensor".
 
 ---
 
@@ -559,5 +806,8 @@ changes, for whoever owns the firmware:
 | JST-XH 3 A | JST XH catalogue [D] |
 | 100 nF across motor terminals | Pololu, "Dealing with motor noise" [D] |
 | DRV8833 1.5 A RMS / 2 A peak; TB6612FNG 1.2 A / 3.2 A | TI and Toshiba datasheets [D] |
+| TCRT5000 legs C, E, A, K; reverse limits 5 V; 10 µs response; soldering 260 °C 10 s at 2 mm or more; LM393 0.4 mA supply, open-collector output, under 0.4 V low | Vishay TCRT5000, TI LM393 datasheets [D] |
+| TCRT5000 module: D0 low and LED on with a reflection; 3.3-5 V | Seller listings, published BOM [D listings] |
+| AMS1117 800 mA | AMS1117 datasheet [D] |
 | Motor current while balancing, mean 0.41-0.44 A, peak 1.55-1.65 A | `sim.py` nominal runs, current from the simulator's motor model [S] |
 | Everything marked [E] | Estimates. Measure at the power-up steps. |

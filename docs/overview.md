@@ -19,10 +19,10 @@ gets up by itself and survives a shove" is what the rest of the project teaches.
 
 ## Where to start: stage 1, then the full robot
 
-Build **[stage 1](stage1.html)** first. It is a bare-minimum balancer: one TT motor with a wheel on each end of its
+Build **[stage 1](stage1.html)** first, following its one-page step-by-step guide. It is a bare-minimum balancer: one TT motor with a wheel on each end of its
 shaft, two 18650s, an ESP32, an IMU and a motor driver, kept upright by a PID loop. Its one job is to show that a TT
 motor is fast enough to balance a body, before you build a robot that depends on it. Like the full robot, it is
-designed and simulated but not built yet. Stage 2 (two motors, the body held at a lean by a fixed weight) is
+designed and simulated but not built yet. A second milestone adds one wheel sensor so it holds its position. Stage 2 (two motors, the body held at a lean by a fixed weight) is
 planned but not designed yet. When stage 1 passes, build the full robot, starting with the
 [Build plan](build.html). The [pages below](#build-it-page-by-page) are in that order.
 

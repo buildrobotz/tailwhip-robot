@@ -10,9 +10,9 @@
 <body>
 <div class="crumb"><div class="wrap"><a href="https://buildrobotz.com/">BuildRobotz</a><span aria-hidden="true">/</span><a href="https://buildrobotz.com/robots/">Robots</a><span aria-hidden="true">/</span><span>Tailwhip</span></div></div>
 <header class="top"><div class="wrap"><a class="brand" href="index.html">Tailwhip<span>.</span></a><nav aria-label="Project pages"><a href="index.html">Overview</a><a href="stage1.html">Stage 1</a><a href="build.html">Build plan</a><a href="parts.html">Parts</a><a href="mechanical.html">Mechanical</a><a href="electronics.html" aria-current="page">Electronics</a><a href="software.html">Software</a><a href="learning.html">Simulation and RL</a><a href="course.html">Learning path</a><a href="risks.html">Limits</a></nav></div></header>
-<div class="wrap"><main>
+<div class="wrap layout"><aside class="rail"><nav class="onpage" aria-label="On this page"><div class="label">On this page</div><ol><li class="h2"><a href="#what-you-are-building">What you are building</a></li><li class="h2"><a href="#parts-on-this-page">Parts on this page</a></li><li class="h2"><a href="#battery-safety-and-charging">Battery safety and charging</a></li><li class="h2"><a href="#wiring">Wiring</a></li><li class="h2"><a href="#power-budget">Power budget</a></li><li class="h2"><a href="#set-up-the-firmware-toolchain">Set up the firmware toolchain</a></li><li class="h2"><a href="#bring-up-step-by-step">Bring-up, step by step</a></li><li class="h2"><a href="#troubleshooting">Troubleshooting</a></li><li class="h2"><a href="#reference">Reference</a></li></ol></nav></aside><main>
 <header><div class="eyebrow">BuildRobotz project · Electronics</div><h1>Circuit and wiring</h1><p class="lede">One ESP32, two TT motors on an MX1508, two servos, an MPU6050 and a 2S 18650 pack. Schematic, wiring table and a safe bring-up.</p></header>
-<details class="toc"><summary>On this page</summary><ol><li><a href="#what-you-are-building">What you are building</a></li><li><a href="#parts-on-this-page">Parts on this page</a></li><li><a href="#battery-safety-and-charging">Battery safety and charging</a></li><li><a href="#wiring">Wiring</a></li><li><a href="#power-budget">Power budget</a></li><li><a href="#set-up-the-firmware-toolchain">Set up the firmware toolchain</a></li><li><a href="#bring-up-step-by-step">Bring-up, step by step</a></li><li><a href="#troubleshooting">Troubleshooting</a></li><li><a href="#reference">Reference</a></li></ol></details><figure class="fig"><div class="svgwrap"><a href="assets/schematic.svg"><img src="assets/schematic.svg" alt="Schematic"></a></div><figcaption><b>SCHEMATIC</b> · open the image for full size</figcaption></figure><figure class="fig"><div class="svgwrap"><a href="assets/wiring.svg"><img src="assets/wiring.svg" alt="Where every board sits"></a></div><figcaption><b>WHERE EVERY BOARD SITS</b> · open the image for full size</figcaption></figure><section class="prose"><blockquote>
+<details class="toc"><summary>On this page</summary><ol><li class="h2"><a href="#what-you-are-building">What you are building</a></li><li class="h2"><a href="#parts-on-this-page">Parts on this page</a></li><li class="h2"><a href="#battery-safety-and-charging">Battery safety and charging</a></li><li class="h2"><a href="#wiring">Wiring</a></li><li class="h2"><a href="#power-budget">Power budget</a></li><li class="h2"><a href="#set-up-the-firmware-toolchain">Set up the firmware toolchain</a></li><li class="h2"><a href="#bring-up-step-by-step">Bring-up, step by step</a></li><li class="h2"><a href="#troubleshooting">Troubleshooting</a></li><li class="h2"><a href="#reference">Reference</a></li></ol></details><figure class="fig"><div class="svgwrap"><a href="assets/schematic.svg"><img src="assets/schematic.svg" alt="Schematic"></a></div><figcaption><b>SCHEMATIC</b> · open the image for full size</figcaption></figure><figure class="fig"><div class="svgwrap"><a href="assets/wiring.svg"><img src="assets/wiring.svg" alt="Where every board sits"></a></div><figcaption><b>WHERE EVERY BOARD SITS</b> · open the image for full size</figcaption></figure><section class="prose"><blockquote>
 <p><strong>AI-generated and unbuilt.</strong> Nothing on this page has been wired, powered or measured. Every number is tagged
 [D] datasheet or seller listing, [E] estimate, or [C] chosen by this design. Treat the meter readings in the
 bring-up as gates: do not move to the next step until you get the reading the table gives.</p>
@@ -32,7 +32,7 @@ bring-up as gates: do not move to the next step until you get the reading the ta
 <p>A 100k/33k divider scales the battery to under 2.1 V for the ESP32's ADC on GPIO36.</p>
 <p>The ESP32 on the back of the spine drives the MX1508's four inputs with 20 kHz PWM, the two servo signals at 50 Hz, and reads the MPU-6050 on the motor web over I2C at 400 kHz. Two TCRT5000 IR modules on posts look at the 16-window rings glued inside the wheels; their digital outputs go to GPIO34 and GPIO35 (32 edges per wheel turn).</p>
 <p>A small <strong>junction board</strong> (JB, about 13 x 20 mm of perfboard, 5 x 8 holes) sits on the spine front beside the MX1508. It carries the servo rail (C1 and two 3-pin servo headers), the battery divider (R1, R2, C2) and the two IR pull-downs (R3, R4), so every small part lives in one place and the ESP32 connects to it with Dupont leads.</p>
-<p>A second ESP32, the <strong>bridge</strong>, sits on the laptop's USB. It copies state packets from ESP-NOW to serial and command packets from serial to ESP-NOW. The <a href="software.md">Software</a> page describes the programs and packets.</p>
+<p>A second ESP32, the <strong>bridge</strong>, sits on the laptop's USB. It copies state packets from ESP-NOW to serial and command packets from serial to ESP-NOW. The <a href="software.html">Software</a> page describes the programs and packets.</p>
 <h3 id="why-the-circuit-looks-like-this">Why the circuit looks like this</h3>
 <div class="tablewrap"><table>
 <thead>
@@ -86,7 +86,7 @@ bring-up as gates: do not move to the next step until you get the reading the ta
 </table></div>
 <hr />
 <h2 id="parts-on-this-page">Parts on this page</h2>
-<p>Per robot. Sources and prices are on the <a href="parts.md">Parts</a> page.</p>
+<p>Per robot. Sources and prices are on the <a href="parts.html">Parts</a> page.</p>
 <div class="tablewrap"><table class="stack">
 <thead>
 <tr>
@@ -206,7 +206,7 @@ bring-up as gates: do not move to the next step until you get the reading the ta
 <p>Read this before you put cells in the holder.</p>
 <ul>
 <li><strong>The cells are unprotected.</strong> Nothing inside them stops an over-discharge, an over-charge or a short. The BMS does that job, so the BMS goes on before anything else and nothing ever connects to the cells except through it.</li>
-<li><strong>Use genuine high-drain cells, a matched pair.</strong> Same model, same age, voltages within 0.05 V of each other before they go in. Never "UltraFire", "GTF" or "9900 mAh" cells; buy from a battery specialist (see <a href="parts.md">Parts</a>). A good cell (Molicel P28A, Samsung 25R or 30Q, Sony VTC6) has a low internal resistance, so the pack sags little when the motors pull.</li>
+<li><strong>Use genuine high-drain cells, a matched pair.</strong> Same model, same age, voltages within 0.05 V of each other before they go in. Never "UltraFire", "GTF" or "9900 mAh" cells; buy from a battery specialist (see <a href="parts.html">Parts</a>). A good cell (Molicel P28A, Samsung 25R or 30Q, Sony VTC6) has a low internal resistance, so the pack sags little when the motors pull.</li>
 <li><strong>Check each cell before it goes in:</strong> 3.0 to 4.2 V on the meter. Retire any cell under 2.5 V, dented, with a torn wrap, or warm at rest.</li>
 <li><strong>Wire the BMS in this order:</strong> B- first, then BM (the strap joining the two cells), then B+. Undo it in the reverse order. Many 2S boards show 0 V on P+/P- until a charger has been connected once; that is normal.</li>
 <li><strong>Charge</strong> with the robot switched off, through J1, with an <strong>8.4 V CC/CV charger</strong> at about 1 A, on a non-flammable surface, attended. The balancing BMS evens the cells at about 40 mA [D], so check the two cell voltages once a month: if they differ by more than 0.05 V at full charge, charge each one in a single-cell smart charger.</li>
@@ -942,7 +942,7 @@ arduino-cli upload  -b esp32:esp32:esp32 -p /dev/cu.usbserial-XXXX firmware/tail
 <tr>
 <td data-label="#">8</td>
 <td data-label="Do">Servos plugged into T and H. Flash <code>servo_center</code>, press <code>c</code></td>
-<td data-label="Expect">Both servos go to 90 deg and hold. Fit the tail horn with the tail pointing straight back along the body, the head horn pointing forward (<a href="mechanical.md#assembly">assembly step 9</a>). <code>t</code> then <code>s</code> sweeps the tail 20 to 150 deg smoothly.</td>
+<td data-label="Expect">Both servos go to 90 deg and hold. Fit the tail horn with the tail pointing straight back along the body, the head horn pointing forward (<a href="mechanical.html#assembly">assembly step 9</a>). <code>t</code> then <code>s</code> sweeps the tail 20 to 150 deg smoothly.</td>
 </tr>
 <tr>
 <td data-label="#">9</td>
@@ -981,7 +981,7 @@ arduino-cli upload  -b esp32:esp32:esp32 -p /dev/cu.usbserial-XXXX firmware/tail
 </tr>
 </tbody>
 </table></div>
-<p>Once step 15 passes, do the bench measurements (<code>host/bench.py</code>, <a href="software.md#bench-tools">Software</a>), then milestone 1 with <code>host/drive.py</code>.</p>
+<p>Once step 15 passes, do the bench measurements (<code>host/bench.py</code>, <a href="software.html#bench-tools">Software</a>), then milestone 1 with <code>host/drive.py</code>.</p>
 <hr />
 <h2 id="troubleshooting">Troubleshooting</h2>
 <div class="tablewrap"><table class="stack">
@@ -1251,10 +1251,12 @@ arduino-cli upload  -b esp32:esp32:esp32 -p /dev/cu.usbserial-XXXX firmware/tail
 </table></div></section></details>
 <div class="pager"><a href="mechanical.html">&larr; Mechanical</a><a href="software.html">Software &rarr;</a></div>
 </main></div>
-<footer><div class="wrap">Tailwhip is an open robot project from <a href="https://buildrobotz.com/">BuildRobotz</a>. The design was generated with AI and has not yet been built or tested on hardware; performance figures are MuJoCo simulation results. Build at your own risk. Code, CAD and firmware: <a href="https://github.com/buildrobotz/tailwhip-robot">github.com/buildrobotz/tailwhip-robot</a> (code MIT, docs and CAD CC BY-SA 4.0).<br>
-<a href="https://buildrobotz.com/robots/">More robots to build</a> · <a href="https://ouro.buildrobotz.com/">Ouro, its sister project</a> · <a href="https://buildrobotz.com/">Learn robotics with BuildRobotz</a></div></footer>
+<footer><div class="wrap layout"><div></div><div>Tailwhip is an open robot project from <a href="https://buildrobotz.com/">BuildRobotz</a>. The design was generated with AI and has not yet been built or tested on hardware; performance figures are MuJoCo simulation results. Build at your own risk. Code, CAD and firmware: <a href="https://github.com/buildrobotz/tailwhip-robot">github.com/buildrobotz/tailwhip-robot</a> (code MIT, docs and CAD CC BY-SA 4.0).<br>
+<a href="https://buildrobotz.com/robots/">More robots to build</a> · <a href="https://ouro.buildrobotz.com/">Ouro, its sister project</a> · <a href="https://buildrobotz.com/">Learn robotics with BuildRobotz</a></div></div></footer>
 <script>(function(){var a=document.querySelector('nav [aria-current]');if(a&&a.parentNode.scrollWidth>a.parentNode.clientWidth)a.parentNode.scrollLeft=a.offsetLeft-a.parentNode.clientWidth/2+a.offsetWidth/2;
 function op(){var t=location.hash&&document.getElementById(decodeURIComponent(location.hash.slice(1)));for(var e=t;e;e=e.parentElement)if(e.tagName==='DETAILS')e.open=true;if(t)t.scrollIntoView();}
-addEventListener('hashchange',op);op();})();</script>
+addEventListener('hashchange',op);op();
+var ls=[].slice.call(document.querySelectorAll('.onpage a'));if(ls.length&&'IntersectionObserver'in window){var hs=ls.map(function(l){return document.getElementById(decodeURIComponent(l.hash.slice(1)))});
+var on=function(){var k=0;hs.forEach(function(h,i){if(h&&h.getBoundingClientRect().top<120)k=i});ls.forEach(function(l,i){l.classList.toggle('here',i===k)})};addEventListener('scroll',on,{passive:true});on();}})();</script>
 
 </body></html>

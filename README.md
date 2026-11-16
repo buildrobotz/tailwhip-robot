@@ -19,15 +19,16 @@ from this repo, walks through it page by page: **https://tailwhip.buildrobotz.co
 
 ## Start with stage 1
 
-Before the full robot, build **stage 1** (`stage1/`, and the Stage 1 pages on the website): a bare-minimum balancer
+Before the full robot, build **stage 1** (`stage1/`, and the Stage 1 guide on the website): a bare-minimum balancer
 with one dual-shaft TT motor, a wheel on each end, two 18650s, an ESP32, an MPU-6050 and an MX1508, kept upright by
 a PID loop. Its one job is to prove a TT motor is fast enough to balance a body. It is designed and simulated, not
 built; its firmware compiles but has not run on hardware. Stage 2 (two motors, the body held at a lean by a fixed
-weight) is planned but not designed yet; stage 3 is the full Tailwhip. Start at `stage1/README.md`.
+weight) is planned but not designed yet; stage 3 is the full Tailwhip. Follow the step-by-step guide, `stage1/GUIDE.md` (the Stage 1 page on the website); the design note is
+`stage1/README.md`.
 
 | Path | What it is |
 |---|---|
-| `stage1/` | Stage 1, build it first: the one-motor PID balancer (design note, CAD and print files, electronics, MuJoCo simulation, firmware) |
+| `stage1/` | Stage 1, build it first: the one-motor PID balancer (step-by-step guide, design note, CAD and print files, electronics, MuJoCo simulation, firmware) |
 | `cad/tailwhip.py` | Parametric geometry: every dimension tagged [D]atasheet / [E]stimate / [C]hosen, every part, the joints |
 | `cad/analysis.py` → `cad/out/analysis.md` | Mass, centre of mass, interference, tail sweep, falls, tail torque, leaf spring, bed fit: PASS/FAIL |
 | `cad/export.py` → `cad/out/` | Print STLs in print orientation, assembled GLB/STL, renders |
@@ -55,7 +56,7 @@ python -m venv .venv && .venv/bin/pip install mujoco gymnasium stable-baselines3
 
 ## Building one
 
-Build stage 1 first (`stage1/README.md`, or the Stage 1 pages on the website) and get it to pass: 60 s standing,
+Build stage 1 first (`stage1/GUIDE.md`, or the Stage 1 guide on the website) and get it to pass: 60 s standing,
 a recovery from 8 degrees, light pokes. Then follow the build plan (`docs/build.md`, or the Build plan page on the
 website). In short: order the parts,
 measure your TT motor and wheel, print, build the power system on the bench with a meter, assemble, run every bench

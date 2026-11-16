@@ -5,8 +5,9 @@
 
 Content comes from the repo itself: docs/*.md, docs/bom.json, docs/*.svg, cad/out/*, sim/eval.json, sim/out/demo.mp4
 (python sim/demo.py) and the Blender animation (visual/, rendered outside the repo; pass --anim to point at it).
-The four Stage 1 pages come from stage1/ (README.md, docs/*.md, docs/*.svg, docs/electronics.json, out/*, the firmware)
-and an optional simulation clip (rendered outside the repo; pass --stage1-video to point at it).
+Each stageN/GUIDE.md becomes a step-by-step guide page plus the reference pages it lists, with every number, table,
+picture and diagram pulled from that stage's files (format: see "stage guides" below). Stage clips are rendered
+outside the repo; pass --video NAME=PATH (or --stage1-video PATH) to publish one.
 Edit those, rebuild, commit site/dist/; .github/workflows/pages.yml publishes it.
 Layout and table handling follow the Ouro site (github.com/buildrobotz/ouro-robot).
 """
@@ -20,7 +21,6 @@ REPO_URL = 'https://github.com/buildrobotz/tailwhip-robot'
 DOMAIN = 'tailwhip.buildrobotz.com'
 import os
 ANIM = pathlib.Path(os.environ.get('TAILWHIP_ANIM', 'visual/out/tailwhip_demo.mp4')).expanduser()
-STAGE1 = ROOT / 'stage1'
 S1_VIDEO = os.environ.get('TAILWHIP_STAGE1_VIDEO')      # the stage 1 clip; without it the published copy in dist/ is kept
 FFMPEG = '/opt/homebrew/bin/ffmpeg'                     # explicit: another ffmpeg on PATH is broken on the Mac
 
@@ -29,15 +29,7 @@ PAGES = [  # slug, nav label, title, lede
      'A two-wheeled balancing robot built from the hobby parts in most robotics drawers. It rests on its tail, rears up onto its wheels, '
      'balances, looks around, and lands on its tail when you shove it. You train its brain with reinforcement learning '
      'in MuJoCo on your laptop, then run it on the real robot.'),
-    ('stage1', 'Stage 1', 'Stage 1: the bare-minimum balancer',
-     'Build this first. One TT motor with a wheel on each end of its shaft, two 18650s, an ESP32, an IMU and a motor driver, '
-     'kept upright by a PID loop. Its one job is to show that a TT motor is fast enough to balance a body.'),
-    ('stage1-print', 'Stage 1: print', 'Stage 1: print and assemble',
-     'Four PLA prints, no supports. Spin the models, download the STLs, measure your motor and boards before you print, then assemble it.'),
-    ('stage1-wiring', 'Stage 1: wiring', 'Stage 1: circuit and wiring',
-     'Every pin of every board and every wire, end to end: the schematic, the wire-by-wire drawing, the IMU wiring, and a power-up checklist with a meter reading at each step.'),
-    ('stage1-firmware', 'Stage 1: tune', 'Stage 1: flash, bring up and tune',
-     'Flash the PID firmware, check the IMU and the motor direction, tune the gains over serial, and test it against the pass criteria.'),
+    # the stage guides (stageN/GUIDE.md) are inserted here at build time
     ('build', 'Build plan', 'Build plan', 'From ordering parts to a robot that rears up on its own: seven milestones, each with a test that tells you it worked.'),
     ('parts', 'Parts', 'Parts and prices', 'Everything to buy for one robot, with what to look for in each listing and what you probably already own.'),
     ('mechanical', 'Mechanical', 'Print and assemble', 'Seven prints and one long bolt pair. Spin the models, download the STLs, and measure your TT motor before you print.'),
@@ -47,9 +39,7 @@ PAGES = [  # slug, nav label, title, lede
     ('course', 'Learning path', 'Learning path', 'One-hour sessions from the simulator to a robot that gets back up. One thing to do, one thing to learn and one check in each.'),
     ('risks', 'Limits', 'Limits and gotchas', 'What to know before you order parts: what the design cannot do, what may break, and how to keep the battery safe.'),
 ]
-# Stage 1 is one entry in the top navigation; its four pages share a second row of links.
-S1_PAGES = [('stage1', 'Why and results'), ('stage1-print', 'Print and assemble'), ('stage1-wiring', 'Circuit and wiring'), ('stage1-firmware', 'Flash and tune')]
-NAV_PARENT = {s: 'stage1' for s, _ in S1_PAGES}
+REFS = {}   # reference pages of the stage guides: slug -> (stage, entry); outside the previous/next path
 MD = dict(extensions=['tables', 'fenced_code', 'sane_lists', 'toc'])
 
 
@@ -82,12 +72,16 @@ def fold_reference(body):
         out += f'<details class="ref" id="{hid}"><summary>{title}</summary>{parts[i + 1]}</details>'
     return body[:start] + out + body[end:]
 
-def toc(body):
-    heads = re.findall(r'<h2 id="([^"]+)">(.*?)</h2>', body, re.S)
-    if len(heads) < 4:
-        return ''
-    items = ''.join(f'<li><a href="#{i}">{re.sub(r"<[^>]+>", "", t)}</a></li>' for i, t in heads)
-    return f'<details class="toc"><summary>On this page</summary><ol>{items}</ol></details>'
+def contents(body, rail=None):
+    """'On this page': a sticky column beside the text on wide screens, a fold above it on narrow ones."""
+    if rail is None:
+        rail = [('h2', i, re.sub(r'<[^>]+>', '', t)) for i, t in re.findall(r'<h2 id="([^"]+)">(.*?)</h2>', body, re.S)]
+    if len(rail) < 2:
+        return '', ''
+    items = ''.join(f'<li class="{lv}"><a href="#{i}">{html.escape(html.unescape(t))}</a></li>' for lv, i, t in rail)
+    deep = ' deep' if any(lv == 'h3' for lv, _, _ in rail) else ''
+    return (f'<nav class="onpage{deep}" aria-label="On this page"><div class="label">On this page</div><ol>{items}</ol></nav>',
+            f'<details class="toc"><summary>On this page</summary><ol>{items}</ol></details>')
 
 def doc(name, drop_title=True):
     p = ROOT / 'docs' / name
@@ -97,19 +91,30 @@ def doc(name, drop_title=True):
     t = re.sub(r'\A# [^\n]*\n', '', t) if drop_title else t
     return t
 
-def page(slug, body, scripts=''):
-    i = [p[0] for p in PAGES].index(slug); _, label, title, lede = PAGES[i]
+def page(slug, body, scripts='', rail=None):
     brz = 'https://buildrobotz.com'
     cur = ' aria-current="page"'
-    here = NAV_PARENT.get(slug, slug)
-    nav = ''.join(f'<a href="{s}.html"{cur if s == here else ""}>{l}</a>'
-                  for s, l, _, _ in PAGES if NAV_PARENT.get(s, s) == s)
-    sub = ''
-    if slug in NAV_PARENT:
-        sub = ('<nav class="subnav" aria-label="Stage 1 pages">'
-               + ''.join(f'<a href="{s}.html"{cur if s == slug else ""}>{n}. {l}</a>' for n, (s, l) in enumerate(S1_PAGES, 1)) + '</nav>')
-    prev = f'<a href="{PAGES[i-1][0]}.html">&larr; {PAGES[i-1][1]}</a>' if i else '<span></span>'
-    nxt = f'<a href="{PAGES[i+1][0]}.html">{PAGES[i+1][1]} &rarr;</a>' if i + 1 < len(PAGES) else '<span></span>'
+    ref = REFS.get(slug)
+    if ref:
+        st, r = ref
+        guide = next(p for p in PAGES if p[0] == st.slug)
+        here, label = st.slug, f'{st.nav} reference · {r["label"]}'
+        title = f'{st.nav} reference: {r["label"]}'
+        lede = r['opts'].get('lede', f'Detail behind the {st.nav} guide. You do not need this page to finish a step; the guide links here when one needs it.')
+        others = ' · '.join(f'<a href="{x["slug"]}.html"{cur if x["slug"] == slug else ""}>{html.escape(x["label"])}</a>' for x in st.refs)
+        sub = (f'<nav class="subnav" aria-label="{html.escape(st.nav)} reference"><a href="{st.slug}.html">&larr; {html.escape(guide[2])}</a>'
+               f'<span>Reference:</span>{others}</nav>')
+        prev, nxt = f'<a href="{st.slug}.html">&larr; Back to the {html.escape(st.nav)} guide</a>', '<span></span>'
+    else:
+        i = [p[0] for p in PAGES].index(slug); _, label, title, lede = PAGES[i]
+        here, sub = slug, ''
+        prev = f'<a href="{PAGES[i-1][0]}.html">&larr; {PAGES[i-1][1]}</a>' if i else '<span></span>'
+        nxt = f'<a href="{PAGES[i+1][0]}.html">{PAGES[i+1][1]} &rarr;</a>' if i + 1 < len(PAGES) else '<span></span>'
+    nav = ''.join(f'<a href="{s}.html"{cur if s == here else ""}>{l}</a>' for s, l, _, _ in PAGES)
+    body = sized(body)
+    side, fold = contents(body, rail)
+    if 'class="viewer"' in body and 'viewer.js' not in scripts:
+        scripts += VIEWER_JS
     return f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{html.escape(label if slug != "index" else "Tailwhip")} · Tailwhip robot</title>
@@ -122,16 +127,18 @@ def page(slug, body, scripts=''):
 <body>
 <div class="crumb"><div class="wrap"><a href="{brz}/">BuildRobotz</a><span aria-hidden="true">/</span><a href="{brz}/robots/">Robots</a><span aria-hidden="true">/</span><span>Tailwhip</span></div></div>
 <header class="top"><div class="wrap"><a class="brand" href="index.html">Tailwhip<span>.</span></a><nav aria-label="Project pages">{nav}</nav></div></header>
-<div class="wrap"><main>
+<div class="wrap layout"><aside class="rail">{side}</aside><main{' class="refpage"' if ref else ''}>
 <header><div class="eyebrow">BuildRobotz project · {html.escape(label)}</div><h1>{html.escape(title)}</h1><p class="lede">{html.escape(lede)}</p></header>
-{sub}{toc(body)}{fold_reference(body)}
+{sub}{fold}{fold_reference(body)}
 <div class="pager">{prev}{nxt}</div>
 </main></div>
-<footer><div class="wrap">Tailwhip is an open robot project from <a href="{brz}/">BuildRobotz</a>. The design was generated with AI and has not yet been built or tested on hardware; performance figures are MuJoCo simulation results. Build at your own risk. Code, CAD and firmware: <a href="{REPO_URL}">{REPO_URL.split("//")[1]}</a> (code MIT, docs and CAD CC BY-SA 4.0).<br>
-<a href="{brz}/robots/">More robots to build</a> · <a href="https://ouro.buildrobotz.com/">Ouro, its sister project</a> · <a href="{brz}/">Learn robotics with BuildRobotz</a></div></footer>
+<footer><div class="wrap layout"><div></div><div>Tailwhip is an open robot project from <a href="{brz}/">BuildRobotz</a>. The design was generated with AI and has not yet been built or tested on hardware; performance figures are MuJoCo simulation results. Build at your own risk. Code, CAD and firmware: <a href="{REPO_URL}">{REPO_URL.split("//")[1]}</a> (code MIT, docs and CAD CC BY-SA 4.0).<br>
+<a href="{brz}/robots/">More robots to build</a> · <a href="https://ouro.buildrobotz.com/">Ouro, its sister project</a> · <a href="{brz}/">Learn robotics with BuildRobotz</a></div></div></footer>
 <script>(function(){{var a=document.querySelector('nav [aria-current]');if(a&&a.parentNode.scrollWidth>a.parentNode.clientWidth)a.parentNode.scrollLeft=a.offsetLeft-a.parentNode.clientWidth/2+a.offsetWidth/2;
 function op(){{var t=location.hash&&document.getElementById(decodeURIComponent(location.hash.slice(1)));for(var e=t;e;e=e.parentElement)if(e.tagName==='DETAILS')e.open=true;if(t)t.scrollIntoView();}}
-addEventListener('hashchange',op);op();}})();</script>
+addEventListener('hashchange',op);op();
+var ls=[].slice.call(document.querySelectorAll('.onpage a'));if(ls.length&&'IntersectionObserver'in window){{var hs=ls.map(function(l){{return document.getElementById(decodeURIComponent(l.hash.slice(1)))}});
+var on=function(){{var k=0;hs.forEach(function(h,i){{if(h&&h.getBoundingClientRect().top<120)k=i}});ls.forEach(function(l,i){{l.classList.toggle('here',i===k)}})}};addEventListener('scroll',on,{{passive:true}});on();}}}})();</script>
 {scripts}
 </body></html>'''
 
@@ -143,7 +150,19 @@ def copy_img(src, name, w=1100):
     if im.width > w:
         im = im.resize((w, int(im.height * w / im.width)))
     im.save(DIST / 'assets' / (name + '.jpg'), 'JPEG', quality=82)
+    IMG_SIZE[f'assets/{name}.jpg'] = im.size
     return f'assets/{name}.jpg'
+
+IMG_SIZE = {}   # url -> (w, h) of every picture copied, so pages reserve its space and #links land where they should
+
+def sized(body):
+    def add(m):
+        tag, src = m.group(0), m.group(1)
+        if ' width=' in tag or src not in IMG_SIZE:
+            return tag
+        w, h = IMG_SIZE[src]
+        return tag[:-1] + f' width="{w}" height="{h}">'
+    return re.sub(r'<img [^>]*?src="([^"]+)"[^>]*>', add, body)
 
 def copy_file(src, dst):
     src = pathlib.Path(src)
@@ -188,16 +207,22 @@ def p_index():
                   'Rest, rear up, balance, drive, turn, take two shoves, lie back down. Nothing is scripted except the commands.', 'Simulation, trained policy')
             + video(anim_v, anim_poster, 'The design, animated in Blender from the CAD: what the finished robot should look like. Kinematic, not physics: the timing is hand-chosen.', 'Design animation'))
     facts = json.loads((ROOT / 'site' / 'facts.json').read_text())
+    guides = {st.slug: st for st in STAGES}
     def cards(pages):
-        return ''.join(f'<a href="{s}.html"><b>{t if s in NAV_PARENT else l}</b><span>{d}</span></a>' for s, l, t, d in pages)
-    s1 = [p for p in PAGES if p[0] in NAV_PARENT]; rest = [p for p in PAGES[1:] if p[0] not in NAV_PARENT]
+        out = ''
+        for s, l, t, d in pages:
+            st = guides.get(s)
+            refs = ('<small>Reference: ' + ' · '.join(html.escape(r['label']) for r in st.refs) + '</small>') if st and st.refs else ''
+            out += f'<a href="{s}.html"><b>{t if st else l}</b><span>{d}</span>{refs}</a>'
+        return out
+    first = [p for p in PAGES if p[0] in guides]; rest = [p for p in PAGES[1:] if p[0] not in guides]
     return f'''
 <section class="videos">{vids}</section>
 <dl class="facts">{''.join(f"<div><dt>{k}</dt><dd>{v}</dd></div>" for k, v in facts.items())}</dl>
 {status_note()}
 <section class="prose">{md(doc('overview.md'))}</section>
 <section><div class="prose"><h2 id="build-it-page-by-page">Build it, page by page</h2>
-<h4>First: stage 1, the bare-minimum balancer</h4></div><div class="cards" style="margin-top:12px">{cards(s1)}</div>
+<h4>First: {' then '.join(html.escape(st.nav.lower()) for st in STAGES)}</h4></div><div class="cards" style="margin-top:12px">{cards(first)}</div>
 <div class="prose"><h4>Then: the full robot</h4></div><div class="cards" style="margin-top:12px">{cards(rest)}</div></section>'''
 
 def money(x):
@@ -298,27 +323,44 @@ def p_risks():
     return f'<section class="prose">{md(doc("limits.md"))}</section>'
 
 
-# ------------------------------------------------------------------------------------------- stage 1
-# Everything below is read from stage1/ at build time; nothing is copied into this script except page structure.
-# Stage 1 files on the site: where a link or a `path` in the stage 1 docs should point.
-S1_SITE = {'stage1/README.md': 'stage1.html', 'stage1/docs/mechanical.md': 'stage1-print.html',
-           'stage1/docs/electronics.md': 'stage1-wiring.html', 'stage1/docs/schematic.svg': 'assets/stage1_schematic.svg',
-           'stage1/docs/wiring.svg': 'assets/stage1_wiring.svg', 'stage1/docs/electronics.json': 'assets/stage1_electronics.json',
-           'docs/electronics.md': 'electronics.html', 'docs/mechanical.md': 'mechanical.html', 'docs/build.md': 'build.html',
-           'docs/parts.md': 'parts.html', 'docs/software.md': 'software.html', 'docs/limits.md': 'risks.html'}
-S1_FW = 'stage1/firmware/stage1_balance/stage1_balance.ino'
+# ------------------------------------------------------------------------------------------- stage guides
+# Each stageN/GUIDE.md becomes one step-by-step guide page in the main path, plus the reference pages its front matter
+# lists (rendered from that stage's own docs, outside the previous/next path). The guide's words are in GUIDE.md;
+# every number, file, table, picture and diagram is pulled from the stage's files at build time. Format:
+#
+#   ---                                      front matter, one 'key: value' per line
+#   slug: stage1                             page name (stage1.html); also: nav, title, lede
+#   reference: stage1-wiring | Electronics | docs/electronics.md | fold=Sources;Firmware notes | lede=...
+#   reference: stage1-sim | Simulation | README.md#What the simulation says + out/sim.md
+#   fact: cost = README.md: \*\*about (\$\d+)\*\* || other.md: ...    first capture group; '$a.b' reads a JSON path
+#   ---
+#   Top block (markdown). {{cost}} inserts a fact; a line whose fact is missing is left out, with a warning.
+#   # Milestone A: ...                       a milestone; its first paragraph is the milestone's introduction
+#   ## Buy the parts                         a step, numbered automatically across milestones
+#   ![caption](out/step_*core*.png | out/render_parts.png)   the step's picture: first existing match, else skipped
+#   **Check:** ...                           the step's check;  **If it does not work:** ... its pointer to the reference
+#   [[stl out/print/*.stl]]  [[svg docs/wiring.svg | caption]]  [[table README.md | Parts]]  [[para README.md | text]]
+#   [[status README.md | title]]  [[facts Label=value | ...]]  [[video name | caption]]  [[file path | label]]  [[viewer globs]]
+STAGES = []
+WARNINGS = []
+VIEWER_JS = '''<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="assets/viewer.js"></script>'''
+SITE_DOCS = {'docs/electronics.md': 'electronics.html', 'docs/mechanical.md': 'mechanical.html', 'docs/build.md': 'build.html',
+             'docs/parts.md': 'parts.html', 'docs/software.md': 'software.html', 'docs/limits.md': 'risks.html'}
+DOC_PAGE = {'overview': 'index.html', 'build': 'build.html', 'parts': 'parts.html', 'mechanical': 'mechanical.html',
+            'electronics': 'electronics.html', 'software': 'software.html', 'simulation': 'learning.html',
+            'learning-path': 'course.html', 'limits': 'risks.html'}
+COLORS = ('#e8862a', '#e8862a', '#f2b84b', '#f2b84b', '#2a9ea8', '#cfcfc8', '#e9e4d8')
 
-def s1_read(rel):
-    p = STAGE1 / rel
-    if not p.exists():
-        raise SystemExit(f'stage 1: {p} is missing')
-    return p.read_text()
+def warn(msg):
+    WARNINGS.append(msg)
+    print('  warning:', msg)
 
-def grab(pattern, text, what, flags=0):
-    m = re.search(pattern, text, flags)
-    if not m:
-        raise SystemExit(f'stage 1: could not find {what} (pattern {pattern!r}); the stage 1 files changed shape')
-    return m
+def slugify(t):
+    return re.sub(r'[^a-z0-9]+', '-', re.sub(r'<[^>]+>', '', t).lower()).strip('-')
 
 def sections(text):
     """(preamble, [(title, body)]) split at '## ' headings, with the '# ' title dropped."""
@@ -326,276 +368,411 @@ def sections(text):
     parts = re.split(r'^## (.+)\n', text, flags=re.M)
     return parts[0], [(parts[i].strip(), parts[i + 1]) for i in range(1, len(parts), 2)]
 
-def section(secs, title):
-    for t, b in secs:
-        if t.lower().startswith(title.lower()):
-            return b
-    raise SystemExit(f'stage 1: no "## {title}" section')
-
-def reference(secs, titles=None, drop=()):
-    """The named sections (all if titles is None) as one '## Reference' block: each folds into a <details> on the page."""
-    keep = [(t, b) for t, b in secs if titles is None or any(t.lower().startswith(x.lower()) for x in titles)]
-    if not keep:
-        return ''
-    out = '## Reference\n\n'
-    for t, b in keep:
-        b = re.sub(r'^(#{3,5}) ', r'#\1 ', b, flags=re.M)
-        for d in drop:
-            b = re.sub(r'!\[[^\]]*\]\(' + re.escape(d) + r'\)\n?', '', b)
-        out += f'### {t}\n\n{b}\n'
-    return out
-
-def unref(secs, titles):
-    return [(t, b) for t, b in secs if not any(t.lower().startswith(x.lower()) for x in titles)]
-
 def joined(secs):
     return ''.join(f'## {t}\n{b}' for t, b in secs)
 
-def s1_url(p):
-    """Where the site should point for a repo file: a site page or asset if there is one, else the file on GitHub."""
-    p = p.resolve()
-    try:
-        rel = p.relative_to(ROOT).as_posix()
-    except ValueError:
-        return None
-    if rel in S1_SITE:
-        return S1_SITE[rel]
-    if rel.startswith('stage1/out/') and p.suffix == '.png' and p.exists():
-        return copy_img(p, 'stage1_' + p.stem)
-    if p.exists():
-        return f'{REPO_URL}/{"tree" if p.is_dir() else "blob"}/main/{rel}'
-    return None
+def starts(t, names):
+    return any(t.lower().startswith(n.strip().lower()) for n in names if n.strip())
 
-def s1_find(path, base):
-    """A path written in a stage 1 doc, resolved the way its authors use them: next to the doc, then from stage1/,
-    then from the repo root. 'docs/...' inside stage1/docs means the full robot's docs."""
-    here = STAGE1 / base
-    cands = [here / path]
-    if not (base and path.startswith('docs/')):
-        cands.append(STAGE1 / path)
-    cands.append(ROOT / path)
-    for c in cands:
-        if c.exists():
-            return c
-    return None
-
-def s1_md(text, base, fixes=()):
-    """Stage 1 markdown, ready for md(): images copied to assets/, links and `paths` pointed at the site or GitHub."""
-    for old, new in fixes:
-        text, n = re.subn(old, new, text)
-        if not n:
-            print(f'  note: stage 1 text not found, left as is: {old!r}')
-    def img(m):
-        alt, path = m.group(1), m.group(2)
-        p = (STAGE1 / base / path).resolve()
-        if p.suffix == '.png':
-            url = copy_img(p, 'stage1_' + p.stem)
-            return f'![{alt}]({url})' if url else ''
-        return ''          # SVG diagrams are shown full size at the top of the wiring page
-    text = re.sub(r'!\[([^\]]*)\]\(([^)\s]+)\)\n?', img, text)
-    def link(m):
-        label, path = m.group(1), m.group(2)
-        if re.match(r'[a-z]+:|#', path):
-            return m.group(0)
-        url = s1_url(STAGE1 / base / path)
-        return f'[{label}]({url})' if url else m.group(0)
-    text = re.sub(r'(?<![!\]])\[([^\]]+)\]\(([^)\s]+)\)', link, text)
-    def code(m):
-        path = m.group(1)
-        if not re.search(r'[./]', path):
-            return m.group(0)
-        found = s1_find(path, base)
-        url = s1_url(found) if found else None
-        return f'[`{path}`]({url})' if url else m.group(0)
-    return re.sub(r'(?<![`\[])`([\w.][\w./-]*)`(?![`\]])', code, text)
-
-def s1_note():
-    st = grab(r'\*\*Status:\*\*\s*(.+?)\n\n', s1_read('README.md'), 'the README status line', re.S).group(1)
-    st = re.sub(r'\s+', ' ', st).strip(); st = st[0].upper() + st[1:]
-    st = re.sub(r'^<p>|</p>$', '', markdown.markdown(st))
-    return ('<div class="note"><b>Read this first: designed and simulated, not built</b>' + st +
-            ' Like the rest of Tailwhip, the design, its code and these pages were generated with AI. Measure what the pages tell you to, '
-            'check each step with a meter, expect to fix things, and build at your own risk, especially around the 18650 cells.</div>')
-
-def s1_pass():
-    return grab(r'(\*\*Stage 1 passes when\*\*.+?)\n\n', s1_read('README.md'), 'the pass criteria', re.S).group(1)
+def folded(secs, names):
+    """Sections named in names go last, under '## Reference', each folding into a <details> on the page."""
+    keep = [(t, b) for t, b in secs if not starts(t, names)]
+    fold = [(t, b) for t, b in secs if starts(t, names)]
+    out = joined(keep)
+    if fold:
+        out += '## Reference\n\n' + ''.join(f'### {t}\n\n' + re.sub(r'^(#{3,5}) ', r'#\1 ', b, flags=re.M) + '\n' for t, b in fold)
+    return out
 
 def btns(items):
     return ' '.join(f'<a class="btn" href="{u}"{(" download=" + chr(34) + d + chr(34)) if isinstance(d, str) else " download" if d else ""}>{html.escape(l)}</a>'
                     for l, u, d in items if u)
 
-def s1_video():
-    """The simulation clip: re-encoded for the web from --stage1-video, else the copy already published."""
-    dst, poster = 'assets/video/stage1_sim.mp4', 'assets/video/stage1_sim_poster.jpg'
-    if S1_VIDEO:
-        src = pathlib.Path(S1_VIDEO).expanduser()
-        if not src.exists():
-            raise SystemExit(f'--stage1-video: {src} not found')
-        (DIST / 'assets' / 'video').mkdir(parents=True, exist_ok=True)
-        subprocess.run([FFMPEG, '-y', '-loglevel', 'error', '-i', str(src), '-vf', 'scale=854:-2', '-r', '30', '-c:v', 'h264_videotoolbox',
-                        '-b:v', '700k', '-pix_fmt', 'yuv420p', '-an', '-movflags', '+faststart', str(DIST / dst)], check=True)
-        subprocess.run([FFMPEG, '-y', '-loglevel', 'error', '-ss', '1', '-i', str(src), '-frames:v', '1', '-vf', 'scale=960:-2',
-                        '-q:v', '4', str(DIST / poster)], check=True)
-    return published(dst), published(poster)
+def encode_video(src, name):
+    """A clip re-encoded for the web into assets/video/<name>.mp4 with a poster; without a source the published copy stays."""
+    src = pathlib.Path(src).expanduser()
+    if not src.exists():
+        raise SystemExit(f'video {name}: {src} not found')
+    (DIST / 'assets' / 'video').mkdir(parents=True, exist_ok=True)
+    subprocess.run([FFMPEG, '-y', '-loglevel', 'error', '-i', str(src), '-vf', 'scale=854:-2', '-r', '30', '-c:v', 'h264_videotoolbox',
+                    '-b:v', '700k', '-pix_fmt', 'yuv420p', '-an', '-movflags', '+faststart', str(DIST / f'assets/video/{name}.mp4')], check=True)
+    subprocess.run([FFMPEG, '-y', '-loglevel', 'error', '-ss', '1', '-i', str(src), '-frames:v', '1', '-vf', 'scale=960:-2',
+                    '-q:v', '4', str(DIST / f'assets/video/{name}_poster.jpg')], check=True)
 
-def s1_facts():
-    design, readme = s1_read('out/design.md'), s1_read('README.md')
-    res = json.loads(s1_read('out/results.json'))
-    mass = grab(r'\*\*Total\*\* \| \| \*\*(\d+)\*\*', design, 'the total mass in out/design.md').group(1)
-    tall = grab(r'(\d+) mm tall', design, 'the height in out/design.md').group(1)
-    cost = grab(r'\*\*about (\$\d+)\*\*', readme, 'the parts total in README.md').group(1)
-    hz = grab(r'(\d+) Hz loop', readme, 'the loop rate in README.md').group(1)
-    rb = res['robust']
-    return {'Wheels': '2 on one TT motor', 'Mass': f'about {mass} g', 'Height': f'{tall} mm', 'Parts': f'about {cost}',
-            'Brain': f'PID at {hz} Hz', 'Stays up (sim)': f"{100 * rb['survived'] / rb['n']:.0f} %"}
 
-def p_stage1():
-    pre, secs = sections(s1_read('README.md'))
-    intro = grab(r'\A\s*(.+?)\n\n', pre, 'the README intro', re.S).group(1)
-    hero = copy_img(STAGE1 / 'out' / 'render_hero.png', 'stage1_render_hero')
-    vid, poster = s1_video()
-    clip = video(vid, poster, 'The nominal robot in MuJoCo running the firmware\'s filter and PID: released at 8 deg, then shoved forward and back '
-                 '(0.05 N s each). The run plotted below.', 'Simulation, PID')
-    pic = fig(hero, '<b>Design</b><br>Front: the IMU on the core; BMS, switch and junction board on the mast. Rendered from the CAD.', 'Stage 1, rendered from the CAD')
-    sim_pre, sim_secs = sections(s1_read('out/sim.md'))
-    facts = s1_facts()
-    text = (f'## Why it comes first\n\n{intro}\n\n'
-            'The full robot counts on its TT motors to catch every fall. Stage 1 tests that one assumption with as little else as possible, '
-            f'so that if a TT motor is too slow or too weak, you find out with a robot that costs {facts["Parts"]} and four prints.\n\n'
-            f'## The three stages\n{section(secs, "The three stages")}'
-            f'## What the simulation says\n{section(secs, "What the simulation says")}'
-            f'## Parts\n{section(secs, "Parts")}'
-            f'## Risks\n{section(secs, "Risks")}'
-            + reference([('Simulation results in full', sim_pre + re.sub(r'^## ', '### ', joined(sim_secs), flags=re.M))]
-                        + [(t, b) for t, b in secs if t.lower().startswith('files')], drop=('plot_nominal.png', 'plot_limits.png', 'plot_sweeps.png')))
-    return f'''{s1_note()}
-<section class="videos">{clip}{pic}</section>
-<dl class="facts">{''.join(f"<div><dt>{k}</dt><dd>{v}</dd></div>" for k, v in facts.items())}</dl>
-<section class="prose">{md(s1_md(text, '', S1_README_FIXES))}</section>'''
+class Stage:
+    def __init__(self, guide):
+        self.dir = guide.parent; self.name = self.dir.name
+        text = guide.read_text()
+        m = re.match(r'---\n(.*?)\n---\n', text, re.S)
+        if not m:
+            raise SystemExit(f'{guide}: no front matter')
+        self.meta, self.refs, self.facts = {}, [], {}
+        for line in m.group(1).splitlines():
+            if not line.strip() or line.lstrip().startswith('#'):
+                continue
+            k, _, v = line.partition(':'); k, v = k.strip(), v.strip()
+            if k == 'reference':
+                p = [x.strip() for x in v.split(' | ')]
+                self.refs.append(dict(slug=p[0], label=p[1], src=p[2], opts=dict(x.split('=', 1) for x in p[3:])))
+            elif k == 'fact':
+                name, _, spec = v.partition(' = ')
+                self.facts[name.strip()] = self.fact(spec.strip(), name.strip())
+            else:
+                self.meta[k] = v
+        self.body = text[m.end():]
+        self.slug = self.meta['slug']; self.nav = self.meta.get('nav', self.name)
+        self.status = ''
+        # where links to this stage's files go on the site
+        self.site = {f'{self.name}/README.md': f'{self.slug}.html'}
+        for r in self.refs:
+            for spec in r['src'].split(' + '):
+                f = spec.partition('#')[0]
+                if '#' not in spec:
+                    self.site.setdefault(f'{self.name}/{f}', f'{r["slug"]}.html')
 
-# Pointers in stage1/README.md that mean something else on the site.
-S1_README_FIXES = ((r'Full results: `out/sim\.md`\. Clip: `python sim\.py video [\w.]+`\.', 'Full results are under [Reference](#reference) at the bottom of this page.'),
-                   (r'until bench step 3', 'until bring-up step 3 ([Flash and tune](stage1-firmware.html#bring-up))'))
+    def fact(self, spec, name):
+        for alt in spec.split(' || '):
+            f, _, rx = alt.partition(': ')
+            p = self.dir / f.strip()
+            if not p.exists():
+                continue
+            if rx.startswith('$'):
+                v = json.loads(p.read_text())
+                try:
+                    for k in rx[1:].split('.'):
+                        v = v[int(k)] if isinstance(v, list) else v[k]
+                    return str(v)
+                except (KeyError, IndexError, ValueError, TypeError):
+                    continue
+            m = re.search(rx, p.read_text(), re.S)
+            if m:
+                return next((g for g in m.groups() if g is not None), m.group(0)) if m.groups() else m.group(0)
+        warn(f'{self.name}: fact "{name}" not found in the stage files; lines that use it are left out')
+        return None
 
-S1_PRINTS = (('Core, left half', 'core_left', '#e8862a'), ('Core, right half', 'core_right', '#e8862a'),
-             ('Mast', 'mast', '#f2b84b'), ('Tray', 'tray', '#f2b84b'))
-S1_RENDERS = {'render_back': 'From behind: ESP32, MX1508 and buck on the mast; motor plug K1 on the core',
-              'render_views': 'Side, fallen forward onto a crash bar, front and back',
-              'render_parts': 'Exploded: core halves, pins and bolts, motor, mast with boards, tray, holder, cells'}
+    def read(self, rel):
+        p = self.dir / rel
+        return p.read_text() if p.exists() else None
 
-def p_stage1_print():
-    out = STAGE1 / 'out'
-    models = []
-    for label, n, color in S1_PRINTS:
-        if copy_file(out / 'print' / f'{n}.stl', f'models/stage1/{n}.stl'):
-            models.append(dict(label=label, file=f'models/stage1/{n}.stl', color=color))
-    if len(models) != len(S1_PRINTS):
-        raise SystemExit('stage 1: a print STL is missing from stage1/out/print/')
-    copy_file(out / 'design.md', 'assets/stage1_design.md')
-    dl = btns([(m['file'].split('/')[-1], m['file'], 'tailwhip_stage1_' + m['file'].split('/')[-1]) for m in models]
-              + [('design.md (every design check)', 'assets/stage1_design.md', False)])
-    body = s1_read('docs/mechanical.md')
-    shown = set(re.findall(r'\(\.\./out/(render_\w+)\.png\)', body))
-    gallery = ''.join(fig(copy_img(out / f'{k}.png', 'stage1_' + k), v) for k, v in S1_RENDERS.items() if k not in shown and (out / f'{k}.png').exists())
-    pre, secs = sections(body)
-    moved = ('Files', 'What changed from the first pass')
-    text = pre + joined(unref(secs, moved)) + reference(secs, moved)
-    return f'''{s1_note()}
-<section><div class="viewer" data-models='{json.dumps(models)}'><canvas class="view"></canvas><span class="hint">drag to orbit · scroll to zoom</span></div>
-<div class="bar vbar" style="border:1px solid var(--rule);border-top:0;border-radius:0 0 6px 6px"></div></section>
-<section class="prose"><h4>Download the print files</h4><p>{dl}</p><p>Each STL is in its print orientation, lying on the bed. All four fit a 220 x 220 mm bed.</p></section>
-<div class="gallery">{gallery}</div>
-<section class="prose">{md(s1_md(text, 'docs'))}</section>''', '''<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-<script src="assets/viewer.js"></script>'''
+    def files(self, globs):
+        out, skip = [], {h for g in globs.split() if g.startswith('!') for h in self.dir.glob(g[1:])}
+        for g in globs.split():
+            if g.startswith('!'):
+                continue
+            hits = [h for h in sorted(self.dir.glob(g)) if h not in skip]
+            if not hits:
+                warn(f'{self.name}: nothing matches {g}; skipped')
+            out += [h for h in hits if h not in out]
+        return out
 
-def s1_svg(name, cap):
-    src = STAGE1 / 'docs' / name
-    s = s1_read('docs/' + name)
-    w, h = grab(r"<svg[^>]*?width=['\"](\d+)['\"][^>]*?height=['\"](\d+)['\"]", s, f'the size of {name}').groups()
-    url = copy_file(src, f'assets/stage1_{name}')
-    return (f'<figure class="fig"><div class="svgwrap native"><a href="{url}"><img src="{url}" alt="{html.escape(cap)}" width="{w}" height="{h}"></a></div>'
-            f'<figcaption><b>{cap.upper()}</b> · full size: scroll inside the frame, or open the image on its own</figcaption></figure>')
+    def first(self, alts):
+        for g in alts.split(' | '):
+            hits = sorted(self.dir.glob(g.strip()))
+            if hits:
+                return hits[0]
+        warn(f'{self.name}: no picture for {alts!r}; skipped')
+        return None
 
-def p_stage1_wiring():
-    figs = s1_svg('schematic.svg', 'Schematic') + s1_svg('wiring.svg', 'Every wire, on the robot')
-    copy_file(STAGE1 / 'docs' / 'electronics.json', 'assets/stage1_electronics.json')
-    dl = btns([('schematic.svg', 'assets/stage1_schematic.svg', 'tailwhip_stage1_schematic.svg'),
-               ('wiring.svg', 'assets/stage1_wiring.svg', 'tailwhip_stage1_wiring.svg'),
-               ('electronics.json', 'assets/stage1_electronics.json', 'tailwhip_stage1_electronics.json'),
-               ('gen_electronics.py (makes all three)', s1_url(STAGE1 / 'docs' / 'tools' / 'gen_electronics.py'), False)])
-    pre, secs = sections(s1_read('docs/electronics.md'))
-    moved = ('What changed from the first-pass wiring', 'Firmware notes', 'Sources for the numbers')
-    fixes = ((r"(?:carry on with )?the README's bring-up", 'carry on with the [bring-up on the Flash and tune page](stage1-firmware.html#bring-up)'),
-             (r"from the README's bench step 3", 'from bring-up step 3 ([Flash and tune](stage1-firmware.html#bring-up))'))
-    text = pre + joined(unref(secs, moved)) + reference(secs, moved)
-    return f'''{s1_note()}
-{figs}
-<section class="prose"><h4>Download the drawings</h4><p>{dl}</p></section>
-<section class="prose">{md(s1_md(text, 'docs', fixes))}</section>'''
+    # -------------------------------------------------- links and pictures
+    def url(self, p):
+        """Where the site points for a repo file: a page or asset if there is one, else the file on GitHub."""
+        p = p.resolve()
+        try:
+            rel = p.relative_to(ROOT).as_posix()
+        except ValueError:
+            return None
+        if rel in self.site:
+            return self.site[rel]
+        if rel in SITE_DOCS:
+            return SITE_DOCS[rel]
+        if rel.startswith(f'{self.name}/out/') and p.suffix == '.png' and p.exists():
+            return self.img(p)
+        if p.exists():
+            return f'{REPO_URL}/{"tree" if p.is_dir() else "blob"}/main/{rel}'
+        return None
 
-def p_stage1_firmware():
-    _, secs = sections(s1_read('README.md'))
-    ino = s1_read('firmware/stage1_balance/stage1_balance.ino')
-    helptext = grab(r'void help\(\)\s*\{(.*?)\n\}', ino, 'help() in the firmware', re.S).group(1)
-    cmds = '\n'.join(s.replace('\\n', '') for s in re.findall(r'"((?:[^"\\]|\\.)*)"', helptext))
-    dl = btns([('stage1_balance.ino on GitHub', f'{REPO_URL}/blob/main/{S1_FW}', False),
-               ('Download the sketch', f'{REPO_URL}/raw/main/{S1_FW}', False)])
-    text = f'''## The firmware
+    def find(self, path, base):
+        """A path as the stage docs write them: next to the doc, then from the stage folder, then from the repo root
+        ('docs/...' inside the stage's docs/ means the full robot's docs)."""
+        cands = [self.dir / base / path]
+        if not (base and path.startswith('docs/')):
+            cands.append(self.dir / path)
+        cands.append(ROOT / path)
+        return next((c for c in cands if c.exists()), None)
 
-{section(secs, "Firmware")}
-## Flash it
+    def img(self, p):
+        return copy_img(p, f'{self.name}_{p.stem}')
 
-Use the same toolchain as the full robot ([its setup](electronics.html#set-up-the-firmware-toolchain)): the Arduino IDE or
-`arduino-cli` with the esp32 core, board **ESP32 Dev Module**. The sketch needs no extra libraries. It has been checked to
-compile with `arduino-cli` and esp32 core 3.3.12. From the top of the repository:
+    def svg(self, p, cap):
+        s = p.read_text()
+        m = re.search(r"<svg[^>]*?width=['\"](\d+)['\"][^>]*?height=['\"](\d+)['\"]", s)
+        size = f' width="{m.group(1)}" height="{m.group(2)}"' if m else ''
+        url = copy_file(p, f'assets/{self.name}_{p.name}')
+        return (f'<figure class="fig wide"><div class="svgwrap native"><a href="{url}"><img src="{url}" alt="{html.escape(cap)}"{size}></a></div>'
+                f'<figcaption><b>{html.escape(cap.upper())}</b> · drawn full size: scroll inside the frame, or '
+                f'<a href="{url}" download="tailwhip_{self.name}_{p.name}">download {p.name}</a></figcaption></figure>')
 
-```bash
-arduino-cli compile -b esp32:esp32:esp32 stage1/firmware/stage1_balance
-arduino-cli upload  -b esp32:esp32:esp32 -p /dev/cu.usbserial-XXXX stage1/firmware/stage1_balance
-arduino-cli monitor -p /dev/cu.usbserial-XXXX -c baudrate=115200
-```
+    def md(self, text, base, tokens, seen=None):
+        """Stage markdown ready for md(): pictures copied (SVG diagrams full size), links and `paths` pointed at the site."""
+        def image(m):
+            alt, path = m.group(1), m.group(2)
+            p = (self.dir / base / path).resolve()
+            if seen is not None:
+                if p in seen:
+                    return ''
+                seen.add(p)
+            if not p.exists():
+                warn(f'{self.name}: picture {path} missing; skipped'); return ''
+            if p.suffix == '.svg':
+                return token(tokens, self.svg(p, alt or p.stem))
+            url = self.img(p) if p.suffix == '.png' else copy_file(p, f'assets/{self.name}_{p.name}')
+            return f'![{alt}]({url})'
+        text = re.sub(r'!\[([^\]]*)\]\(([^)\s]+)\)', image, text)
+        def link(m):
+            label, path = m.group(1), m.group(2)
+            if re.match(r'[a-z]+:|#', path) or path.endswith('.html') or '.html#' in path:
+                return m.group(0)
+            f, _, frag = path.partition('#')
+            url = self.url(self.dir / base / f)
+            return f'[{label}]({url}{"#" + frag if frag else ""})' if url else m.group(0)
+        text = re.sub(r'(?<![!\]])\[([^\]]+)\]\(([^)\s]+)\)', link, text)
+        def code(m):
+            path = m.group(1)
+            if not re.search(r'[./]', path):
+                return m.group(0)
+            found = self.find(path, base)
+            url = self.url(found) if found else None
+            return f'[`{path}`]({url})' if url else m.group(0)
+        return re.sub(r'(?<![`\[])`([\w.][\w./-]*)`(?![`\]])', code, text)
 
-Type `help` in the serial monitor for the commands:
+    # -------------------------------------------------- pieces pulled from the stage files
+    def block(self, rel, needle):
+        """The paragraph or list item in a stage file that contains needle."""
+        t = self.read(rel)
+        if t is None:
+            return None
+        for b in re.split(r'\n\s*\n|\n(?=\s*(?:\d+\.|[-*]) )', t):
+            if needle in b:
+                return re.sub(r'^\s*(?:\d+\.|[-*])\s+', '', b.strip())
+        return None
 
-```
-{cmds}
-```
+    def table(self, rel, heading):
+        """The first markdown table under the heading (any level) that starts with heading."""
+        t = self.read(rel)
+        if t is None:
+            return None
+        m = re.search(r'^#{1,5} ' + re.escape(heading) + r'.*?\n(.*?)(?=^#{1,5} |\Z)', t, re.S | re.M)
+        tab = m and re.search(r'((?:^\|.*\|[ \t]*\n?)+)', m.group(1), re.M)
+        return tab.group(1) if tab else None
 
-## Bring-up
 
-Do the [power-up checklist](stage1-wiring.html#power-up-checklist) on the Circuit and wiring page first: it flashes this sketch at
-step 0 and checks the IMU and the motor one connection at a time. Then:
+def token(tokens, htm):
+    tokens.append(htm)
+    return f'\n\nXTOKEN{len(tokens) - 1}X\n\n'
 
-{section(secs, "Bring-up")}
-## Pass criteria
+def untoken(out, tokens):
+    for i, h in enumerate(tokens):
+        out = out.replace(f'<p>XTOKEN{i}X</p>', h).replace(f'XTOKEN{i}X', h)
+    return out
 
-{s1_pass()}
+def directive(st, kind, args, tokens):
+    a = [x.strip() for x in args.split(' | ')] if args else []
+    base = ''
+    if kind == 'stl':
+        fs = st.files(a[0]) if a else []
+        items = []
+        for f in fs:
+            dst = copy_file(f, f'models/{st.name}/{f.name}')
+            items.append((f.name, dst, f'tailwhip_{st.name}_{f.name}'))
+        return f'<p class="files">{btns(items)}</p>' if items else ''
+    if kind == 'viewer':
+        fs = [f for f in st.files(a[0]) if f.suffix in ('.stl', '.glb')] if a else []
+        models = [dict(label=f.stem.replace('_', ' '), file=copy_file(f, f'models/{st.name}/{f.name}'), color=COLORS[i % len(COLORS)])
+                  for i, f in enumerate(fs)]
+        if not models:
+            return ''
+        return (f'<section class="wide"><div class="viewer" data-models=\'{json.dumps(models)}\'><canvas class="view"></canvas>'
+                '<span class="hint">drag to orbit · scroll to zoom</span></div>'
+                '<div class="bar vbar" style="border:1px solid var(--rule);border-top:0;border-radius:0 0 6px 6px"></div></section>')
+    if kind == 'svg':
+        p = st.dir / a[0]
+        if not p.exists():
+            warn(f'{st.name}: diagram {a[0]} missing; skipped'); return ''
+        return st.svg(p, a[1] if len(a) > 1 else p.stem)
+    if kind == 'table':
+        t = st.table(a[0], a[1])
+        if not t:
+            warn(f'{st.name}: no table under "{a[1]}" in {a[0]}; skipped'); return ''
+        return md(st.md(t, str(pathlib.Path(a[0]).parent).replace('.', ''), tokens))
+    if kind == 'para':
+        b = st.block(a[0], a[1])
+        if not b:
+            warn(f'{st.name}: no paragraph with "{a[1]}" in {a[0]}; skipped'); return ''
+        htm = md(st.md(b, str(pathlib.Path(a[0]).parent).replace('.', ''), tokens))
+        return f'<div class="check"><b>{html.escape(a[2])}</b>{htm}</div>' if len(a) > 2 else htm
+    if kind == 'status':
+        b = st.block(a[0], '**Status:**')
+        if not b:
+            warn(f'{st.name}: no **Status:** line in {a[0]}'); return ''
+        b = re.sub(r'\s+', ' ', b.replace('**Status:**', '')).strip(); b = b[0].upper() + b[1:]
+        st.status = ('<div class="note"><b>' + html.escape(a[1] if len(a) > 1 else 'Status') + '</b>'
+                     + re.sub(r'^<p>|</p>$', '', markdown.markdown(b)) +
+                     ' Like the rest of Tailwhip, the design, its code and these pages were generated with AI. Measure what the pages tell you to, '
+                     'check each step with a meter, expect to fix things, and build at your own risk, especially around the 18650 cells.</div>')
+        return st.status
+    if kind == 'facts':
+        cells = [x.partition('=') for x in a]
+        return '<dl class="facts">' + ''.join(f'<div><dt>{html.escape(k.strip())}</dt><dd>{html.escape(v.strip())}</dd></div>' for k, _, v in cells) + '</dl>'
+    if kind == 'video':
+        v, poster = published(f'assets/video/{a[0]}.mp4'), published(f'assets/video/{a[0]}_poster.jpg')
+        if not v:
+            warn(f'{st.name}: video {a[0]} not published; skipped (build once with --video {a[0]}=PATH)'); return ''
+        p = f' poster="{poster}"' if poster else ''
+        return (f'<figure class="fig"><video src="{v}"{p} controls muted loop playsinline preload="metadata"></video>'
+                f'<figcaption>{html.escape(a[1]) if len(a) > 1 else ""}</figcaption></figure>')
+    if kind == 'file':
+        p = st.dir / a[0]
+        if not p.exists():
+            warn(f'{st.name}: file {a[0]} missing; skipped'); return ''
+        rel = p.resolve().relative_to(ROOT).as_posix()
+        return f'<p class="files">{btns([(a[1] if len(a) > 1 else p.name, f"{REPO_URL}/blob/main/{rel}", False), ("Download", f"{REPO_URL}/raw/main/{rel}", False)])}</p>'
+    raise SystemExit(f'{st.name}: unknown directive [[{kind}]]')
 
-## After stage 1
+def fill_facts(st, text):
+    out = []
+    for line in text.split('\n'):
+        names = re.findall(r'\{\{(\w+)\}\}', line)
+        if any(st.facts.get(n) is None for n in names):
+            continue                                    # the warning was given when the fact was read
+        out.append(re.sub(r'\{\{(\w+)\}\}', lambda m: st.facts[m.group(1)], line))
+    return '\n'.join(out)
 
-Stage 2 adds a second TT motor, wheel sensors and a bar that holds the body at a lean (see [the three stages](stage1.html#the-three-stages));
-it is planned but not designed yet. Stage 1's core, electronics and firmware carry into it. Until then, the next step is the full robot:
-start at the [Build plan](build.html).
-'''
-    return f'''{s1_note()}
-<section class="prose"><h4>The sketch</h4><p>{dl}</p></section>
-<section class="prose">{md(s1_md(text, ''))}</section>'''
+def render_md(st, text, tokens, picture=False):
+    """Directives and pictures to tokens, then markdown. With picture=True the first picture is returned separately."""
+    lead = None
+    def pic(m):
+        nonlocal lead
+        cap, alts = m.group(1), m.group(2)
+        p = st.first(alts)
+        if not p:
+            return ''
+        htm = st.svg(p, cap) if p.suffix == '.svg' else fig(st.img(p), html.escape(cap))
+        if picture and lead is None:
+            lead = htm; return ''
+        return token(tokens, htm)
+    text = re.sub(r'^!\[([^\]]*)\]\(([^)]+)\)[ \t]*$', pic, text, flags=re.M)
+    def direc(m):
+        nonlocal lead
+        htm = directive(st, m.group(1), m.group(2).strip(), tokens)
+        if picture and lead is None and m.group(1) == 'video' and htm:
+            lead = htm; return ''
+        return token(tokens, htm)
+    text = re.sub(r'^\[\[(\w+)\s*(.*?)\]\][ \t]*$', direc, text, flags=re.M)
+    return untoken(md(st.md(text, '', tokens)), tokens), lead
+
+def render_guide(st):
+    tokens = []
+    body = fill_facts(st, st.body)
+    parts = re.split(r'^(#{1,2}) (.+)\n', body, flags=re.M)
+    top, _ = render_md(st, parts[0], tokens)
+    out, rail, n = [f'<section class="prose guide-top">{top}</section>'], [], 0
+    words = len(re.sub(r'<[^>]+>', ' ', top).split())
+    for i in range(1, len(parts), 3):
+        level, title, text = parts[i], parts[i + 1].strip(), parts[i + 2]
+        if level == '#':
+            hid = slugify(title.split(':')[0])
+            htm, _ = render_md(st, text, tokens)
+            out.append(f'<section class="prose milestone"><h2 id="{hid}">{html.escape(title)}</h2>{htm}</section>')
+            rail.append(('h2', hid, title))
+            words += len(re.sub(r'<[^>]+>', ' ', htm).split()) + len(title.split())
+            continue
+        n += 1; hid = f'step-{n}'
+        chk = re.search(r'^\*\*Check:\*\*\s*(.+?)(?=\n\s*\n|\n\*\*If it does not work|\Z)', text, re.S | re.M)
+        ifn = re.search(r'^\*\*If it does not work:\*\*\s*(.+?)(?=\n\s*\n|\Z)', text, re.S | re.M)
+        cap = lambda x: x.strip()[:1].upper() + x.strip()[1:]
+        for m in (chk, ifn):
+            if m:
+                text = text.replace(m.group(0), '')
+        wide = []
+        def widen(m):
+            wide.append(m.group(0)); return ''
+        text = re.sub(r'^\[\[(?:svg|viewer)\b.*?\]\][ \t]*$', widen, text, flags=re.M)
+        htm, lead = render_md(st, text, tokens, picture=True)
+        wide_htm = ''.join(render_md(st, w, tokens)[0] for w in wide)
+        tail = ''
+        if chk:
+            tail += f'<div class="check"><b>Check</b>{re.sub(r"^<p>|</p>$", "", render_md(st, cap(chk.group(1)), tokens)[0].strip())}</div>'
+        if ifn:
+            tail += f'<p class="ifnot"><b>If it does not work:</b> {re.sub(r"^<p>|</p>$", "", render_md(st, ifn.group(1), tokens)[0].strip())}</p>'
+        words += sum(len(re.sub(r'<[^>]+>', ' ', x).split()) for x in (htm, tail)) + len(title.split())
+        out.append(f'<section class="step" id="{hid}"><h3><span class="num">{n}</span>{html.escape(title)}</h3>'
+                   f'<div class="step-main{" has-lead" if lead else ""}">{lead or ""}<div class="prose">{htm}</div></div>{wide_htm}{tail}</section>')
+        rail.append(('h3', hid, f'{n}. {title}'))
+    st.words = words
+    print(f'  {st.slug}: {n} steps, about {words} words (tables and captions included)')
+    return '\n'.join(out), rail
+
+def render_ref(st, ref):
+    tokens, seen, out = [], set(), ''
+    opts = ref['opts']
+    for spec in ref['src'].split(' + '):
+        f, _, names = spec.strip().partition('#')
+        text = st.read(f)
+        if text is None:
+            warn(f'{st.name}: {f} missing; left out of {ref["slug"]}'); continue
+        base = str(pathlib.Path(f).parent).replace('.', '')
+        pre, secs = sections(text)
+        if names:
+            want = names.split(';')
+            secs = [(t, b) for t, b in secs if starts(t, want)]
+            if not secs:
+                warn(f'{st.name}: none of {names!r} in {f}')
+            pre = ''
+        text = pre + folded(secs, opts.get('fold', '').split(';'))
+        out += f'<section class="prose">{untoken(md(st.md(text, base, tokens, seen)), tokens)}</section>'
+    if opts.get('viewer'):
+        out = directive(st, 'viewer', opts['viewer'], tokens) + directive(st, 'stl', opts['viewer'], tokens) + out
+    note = (f'<div class="note refnote"><b>Reference</b>This page is detail behind the <a href="{st.slug}.html">{html.escape(st.nav)} guide</a>. '
+            'You can build without reading it: each step of the guide links to the section it needs when something goes wrong. '
+            'Like everything in Tailwhip, it is designed and simulated, not built.</div>')
+    return note + out
+
+def load_stages():
+    for g in sorted(ROOT.glob('stage*/GUIDE.md')):
+        st = Stage(g)
+        STAGES.append(st)
+        PAGES.insert(1 + len(STAGES) - 1, (st.slug, st.nav, st.meta.get('title', st.nav), st.meta.get('lede', '')))
+        for r in st.refs:
+            REFS[r['slug']] = (st, r)
+
+def check_links():
+    pages = {p.name: p.read_text() for p in DIST.glob('*.html')}
+    ids = {k: set(re.findall(r'\sid="([^"]+)"', v)) for k, v in pages.items()}
+    for name, t in pages.items():
+        for u in re.findall(r'(?:href|src)="([^"#:]*)(?:#([^"]*))?"', t):
+            f, frag = u
+            if f.startswith(('http', 'mailto', 'data')):
+                continue
+            f = f or name
+            if not (DIST / f).exists():
+                warn(f'{name}: broken link {f}')
+            elif frag and f.endswith('.html') and frag not in ids.get(f, ()):
+                warn(f'{name}: no #{frag} in {f}')
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--anim', help='path to the Blender animation mp4 (or set TAILWHIP_ANIM); without it the published copy in dist/ is kept')
-    ap.add_argument('--stage1-video', help='path to the stage 1 simulation clip, the nominal run of stage1/sim.py (or set TAILWHIP_STAGE1_VIDEO); '
-                    'it is re-encoded for the web with ' + FFMPEG + '; without it the published copy in dist/ is kept')
+    ap.add_argument('--video', action='append', default=[], metavar='NAME=PATH',
+                    help='a clip for a stage guide\'s [[video NAME]], re-encoded for the web with ' + FFMPEG + '; without it the published copy is kept')
+    ap.add_argument('--stage1-video', help='same as --video stage1_sim=PATH (the nominal run of stage1/sim.py)')
     args = ap.parse_args()
-    global ANIM, S1_VIDEO
+    global ANIM
     if args.anim:
         ANIM = pathlib.Path(args.anim).expanduser()
-    if args.stage1_video:
-        S1_VIDEO = args.stage1_video
+    videos = dict(v.split('=', 1) for v in args.video)
+    if args.stage1_video or S1_VIDEO:
+        videos['stage1_sim'] = args.stage1_video or S1_VIDEO
     keep_video = {}
     if DIST.exists():                       # keep already-published videos (and their posters) if their sources are not on this machine
         for f in (DIST / 'assets' / 'video').glob('*') if (DIST / 'assets' / 'video').exists() else []:
@@ -608,22 +785,34 @@ def main():
     for name, data in keep_video.items():
         (DIST / 'assets' / 'video').mkdir(exist_ok=True)
         (DIST / 'assets' / 'video' / name).write_bytes(data)
+    for name, src in videos.items():
+        encode_video(src, name)
+    load_stages()
+    guides = {st.slug: st for st in STAGES}
     for slug, *_ in PAGES:
-        r = globals()['p_' + slug.replace('-', '_')]()
-        body, scripts = r if isinstance(r, tuple) else (r, '')
+        rail = None
+        if slug in guides:
+            body, rail = render_guide(guides[slug]); scripts = ''
+        else:
+            r = globals()['p_' + slug.replace('-', '_')]()
+            body, scripts = r if isinstance(r, tuple) else (r, '')
         body = re.sub(r'(src|href)="(?:\./)?(schematic\.svg|wiring\.svg|perfboard\.svg|electronics\.json)"', r'\1="assets/\2"', body)
         body = re.sub(r'(src|href)="\.\./cad/out/([\w-]+)\.png"', r'\1="assets/cad_\2.jpg"', body)
-        for m in re.findall(r'src="\.\./cad/out/([\w-]+)\.png"', body):
-            pass
-        (DIST / f'{slug}.html').write_text(page(slug, body, scripts))
+        body = re.sub(r'href="(?:\./)?([\w-]+)\.md(#[^"]*)?"', lambda m: f'href="{DOC_PAGE[m.group(1)]}{m.group(2) or ""}"'
+                      if m.group(1) in DOC_PAGE else m.group(0), body)     # docs link to each other as .md files
+        (DIST / f'{slug}.html').write_text(page(slug, body, scripts, rail))
+    for slug, (st, ref) in REFS.items():
+        (DIST / f'{slug}.html').write_text(page(slug, render_ref(st, ref)))
     # images referenced from the docs as ../cad/out/*.png
     for m in set(re.findall(r'assets/cad_([\w-]+)\.jpg', ''.join(p.read_text() for p in DIST.glob('*.html')))):
         if not (DIST / 'assets' / f'cad_{m}.jpg').exists():
             copy_img(ROOT / 'cad' / 'out' / f'{m}.png', f'cad_{m}')
     (DIST / 'CNAME').write_text(DOMAIN + '\n')
     (DIST / '.nojekyll').write_text('')
+    check_links()
     n = sum(1 for _ in DIST.rglob('*') if _.is_file()); size = sum(f.stat().st_size for f in DIST.rglob('*') if f.is_file())
-    print(f'built {len(PAGES)} pages, {n} files, {size / 1e6:.1f} MB -> {DIST}')
+    print(f'built {len(PAGES)} pages + {len(REFS)} reference pages, {n} files, {size / 1e6:.1f} MB -> {DIST}'
+          + (f'; {len(WARNINGS)} warnings' if WARNINGS else ''))
 
 if __name__ == '__main__':
     main()

@@ -43,7 +43,7 @@ CORE_X, CORE_Z0, CORE_Z1, CORE_RND = 23.0, -15.0, 72.0, 4.0   # [C] half length,
 SKID_X, SKID_Z, SKID_R, SKID_HW = 80.0, 6.5, 5.0, 30.0        # [C] crash bars front and back (the sim uses these)
 # --- fasteners (ISO metric; [D] nominal sizes, [C] holes)
 BOLTS = [(-17.0, -5.0), (17.0, -5.0), (-17.0, 40.0), (17.0, 40.0)]   # [C] 4 x M3 x 20 clamp bolts (x, z), along y
-BOLT_L, HEAD_D, HEAD_H, NUT_AF, NUT_H = 20.0, 5.5, 3.0, 5.5, 2.4    # [D] ISO 4762 socket head, ISO 4032 nut
+BOLT_L, HEAD_D, HEAD_H, NUT_AF, NUT_H = 20.0, 5.7, 1.65, 5.5, 2.4   # [D] ISO 7380 button head, ISO 4032 nut (socket heads fit milestone A)
 HEAD_REC_R, NUT_REC_AF, REC_DEPTH = 3.1, 5.8, 3.2                  # [C] recesses: head 6.2 dia, nut 5.8 across flats
 M3_CLEAR_R, M3_PILOT_R, M25_PILOT_R = 1.7, 1.25, 1.05              # [C] 3.4 clearance, 2.5 / 2.1 self-tap pilots in PLA
 TUN_W, TUN_H, TUN_BAR = 1.8, 3.0, 1.8                              # [C] zip-tie tunnels for 2.5 mm ties, 1.8 mm bar
@@ -87,6 +87,21 @@ JB_Y0, JB_Z0 = -25.5, 79.0
 XH = (7.5, 5.8, 18.0)              # [E] JST-XH 2-pin plug and socket mated: width, depth, length with wire strain relief
 J1 = (5.5, 14.0)                   # [E] DC 5.5 x 2.1 pigtail jack body: radius, length
 J1_POS = (PF + FL_D + 5.8, MAST_HW - 3.0, 100.0)   # [C] socket mouth (pointing down), tied to the front edge of the robot-left flange
+# --- milestone B: one wheel sensor. A TCRT5000 reads a printed 16-window ring glued to the inside face of the LEFT
+# wheel. The only part of that face the core does not hide is below the core, so the bare TCRT5000 sits in a clip
+# under the core (moved off its module on a 4-wire pigtail); the module board goes on the back of the core.
+RING_T = 0.6                       # [C] ring thickness: 3 layers at 0.2 (the published robot's 1.2 mm does not fit)
+RING_R0, RING_R1, RING_N = 17.5, 25.0, 16   # [C] as the published robot; windows are sectors, so 50 % at every radius
+RING_Y0 = WHEEL_IN - RING_T        # 12.4  ring face (towards the core)
+RING_WIN = (RING_R0 + 1.2, RING_R1 - 1.2)   # [C] windows run from r 18.7 to 23.8
+RECESS, RECESS_R0, RECESS_R1 = 0.6, 16.0, 26.3   # [C] shallow annular recess in the left cheek face under the ring
+TCRT = (10.2, 5.8, 7.0)            # [D] Vishay TCRT5000 body: length, width, height (lenses to lead end)
+TCRT_GAP = 2.5                     # [D] Vishay: peak operating distance 2.5 mm (operating range 0.2-15 mm)
+TCRT_R = 20.5                      # [C] radius read on the ring (track 17.5-25): sensor centre at (0, -TCRT_R)
+TCRT_FACE = RING_Y0 - TCRT_GAP     # 9.9   lens face
+TCRT_BACK = TCRT_FACE - TCRT[2]    # 2.9   lead end
+MOD = (14.0, 32.0, 1.6)            # [E] TCRT5000 line-follower module PCB: width, length, thickness
+MOD_Z0 = 14.0                      # [C] on the back of the core, y -7..7, z 14..46, components facing back
 STEEL = 7.85e-3                    # g/mm3
 E_PLA, S_ALONG, S_ACROSS = 2300.0, 40.0, 20.0   # [E] printed PLA: modulus, strength along / across layers (MPa)
 
@@ -145,8 +160,9 @@ def wheels():
     return (tl.translate([0, d, 0]), rl.translate([0, d, 0])), (tr.translate([0, -d, 0]), rr.translate([0, -d, 0]))
 
 def wheel_envelope():
-    """Everything a wheel sweeps in a full turn."""
-    return W.union([W.ycyl(0, 0, R, *sorted((s * WHEEL_IN, s * (WHEEL_IN + W.W_WHEEL))), 96) for s in (1, -1)])
+    """Everything a wheel (and the encoder ring on the left one) sweeps in a full turn."""
+    env = W.union([W.ycyl(0, 0, R, *sorted((s * WHEEL_IN, s * (WHEEL_IN + W.W_WHEEL))), 96) for s in (1, -1)])
+    return env + (W.ycyl(0, 0, RING_R1, RING_Y0, WHEEL_IN + 0.1, 96) - W.ycyl(0, 0, RING_R0, RING_Y0 - 1, WHEEL_IN + 1, 96))
 
 # =============================================================================================== printed parts
 def core():
@@ -165,6 +181,10 @@ def core():
     # the header joints in either orientation
     feat = W.union([W.xcyl(y, z, 3.0, CORE_X - 0.5, CORE_X + IMU_POST) for y, z in IMU_PILOTS])
     feat += W.box(CORE_X - 0.5, CORE_X + IMU_POST, -2.0, 2.0, IMU_Z0 + 9.5, IMU_Z0 + 12.5)
+    # milestone B (printed for milestone A too, harmless): the TCRT5000 clip under the core, and rails for the module
+    zc = -TCRT_R
+    feat += W.box(-TCRT[1] / 2 - CLR - 1.8, TCRT[1] / 2 + CLR + 1.8, 0.0, TCRT_FACE - 0.5, zc - TCRT[0] / 2 - CLR - 1.8, CORE_Z0 + 1.0)
+    feat += W.union([fb(-1, CORE_X, -0.5, 1.6, y0, y1, MOD_Z0 + 1, MOD_Z0 + MOD[1] - 1) for y0, y1 in ((-MOD[0] / 2, -MOD[0] / 2 + 2), (MOD[0] / 2 - 2, MOD[0] / 2))])
     body = blk + arms + feat
     # ---- cavities
     cav = W.box(-W.TT_W / 2 - CLR, W.TT_W / 2 + CLR, -POCKET_HW, POCKET_HW, GB_Z0 - CLR, GB_Z1 + CLR)
@@ -180,7 +200,15 @@ def core():
         cav += hexy(x, z, NUT_REC_AF, -CH_HW - 1, -CH_HW + REC_DEPTH)              # nuts on the right half
     cav += W.union([W.zcyl(x, y, M3_PILOT_R, CORE_Z1 - 10, CORE_Z1 + 1) for x, y in MAST_SCREWS])
     cav += W.union([W.xcyl(y, z, M25_PILOT_R, CORE_X + IMU_POST - 8, CORE_X + IMU_POST + 1) for y, z in IMU_PILOTS])
-    for s, zs in ((1, (48.0, 63.0)), (-1, (49.0, 67.5))):                         # tie tunnels along y
+    # milestone B: TCRT5000 pocket (open towards the ring), lead slot out of the back of the clip to y < 0,
+    # cheek recess under the ring (left half only), wire hole through the back crash-arm root
+    cav += W.box(-TCRT[1] / 2 - CLR, TCRT[1] / 2 + CLR, TCRT_BACK, 30, zc - TCRT[0] / 2 - CLR, zc + TCRT[0] / 2 + CLR)
+    cav += W.box(-1.8, 1.8, -1, TCRT_BACK + 0.01, zc - 4.0, zc + 4.0)
+    rec = W.ycyl(0, 0, RECESS_R1, CH_HW - RECESS, CH_HW + 1, 96) + W.box(-50, 50, CH_HW - RECESS, CH_HW + 1, -50, -13.0)
+    rec += W.union([W.box(*sorted((s * 19.5, s * 50)), CH_HW - RECESS, CH_HW + 1, -14.0, 14.0) for s in (1, -1)])
+    cav += rec - W.ycyl(0, 0, RECESS_R0, CH_HW - RECESS - 1, CH_HW + 2, 96)     # clean exits through the faces, no slivers
+    cav += W.box(-CORE_X - 4.4, -CORE_X - 1.4, -3.5, 0.5, -12, 14)
+    for s, zs in ((1, (48.0, 63.0)), (-1, (17.0, 33.0, 49.0, 67.5))):             # tie tunnels along y
         for z in zs:
             cav += fb(s, CORE_X, -TUN_BAR - TUN_W, -TUN_BAR, -CH_HW - 1, CH_HW + 1, z - TUN_H / 2, z + TUN_H / 2)
     # 0.4 mm chamfer round the pocket mouth on the cut face (the bed face): stops elephant's foot pinching the gearbox
@@ -253,11 +281,27 @@ def tray():
     t -= W.union([W.zcyl(x, y, M3_CLEAR_R, TRAY_Z0 - 1, TRAY_Z0 + FLOOR_T + 1) for x, y in HOLDER_SCREWS])
     return t
 
+def encoder_ring_flat():
+    """The ring as printed: flat in x-y, z 0..RING_T, 16 sector windows (11.25 deg window, 11.25 deg bar) between
+    a 1.2 mm inner and outer rim that hold the bars together."""
+    from manifold3d import CrossSection
+    cs = CrossSection.circle(RING_R1, 128) - CrossSection.circle(RING_R0, 128)
+    for k in range(RING_N):
+        a0 = 2 * np.pi * k / RING_N - 1.5 * np.pi / RING_N; a1 = a0 + np.pi / RING_N   # a bar at the bottom as drawn
+        pts = [(0.0, 0.0)] + [((RING_R1 + 2) * np.cos(a), (RING_R1 + 2) * np.sin(a)) for a in np.linspace(a0, a1, 6)]
+        cs -= CrossSection([pts]) ^ (CrossSection.circle(RING_WIN[1], 128) - CrossSection.circle(RING_WIN[0], 128))
+    return cs.extrude(RING_T)
+
+def encoder_ring():
+    """The ring on the left wheel's inside face (body frame)."""
+    return encoder_ring_flat().rotate([-90, 0, 0]).translate([0, RING_Y0, 0])
+
 PRINTED = {   # name: (builder, rotation into print orientation, note)
     'core_left':  (lambda: core_halves()[0], [90, 0, 0], 'flat on the cut face (y = 0 down), no supports'),
     'core_right': (lambda: core_halves()[1], [-90, 0, 0], 'flat on the cut face (y = 0 down), no supports'),
     'mast':       (mast, [0, 0, 0], 'upright on its foot, no supports'),
     'tray':       (tray, [0, 0, 0], 'floor down, no supports'),
+    'encoder_ring': (encoder_ring_flat, [0, 0, 0], 'flat, 0.6 mm, black PLA (milestone B)'),
 }
 
 def print_pose(m, rot):
@@ -310,6 +354,19 @@ def board_solids():
     # J1 charge jack on its pigtail, tied round the front edge of the front-left flange, socket pointing down
     jx, jy, jz = J1_POS
     b['j1_jack'] = (W.zcyl(jx, jy, J1[0], jz, jz + J1[1]), 3.0, '[E] DC 5.5 x 2.1 mm pigtail jack, socket down')
+    # milestone B: the TCRT5000 in its clip under the core, lenses towards the ring; the module on the back of the core
+    zc = -TCRT_R
+    tc = W.box(-TCRT[1] / 2, TCRT[1] / 2, TCRT_BACK, TCRT_FACE, zc - TCRT[0] / 2, zc + TCRT[0] / 2)
+    tc += W.union([W.box(-0.3, 0.3, TCRT_BACK - 2.5, TCRT_BACK, z - 0.3, z + 0.3) for z in (zc - 3.8, zc - 1.3, zc + 1.3, zc + 3.8)])
+    b['tcrt5000'] = (tc, 0.5, '[D] TCRT5000 10.2 x 5.8 x 7 mm, in the clip under the core, 2.5 mm from the ring (milestone B)')
+    f = CORE_X; z0 = MOD_Z0
+    mod = fb(-1, f, 1.6, 1.6 + MOD[2], -MOD[0] / 2, MOD[0] / 2, z0, z0 + MOD[1])
+    mod += fb(-1, f, 3.2, 8.0, -3.5, 3.5, z0 + 16, z0 + 22)                       # trimmer
+    mod += fb(-1, f, 3.2, 5.0, -4.5, 1.5, z0 + 8, z0 + 13)                         # LM393
+    mod += fb(-1, f, 3.2, 4.5, 3.5, 5.5, z0 + 24, z0 + 28)                         # LEDs
+    mod += fb(-1, f, 3.2, 5.7, -3.8, 3.8, z0 + MOD[1] - 2.5, z0 + MOD[1])          # 3-pin header, pins up
+    mod += W.union([fb(-1, f, 4.2, 4.8, y - 0.3, y + 0.3, z0 + MOD[1], z0 + MOD[1] + 6) for y in (-2.54, 0, 2.54)])
+    b['tcrt_module'] = (mod, 2.5, '[E] TCRT5000 module 32 x 14 mm (its sensor moved to the clip), back of the core (milestone B)')
     # C3 across the motor tabs, in the tab pocket above the can
     b['c3'] = (W.box(-3.5, 3.5, -1.3, 1.3, CAN_Z1 + 0.5, CAN_Z1 + 4.5), 0.2, '[E] 100 nF disc across the motor tabs')
     return b
@@ -323,7 +380,7 @@ def fasteners():
     out = []
     seat = CH_HW - REC_DEPTH
     for x, z in BOLTS:
-        out.append(('m3x20_bolt', W.ycyl(x, z, 1.5, seat - BOLT_L, seat) + W.ycyl(x, z, HEAD_D / 2, seat, seat + HEAD_H), 1.6))
+        out.append(('m3x20_bolt', W.ycyl(x, z, 1.5, seat - BOLT_L, seat) + W.ycyl(x, z, HEAD_D / 2, seat, seat + HEAD_H), 1.4))
         out.append(('m3_nut', hexy(x, z, NUT_AF, -seat - NUT_H, -seat) - W.ycyl(x, z, 1.5, -20, 20), 0.25))
     for x, z in W.TT_HOLES:
         out.append(('pin_3x22', W.ycyl(x, z, 1.45, -PIN_L / 2, PIN_L / 2), np.pi * 1.5 ** 2 * PIN_L * STEEL))
@@ -356,6 +413,12 @@ def wire_paths():
          'BMS output and fuse to the switch'),
         ('rail', [(PF + 3.2 + XH[2] + 1.4, JB_Y0 + 16.75, JB_Z0 + 6.4), (PF + 3.2 + XH[2] + 1.4, SW_Y0 + 3, SW_Z0 + 4.0), (PF + 8.0, SW_Y0 + 3, SW_Z0 + 4.0)], 1.2,
          'K2 lead from the switch to JB'),
+        ('tcrt_pigtail', [(0, -1.2, -TCRT_R - 1.3), (-17, -1.5, -17.2), (-CORE_X - 1.5, -1.5, -16.0), (-CORE_X - 2.9, -1.5, -9),
+                          (-CORE_X - 2.9, -1.5, 12.5), (-CORE_X - 4.5, 0, MOD_Z0 + 2)], 1.0,
+         'milestone B: 4 wires from the TCRT5000 leads (behind the clip) under the core, up through the back crash-arm root to the module'),
+        ('tcrt_cable', [(-CORE_X - 4.5, 0, MOD_Z0 + MOD[1] + 6.5), (-CORE_X - 4.5, -8, MOD_Z0 + MOD[1] + 9), (-CORE_X - 4.5, -8, 72),
+                        (-21, -8, 79), (-21, -8, 96), (-19, -12.7, ESP_Z0 - 1.5)], 1.2,
+         'milestone B: VCC, GND, D0 from the module header up the back of the core (tied with K1) and behind the MX1508 to the ESP32 lower row'),
         ('rail_back', [(PF + 6.0, JB_Y0 + 4, JB_Z0 - 1.5), (PF + 6.0, -15, 69.5), (-PF - 6.0, -15, 69.5), (-PF - 6.0, -15, MX_Z0 - 1.5)], 1.2,
          'battery rail and ground from JB under the plate edge to the MX1508 + / - pads'),
     ]
@@ -389,15 +452,20 @@ def items():
         it.append(It(n, s_, cols.get(n, C['pcb_blue']), 'body', m, source=src, kind='board'))
     for k, (n, s, m) in enumerate(fasteners()):
         it.append(It(f'{n}_{k}', s, C['steel'], 'body', m, source='[E] steel', kind='fastener'))
-    paths = wire_paths(); L_tot = sum(plen(p) for _, p, _, _ in paths)
+    paths = wire_paths(); L_a = sum(plen(p) for n, p, _, _ in paths if not n.startswith('tcrt'))
+    L_b = sum(plen(p) for n, p, _, _ in paths if n.startswith('tcrt'))
     for n, p, r, note in paths:
-        it.append(It('wire_' + n, tube(p, r), (0.75, 0.15, 0.12) if 'batt' in n or 'power' in n else (0.15, 0.35, 0.75), 'body',
-                     14.0 * plen(p) / L_tot, source='[E] share of 14 g of wire, jumpers and connectors', kind='wire'))
+        b_ = n.startswith('tcrt')
+        it.append(It('wire_' + n, tube(p, r), (0.55, 0.25, 0.65) if b_ else (0.75, 0.15, 0.12) if 'batt' in n or 'power' in n else (0.15, 0.35, 0.75), 'body',
+                     (2.0 * plen(p) / L_b) if b_ else 14.0 * plen(p) / L_a,
+                     source='[E] milestone B: share of 2 g of wire and Dupont ends' if b_ else '[E] share of 14 g of wire, jumpers and connectors', kind='wire'))
+    it.append(It('encoder_ring', encoder_ring(), (0.10, 0.10, 0.11), 'wheels', encoder_ring_flat().volume() * 1e-3 * W.PLA,
+                 source='[C] printed 0.6 mm black PLA, solid, glued to the left wheel (milestone B)', kind='printed', material='PLA'))
     # hook-and-loop strap round holder and tray, through the groove in the mast top
     st = W.box(-TX - 1.25, TX + 1.25, -STRAP_W / 2, STRAP_W / 2, MAST_TOP - 1.8, zb + hz + 1.2) - \
         W.box(-TX - 0.05, TX + 0.05, -STRAP_W / 2 - 1, STRAP_W / 2 + 1, MAST_TOP - 0.6, zb + hz + 0.05)
     it.append(It('strap', st, (0.25, 0.25, 0.28), 'body', 3.0, source='[E] 10 mm hook-and-loop strap', kind='bought'))
-    it.append(It('zip_ties', None, None, 'body', 3.0, (0, 0, 70), '[E] 10 x 2.5 mm zip ties', kind='mass'))
+    it.append(It('zip_ties', None, None, 'body', 3.6, (-6, 0, 65), '[E] 12 x 2.5 mm zip ties (2 more for milestone B)', kind='mass'))
     it.append(It('fuse', None, None, 'body', 1.0, (PF + 8, 14, BMS_Z0 - 3), '[E] PTC fuse, in the lead from the BMS to the switch', kind='mass'))
     return it
 
@@ -575,7 +643,7 @@ def analyse():
         f'forward {rf:.1f} deg, back {rb:.1f} deg, both on a bar (target near 25 deg)')
     # ---- clashes
     solids = [i for i in its if i.solid is not None]
-    allowed = [{'tyre_l', 'rim_l'}, {'tyre_r', 'rim_r'}, {'holder', 'cells'}]
+    allowed = [{'tyre_l', 'rim_l'}, {'tyre_r', 'rim_r'}, {'holder', 'cells'}, {'encoder_ring', 'rim_l'}, {'encoder_ring', 'tyre_l'}]
     cl = []
     for a in range(len(solids)):
         for b in range(a + 1, len(solids)):
@@ -587,7 +655,8 @@ def analyse():
                 continue      # the screws pass through the board's holes (not modelled)
             if any(n.startswith('m3x16') for n in pair) and 'holder' in pair:
                 continue
-            if pair == {'wire_motor_leads', 'k1_plug'} or pair == {'wire_motor_leads_2', 'k1_plug'} or pair == {'wire_motor_leads', 'c3'}:
+            if pair in ({'wire_motor_leads', 'k1_plug'}, {'wire_motor_leads_2', 'k1_plug'}, {'wire_motor_leads', 'c3'},
+                        {'wire_tcrt_pigtail', 'tcrt5000'}, {'wire_tcrt_pigtail', 'tcrt_module'}, {'wire_tcrt_cable', 'tcrt_module'}):
                 continue      # the leads end in the plug / pass C3's legs
             v = (A.solid ^ B.solid).volume()
             if v > 0.5:
@@ -617,6 +686,40 @@ def analyse():
         L += [f'- **{k}**: free space, nearest part {g:.1f} mm away.']
         chk(f'Access: {k.split(" (")[0]}', g > 0.2, f'{g:.1f} mm')
     L += ['- **Cells**: the strap must come off first; the holder stays screwed down.', '']
+    # ---- milestone B: the wheel sensor
+    byname = {i.name: i for i in its}
+    ring_i, tc_i, mod_i = byname['encoder_ring'], byname['tcrt5000'], byname['tcrt_module']
+    tcv = W.mesh_np(tc_i.solid)[0]
+    face = tcv[:, 1].max()
+    gap = RING_Y0 - face
+    arc = 2 * np.pi * TCRT_R / (2 * RING_N)
+    cheek_gap = ring_i.solid.min_gap(W.union([byname['core_left'].solid, byname['core_right'].solid]), 5.0)
+    trim = fb(-1, CORE_X, 8.2, 45, -3.0, 3.0, MOD_Z0 + 17, MOD_Z0 + 21)
+    others = W.union([i.solid for i in solids if i.group == 'body' and i.name != 'tcrt_module'])
+    g_trim = trim.min_gap(others, 10.0)
+    clip_low = W.mesh_np(byname['core_left'].solid)[0][:, 2].min()
+    bset = [i for i in its if i.name in ('tcrt5000', 'tcrt_module', 'encoder_ring') or i.name.startswith('wire_tcrt')]
+    mB = sum(mass(i) for i in bset) + 0.6
+    L += ['## 4b. Milestone B: the wheel sensor', '',
+          f'- **TCRT5000** [D 10.2 x 5.8 x 7 mm] in a clip under the core, lenses facing the left wheel, centred at '
+          f'(x 0, z {-TCRT_R:.1f}) mm, lens face at y {face:.1f}. Its long axis (emitter beside detector) is radial, so a window '
+          f'edge crosses both at once.',
+          f'- **Gap, lens to ring: {gap:.2f} mm**, the TCRT5000\'s peak operating distance [D Vishay: 2.5 mm, range 0.2-15 mm].',
+          f'- **Ring**: {RING_N} windows of {360 / (2 * RING_N):.2f} deg (sectors, so 50 % mark/space at every radius), windows r '
+          f'{RING_WIN[0]:.1f}-{RING_WIN[1]:.1f} mm, read at r {TCRT_R} mm where a window is {arc:.1f} mm long. 32 edges per turn = '
+          f'{2 * np.pi * R / 32:.1f} mm of travel per edge. {RING_T} mm thick, glued to the inside face of the left wheel.',
+          f'- **Ring to the core**: {cheek_gap:.2f} mm (the left cheek face is recessed {RECESS} mm under the ring; the cheek over '
+          f'the gearbox is {CHEEK - RECESS:.1f} mm there). Ring to the bolt heads (ISO 7380 button heads): '
+          f'{RING_Y0 - (CH_HW - REC_DEPTH + HEAD_H):.2f} mm; with socket heads {RING_Y0 - (CH_HW - REC_DEPTH + 3.0):.2f} mm.',
+          f'- **Ground clearance** under the clip, upright: {clip_low + R:.1f} mm (the axle is {R} mm up). It never touches in a fall '
+          '(section 3: the crash bars land first).',
+          f'- **Module trimmer**: screwdriver path from behind is clear, nearest part {g_trim:.1f} mm away. The module LEDs face back.',
+          f'- **Mass of milestone B**: {mB:.1f} g (sensor, module, ring, wires, two ties). Milestone A is that much lighter; everything '
+          'printed is the same for both.', '']
+    chk('Sensor gap = TCRT5000 peak distance', abs(gap - TCRT_GAP) < 0.05, f'{gap:.2f} mm (peak 2.5 mm [D])')
+    chk('Ring clear of the core', cheek_gap >= 1.0, f'{cheek_gap:.2f} mm')
+    chk('Sensor reads inside the window band', RING_WIN[0] + 1.5 <= TCRT_R <= RING_WIN[1] - 1.5, f'r {TCRT_R} in {RING_WIN[0]:.1f}-{RING_WIN[1]:.1f}')
+    chk('Trimmer reachable', g_trim > 0.5, f'{g_trim:.1f} mm')
     # ---- printed parts
     L += ['## 5. Printed parts (Ender 3: 220 x 220 x 250 bed, 0.4 mm nozzle)', '',
           '| Part | Size in print pose x, y, z (mm) | Mass (g) | Orientation, supports | Valid manifold | Pieces | z min | Fits bed |', '|---|---|---|---|---|---|---|---|']
@@ -626,7 +729,7 @@ def analyse():
         v = W.mesh_np(p)[0]; s = v.max(0) - v.min(0)
         ok = str(p.status()).endswith('NoError'); pieces = len(p.decompose())
         fits = s[0] <= W.BED[0] - 10 and s[1] <= W.BED[1] - 10 and s[2] <= W.BED[2]
-        L += [f'| {n} | {s[0]:.0f} x {s[1]:.0f} x {s[2]:.1f} | {m.volume() / 1000 * W.PLA * W.FILL:.1f} | {note} | {"yes" if ok else "NO"} | {pieces} | {v[:, 2].min():.2f} | {"yes" if fits else "NO"} |']
+        L += [f'| {n} | {s[0]:.0f} x {s[1]:.0f} x {s[2]:.1f} | {m.volume() / 1000 * W.PLA * (1.0 if n == "encoder_ring" else W.FILL):.1f} | {note} | {"yes" if ok else "NO"} | {pieces} | {v[:, 2].min():.2f} | {"yes" if fits else "NO"} |']
         chk(f'{n}: one valid manifold on the bed', ok and pieces == 1 and abs(v[:, 2].min()) < 1e-6, f'{pieces} piece(s), z min {v[:, 2].min():.3f}')
         chk(f'{n}: fits the bed', fits, f'{s[0]:.0f} x {s[1]:.0f} x {s[2]:.0f} mm')
         W.to_stl(p, os.path.join(OUT, 'print', n + '.stl'))
@@ -636,6 +739,9 @@ def analyse():
           'skipped). Thin readings are listed with where they are.', '', '| Part | Thinnest (mm) | 1st percentile (mm) | Points under 1.6 mm |', '|---|---|---|---|']
     thin_notes = []
     for n, (m, p) in prints.items():
+        if n == 'encoder_ring':
+            L += [f'| {n} | {RING_T} (by design) | | thin by design: a flat ring glued to the wheel |']
+            continue
         th, pts = wall_scan(p)
         thin = pts[th < 1.6]
         L += [f'| {n} | {th.min():.2f} | {np.percentile(th, 1):.2f} | {len(thin)} of {len(th)} |']
@@ -677,7 +783,8 @@ def analyse():
     fw = []
     for x, z in BOLTS:
         fw.append((f'clamp bolt ({x:+.0f}, {z:+.0f})', L_, 'M3 clearance 3.4', hole_walls(L_, (x, 0, z), (0, 1, 0), M3_CLEAR_R, 0.0, CH_HW - REC_DEPTH)))
-        fw.append((f'  head recess ({x:+.0f}, {z:+.0f})', L_, '6.2 x 3.2 deep', hole_walls(L_, (x, 0, z), (0, 1, 0), HEAD_REC_R, CH_HW - REC_DEPTH, CH_HW)))
+        top = CH_HW - (RECESS if RECESS_R0 < np.hypot(x, z) < RECESS_R1 else 0)
+        fw.append((f'  head recess ({x:+.0f}, {z:+.0f})', L_, f'6.2 x {top - CH_HW + REC_DEPTH:.1f} deep', hole_walls(L_, (x, 0, z), (0, 1, 0), HEAD_REC_R, CH_HW - REC_DEPTH, top)))
         fw.append((f'  nut recess ({x:+.0f}, {z:+.0f})', R_, 'hex 5.8 AF x 3.2 deep', hole_walls(R_, (x, 0, z), (0, 1, 0), NUT_REC_AF / np.sqrt(3), -CH_HW, -CH_HW + REC_DEPTH)))
     for x, z in W.TT_HOLES:
         fw.append((f'pin ({x:+.0f}, {z:+.0f}) in the cheek', L_, '3.0 press fit', hole_walls(L_, (x, 0, z), (0, 1, 0), PIN_R, POCKET_HW, CH_HW)))
@@ -726,15 +833,27 @@ def analyse():
                    skid=[SKID_X * 1e-3, SKID_Z * 1e-3, SKID_R * 1e-3, SKID_HW * 1e-3],
                    battery=[0, 0, (TRAY_Z0 + FLOOR_T + hz / 2) * 1e-3, hx / 2e3, hy / 2e3, hz / 2e3], rest_deg=float(rest)),
               open(os.path.join(OUT, 'model.json'), 'w'), indent=1)
+    ring_svg(os.path.join(OUT, 'encoder_ring_template.svg'))
     W.to_stl(allbody, os.path.join(OUT, 'body.stl'))
     W.to_stl(W.union([i.solid for i in solids if i.group == 'wheels']), os.path.join(OUT, 'wheels.stl'))
     print('\n'.join(L))
     return its
 
+def ring_svg(path):
+    """1:1 paper version of the encoder ring (print at 100 %, no scaling): black bars, white windows."""
+    cs = encoder_ring_flat().slice(RING_T / 2)
+    d = ' '.join('M ' + ' L '.join(f'{x + 30:.3f},{30 - y:.3f}' for x, y in P) + ' Z' for P in cs.to_polygons())
+    open(path, 'w').write(f'<svg xmlns="http://www.w3.org/2000/svg" width="60mm" height="66mm" viewBox="0 0 60 66">'
+                          f'<path d="{d}" fill="black" fill-rule="evenodd"/>'
+                          f'<text x="30" y="63" font-size="2.6" text-anchor="middle" font-family="sans-serif">Stage 1 encoder ring, '
+                          f'{RING_R1 * 2:.0f} mm across: print at 100 %</text></svg>')
+
 def explain_thin(n, q):
     """Classify a thin reading by where it is (body frame). Anything not recognised is reported as REAL."""
     x, y, z = q
     if n.startswith('core'):
+        if z < CORE_Z0 - 0.5 and abs(x) < 6:
+            return 'TCRT5000 clip wall (1.8 mm) or its edge'
         if abs(abs(x) - SKID_X) < 6 or abs(x) > CORE_X + 1:
             return 'crash bar / arm edge (rounded edge, ray leaves through the adjacent face)'
         if abs(y) < 0.7:
@@ -887,7 +1006,7 @@ def renders(its):
     RP.label(img, 'Stage 1, front: IMU on the core; BMS, switch and junction board on the mast').save(os.path.join(OUT, 'render_hero.png'))
     back = (-360, 330, 230)
     img = RP.render(posed(), {'h': (back, RP.look(back, (0, 0, 95)), 30)})['h']
-    RP.label(img, 'Back: ESP32, MX1508 and buck on the mast; motor plug K1 on the core').save(os.path.join(OUT, 'render_back.png'))
+    RP.label(img, 'Back: ESP32, MX1508 and buck on the mast; K1 and the wheel-sensor module on the core').save(os.path.join(OUT, 'render_back.png'))
     rest = json.load(open(os.path.join(OUT, 'model.json')))['rest_deg']
     tiles = []
     for nm, p in (('Side, balancing', 0), (f'Fallen forward onto the crash bar ({rest:.0f} deg)', rest)):
@@ -928,14 +1047,14 @@ def renders(its):
     bed = W.box(-110, 110, -110, 110, 0.5, 2.0)
     for n, (fn, rot, note) in PRINTED.items():
         p = print_pose(fn(), rot)
-        col = C['body'] if n.startswith('core') else C['body2']
+        col = C['body'] if n.startswith('core') else (0.15, 0.15, 0.16) if n == 'encoder_ring' else C['body2']
         pr = [(RP.It('bed', None, (0.80, 0.82, 0.85)), bed), (RP.It(n, None, col), p.translate([0, 0, 2.0]))]
-        cam = (150, -200, 170) if n.startswith('core') else (110, -150, 130)
-        img = RP.render(pr, {'h': (cam, RP.look(cam, (0, 0, 12)), 40)}, size=(900, 700))['h']
+        cam = (150, -200, 170) if n.startswith('core') else (45, -60, 75) if n == 'encoder_ring' else (110, -150, 130)
+        img = RP.render(pr, {'h': (cam, RP.look(cam, (0, 0, 12 if n != 'encoder_ring' else 2)), 40)}, size=(900, 700))['h']
         tiles.append(RP.label(img, f'{n}: {note}', sz=22))
-    sheet = Image.new('RGB', (1800, 1400), 'white')
+    sheet = Image.new('RGB', (2700, 1400), 'white')
     for n, im in enumerate(tiles):
-        sheet.paste(im, ((n % 2) * 900, (n // 2) * 700))
+        sheet.paste(im, ((n % 3) * 900, (n // 3) * 700))
     sheet.save(os.path.join(OUT, 'render_print.png'))
     # close-ups of the mounts: core front and back without the wheels and mast
     sel = lambda i: i.group == 'body' and i.name not in ('tray', 'holder', 'cells', 'strap', 'switch') and not i.name.startswith('m3x16')
@@ -950,6 +1069,54 @@ def renders(its):
     for n, im in enumerate(tiles):
         sheet.paste(im, ((n % 2) * 900, (n // 2) * 700))
     sheet.save(os.path.join(OUT, 'render_mounts.png'))
+    # milestone B: the sensor and ring. Left: from below and in front, left wheel pulled out 45 mm along the axle so its
+    # ring shows. Right: section through x = 0 seen from the front (cheek, gap, ring, wheel, lens).
+    out_l = lambda i: i.name in ('tyre_l', 'rim_l', 'encoder_ring')
+    pr = [(RP.It(i.name, None, i.colour), W.apply(i.solid.translate([0, 45 if out_l(i) else 0, 0]), W.T(0, 0, R)))
+          for i in its if i.solid is not None and i.name not in ('tray', 'holder', 'cells', 'strap')]
+    cam = (110, -20, 7)
+    img = RP.render(pr, {'h': (cam, RP.look(cam, (0, 22, R - 16)), 42)}, size=(900, 800))['h']
+    t1 = RP.label(Image.fromarray(img), '', sz=20)
+    t1.save(os.path.join(OUT, 'step_e.png'))
+    from PIL import ImageDraw
+    d = ImageDraw.Draw(t1); d.rectangle([12, 10, 880, 46], fill=(255, 255, 255))
+    t1 = RP.label(t1, 'TCRT5000 in its clip under the core; ring on the left wheel (pulled out 45 mm)', sz=20)
+    cut = W.box(-200, 0.0, -200, 200, -200, 400)
+    pr = [(RP.It(i.name, None, i.colour), W.apply(i.solid ^ cut, W.T(0, 0, R))) for i in its
+          if i.solid is not None and i.name not in ('tray', 'holder', 'cells', 'strap') and not (i.solid ^ cut).is_empty()]
+    cam = (600, 8, -17 + R)
+    img = RP.render(pr, {'s': (cam, RP.look(cam, (0, 8, -17 + R)), 34.0)}, size=(900, 800), ortho=True)['s']
+    t2 = RP.label(img, f'Section at x = 0 from the front: lens {TCRT_GAP} mm from the ring, ring 1.2 mm from the cheek', sz=20)
+    sheet = Image.new('RGB', (1800, 800), 'white'); sheet.paste(t1, (0, 0)); sheet.paste(t2, (900, 0))
+    sheet.save(os.path.join(OUT, 'render_sensor.png'))
+    # build steps for the website
+    hero = (300, -380, 230)
+    def boxed(img, text, sz):
+        from PIL import ImageDraw
+        im = Image.fromarray(img) if not isinstance(img, Image.Image) else img
+        d = ImageDraw.Draw(im); w = d.textlength(text, font=RP.font(sz))
+        d.rectangle([12, 10, 36 + w, 26 + sz], fill=(255, 255, 255))
+        return RP.label(im, text, sz=sz)
+    def step(fname, names, caption, target=(0, 0, 80), extra=None, fov=30, cam=None):
+        sel_ = [i for i in its if i.solid is not None and names(i)]
+        pr = [(RP.It(i.name, None, i.colour), W.apply(i.solid, W.T(0, 0, R))) for i in sel_]
+        if extra:
+            pr += extra
+        c = cam or hero
+        img = RP.render(pr, {'h': (c, RP.look(c, target), fov)}, size=(1200, 900))['h']
+        boxed(img, caption, 26).save(os.path.join(OUT, fname))
+    A = lambda i: i.name in ('core_right', 'tt_gearbox', 'tt_can', 'tt_shaft', 'c3') or i.name.startswith(('m3_nut', 'pin_3x22')) \
+        or i.name == 'wire_motor_leads'
+    step('step_a.png', A, 'Motor, C3, pins and nuts in the right core half', target=(0, 0, 25 + R), fov=28, cam=(230, 300, 190))
+    Bc = lambda i: A(i) or i.name in ('core_left', 'tyre_l', 'rim_l', 'tyre_r', 'rim_r', 'imu', 'k1_plug') \
+        or i.name.startswith(('m3x20_bolt', 'm25x8'))
+    step('step_b.png', Bc, 'Core closed, IMU on, wheels on', target=(0, 0, 30), fov=28)
+    Cc = lambda i: Bc(i) or i.name in ('mast', 'esp32', 'mx1508', 'mini360', 'bms_2s', 'switch', 'jb', 'j1_jack') \
+        or i.name.startswith('m3x12')
+    step('step_c.png', Cc, 'Boards on the mast, mast on the core (wires not shown)', target=(0, 0, 75))
+    step('step_d.png', lambda i: i.name not in ('tcrt5000', 'tcrt_module', 'encoder_ring') and not i.name.startswith('wire_tcrt'),
+         'Wired, tray, battery and strap on: milestone A', target=(0, 0, 90))
+    boxed(Image.open(os.path.join(OUT, 'step_e.png')), 'Milestone B: wheel sensor under the core, ring on the left wheel', 20).save(os.path.join(OUT, 'step_e.png'))
 
 if __name__ == '__main__':
     its = analyse()

@@ -13,11 +13,13 @@ Wiring, pins and the power chain are in [`electronics.md`](electronics.md). The 
 
 | Path | What it is |
 |---|---|
-| `stage1.py` | Every dimension (tagged), the four printed parts, the bought parts, fasteners and main wire runs, the design check, the renders |
+| `stage1.py` | Every dimension (tagged), the five printed parts, the bought parts, fasteners and main wire runs, the design check, the renders |
 | `out/design.md` | Mass table, balance, falls, clash and access checks, bed fit, manifold check, wall thickness, overhangs, fastener walls, screw lengths, fall loads, PASS/FAIL summary |
-| `out/print/*.stl` | The four printed parts, each in its print orientation, lying on the bed at z = 0 |
+| `out/print/*.stl` | The five printed parts (four plus the milestone B encoder ring), each in its print orientation, lying on the bed at z = 0 |
+| `out/encoder_ring_template.svg` | The encoder ring 1:1 for paper, if you would rather print it on paper (milestone B) |
 | `out/model.json`, `out/body.stl`, `out/wheels.stl` | What `sim.py` builds its model from |
-| `out/render_*.png` | Front, back, orthographic views, exploded view, mounts close-up, each part on the bed |
+| `out/render_*.png` | Front, back, orthographic views, exploded view, mounts close-up, each part on the bed, the wheel sensor (`render_sensor.png`) |
+| `out/step_a.png` ... `step_e.png` | The build in five stages, for the build guide |
 
 ```bash
 cd stage1 && python stage1.py          # --no-render skips the pictures
@@ -34,14 +36,18 @@ the BMS, switch and junction board on its front and the ESP32, motor driver and 
 **tray** on top of the mast holds the battery holder, screwed through to the mast, with a strap over the cells. The
 IMU is on the front of the core, 24 mm above the axle.
 
+The build has two milestones. **Milestone A** balances on the IMU alone. **Milestone B** adds one wheel sensor so it
+can hold its position: a TCRT5000 under the core reads a printed ring on the left wheel. Every printed part is the
+same for both; milestone B adds the ring, the sensor and its module, and is fitted without opening the core.
+
 | | Value | Source |
 |---|---|---|
-| Mass | **347 g** (body 302 g, wheels and shaft 45 g) | [E], `out/design.md` section 1 |
-| Centre of mass | 86.2 mm above the axle, +0.5 mm fore-aft | [E] |
+| Mass | **352 g** with the wheel sensor (body 306 g, wheels, shaft and ring 45.5 g); milestone A about 346 g | [E], `out/design.md` section 1 |
+| Centre of mass | 85.3 mm above the axle, +0.1 mm fore-aft | [E] |
 | Size | 170 mm front to back, 86 mm wide, 189 mm tall | [C] |
 | Track | 52.0 mm between wheel centres | [C] |
 | Where a fall stops | 24.7 deg either way, on a crash bar | CAD (mesh check) |
-| Printed | 98 g of PLA in four parts, no supports | [E] |
+| Printed | 98 g of PLA in four parts, no supports, plus a 0.5 g ring for milestone B | [E] |
 
 ## What changed from the first pass, and why
 
@@ -61,12 +67,14 @@ IMU is on the front of the core, 24 mm above the axle.
 
 | Part | Size in print pose (mm) | Mass (g) | Orientation | Supports |
 |---|---|---|---|---|
-| `core_left` | 170 x 87 x 30 | 35 | Flat on the cut face (the y = 0 split), outer cheek up | None |
+| `core_left` | 170 x 100 x 30 | 35 | Flat on the cut face (the y = 0 split), outer cheek up | None |
 | `core_right` | 170 x 87 x 30 | 35 | Same, mirror | None |
 | `mast` | 46 x 62 x 60 | 17 | Upright on its foot | None |
 | `tray` | 46 x 82 x 14 | 11 | Floor down | None |
+| `encoder_ring` (milestone B) | 50 x 50 x 0.6 | 0.5 | Flat | None |
 
-All four fit an Ender 3 bed (220 x 220); the core halves can go on one plate.
+All five fit an Ender 3 bed (220 x 220); the core halves can go on one plate. `core_left` is 100 mm across in its
+print pose (was 87) because of the sensor clip under the core; it prints for milestone A too and does no harm there.
 
 ![Each part in its print orientation](../out/render_print.png)
 
@@ -92,8 +100,12 @@ All four fit an Ender 3 bed (220 x 220); the core halves can go on one plate.
   for M2.5, 3.0 mm for the steel pins, 8 mm for the shaft. The pin holes and bolt holes print vertically (round).
   Run a 3.0 mm drill through the pin holes so the pins press in snugly, and a 3.4 mm drill through anything an M3
   must pass freely.
-- **Walls.** The thinnest real walls are 1.9 mm (IMU pilots), 2.1 mm (nut recesses, mast-screw pilots) and 2.3 mm
-  (the cheeks). The ray-cast check finds nothing under 1.6 mm except the 1.5 mm edges of rails and tie anchors.
+- **Walls.** The thinnest real walls are 1.7 mm (the left cheek over the gearbox, where it is recessed 0.6 mm under
+  the encoder ring), 1.8 mm (the sensor clip), 1.9 mm (IMU pilots), 2.1 mm (nut recesses, mast-screw pilots) and
+  2.3 mm (the rest of the cheeks). The ray-cast check finds nothing under 1.6 mm except the 1.5 mm edges of rails and
+  tie anchors.
+- **Encoder ring.** 0.6 mm thick, 3 layers at 0.2 mm, 100 % infill, matte black PLA, on a smooth clean bed. Peel it
+  off gently; it is floppy until it is glued. See milestone B for the contrast it needs.
 - **Strength direction.** The core's crash arms are loaded along the layers (strong). The mast and the ends of the
   crash bars are loaded across the layers (weaker); section 6 of `out/design.md` checks them with that in mind.
 
@@ -152,14 +164,14 @@ its robot-right edge; `electronics.md` takes the battery-sense wire and the IMU 
 
 | Qty | Part | Where | Length check |
 |---|---|---|---|
-| 4 | M3 x 20 socket head cap screw (ISO 4762) | Core clamp, heads in the left half | Head top 0.2 mm below the cheek face |
+| 4 | M3 x 20 button head screw (ISO 7380) | Core clamp, heads in the left half | Head top 1.5 mm below the cheek face. Socket heads (ISO 4762) fit too, but in milestone B the ring then passes the two lower heads with only 0.8 mm (2.15 mm with button heads) |
 | 4 | M3 hex nut (ISO 4032) | Hex recesses in the right half | Bolt passes the whole nut, tip 0.4 mm below the cheek face |
 | 2 | 3 mm steel pin, 22 mm (a 3 x 22 dowel, or 3 mm rod cut and filed) | Through the gearbox's two holes into both cheeks | Ends 0.8 mm below the cheek faces, 1.5 mm in each cheek |
 | 4 | M3 x 12 pan-head self-tapping (thread-forming for plastic) | Mast foot to core top | 8 mm into a 10 mm pilot |
 | 2 | M3 x 16 pan-head self-tapping | Holder floor, tray floor, into the mast bosses | 11.8 mm into a 12 mm pilot |
 | 2 | M2.5 x 8 pan-head self-tapping | GY-521 to the core | 6.4 mm into an 8 mm pilot |
 | 2 | Wheel screws (supplied with the wheels) | Wheel hub into the end of each shaft stub | |
-| about 12 | 2.5 mm zip ties, 100 mm | Boards, K1, J1, wire runs | |
+| about 12 | 2.5 mm zip ties, 100 mm | Boards, K1, J1, wire runs (2 of them for milestone B) | |
 | 1 | Hook-and-loop strap, 10 mm wide, about 200 mm | Over the cells | |
 
 Each fastener hole has at least 1.9 mm of plastic round it (`out/design.md` section 5).
@@ -173,6 +185,9 @@ Each fastener hole has at least 1.9 mm of plastic round it (`out/design.md` sect
 2. **Wheels.** Outer diameter, width, and how deep the hub goes on the shaft (5.5 mm used); spin one on a stub and
    check the inner face wobbles less than 1 mm (the gap to the cheek is 1.2 mm).
 3. **Boards** in the table above, and the **battery holder**.
+4. **For milestone B:** the left wheel's inside face between radius 17.5 and 25 mm (it must be flat enough to glue a
+   ring to), its colour (a yellow rim reflects infrared well, which is what the windows need), and your TCRT5000
+   module (32 x 14 mm assumed, sensor 10.2 x 5.8 x 7 mm [D]).
 
 Then print `core_left` first and check the gearbox fit, the pin holes and the wheel gap before printing the rest.
 
@@ -183,7 +198,7 @@ Then print `core_left` first and check the gearbox fit, the pin holes and the wh
 2. **Motor.** Solder about 60 mm of lead and C3 across the two tabs, and crimp or solder the K1 socket on the leads.
 3. **Core.** Lay `core_right` on the bench, cut face up. Press the four nuts into their hex recesses from the outside.
    Push the pins through the gearbox holes, drop the motor in (shaft in the half-hole, can up, leads out of the
-   back slot), add `core_left`, and fit the four M3 x 20 bolts from the left. Tighten evenly until the halves meet;
+   back slot), add `core_left`, and fit the four M3 x 20 button-head bolts from the left. Tighten evenly until the halves meet;
    do not crush the gearbox.
 4. **IMU.** Check the X arrow (above), then fix the GY-521 with two M2.5 x 8 self-tappers on the matching pilots.
 5. **Wheels.** Push a wheel onto each stub until the hub sits 5.5 mm on (1.2 mm from the cheek), then fit the
@@ -198,12 +213,72 @@ Then print `core_left` first and check the gearbox fit, the pin holes and the wh
 9. **Cells and strap.** Thread the strap under the tray through the groove, cells in, strap over. Switch on only
    after the checks in `electronics.md`.
 
+## Milestone B: the wheel sensor
+
+![The sensor and the ring](../out/render_sensor.png)
+
+**Why it sits under the core.** The ring goes on the inside face of the left wheel, which faces the core across a
+1.2 mm gap. The core hides that face everywhere except below its bottom edge (z -15), so that is the only place a
+sensor can see the ring. The published robot's TCRT5000 module (32 x 14 mm) does not fit there: lying under the core it
+would be 3 mm too tall and its far end would hit the floor in a fall. So the bare TCRT5000 sensor sits in a clip under
+the core, and the module board, with its trimmer and LEDs, goes on the back of the core, joined by four short wires.
+**That is an electrical change from the published robot: the TCRT5000 comes off its module and goes on a 4-wire
+pigtail** (see `electronics.md`). The module's three output wires (VCC, GND, D0) are unchanged.
+
+| | Value | Source |
+|---|---|---|
+| Sensor | TCRT5000 in a clip printed under `core_left`, centred at (x 0, y 6.4, z -20.5) mm, lens face at y 9.9 facing the left wheel. Its long axis (emitter beside detector) is radial, so a window edge crosses both at once | [D] body 10.2 x 5.8 x 7 mm |
+| Gap, lens to ring | **2.5 mm**, the TCRT5000's peak operating distance (operating range 0.2-15 mm) | [D] Vishay datasheet |
+| Ring | 0.6 mm printed ring, r 17.5-25 mm, 16 sector windows (11.25 deg window, 11.25 deg bar) from r 18.7 to 23.8, glued to the inside face of the left wheel. Sectors give 50 % mark/space at every radius; at the 20.5 mm read radius a window is 4.0 mm long | [C] |
+| Resolution | 32 edges per turn: 6.4 mm of travel per edge | [C] |
+| Ring to the core | 1.2 mm: the left cheek is recessed 0.6 mm in a band under the ring (the published robot's 1.2 mm ring would have touched) | [C] |
+| Module | TCRT5000 module board on two rails on the back of the core, y -7..7, z 14..46, components facing back; two ties through core tunnels at z 17 and 33 | [E] 32 x 14 mm |
+| Trimmer and LEDs | Face backwards; a screwdriver reaches the trimmer from behind with 6.9 mm to spare | design check |
+| Ground clearance under the clip | 4.8 mm upright. The crash bars still land first in a fall | design check |
+| Mass | 6.1 g (sensor, module, ring, wires, two ties) | [E] |
+
+**Contrast.** The sensor needs the ring's bars dark and its windows bright in infrared. Print the ring in matte black
+PLA: the windows then show the wheel's yellow rim, which reflects well. Some black filaments reflect infrared; if the
+module's output LED will not switch cleanly, colour the ring with a black permanent marker, or print
+`out/encoder_ring_template.svg` at 100 % on plain paper, cut it out and glue that on instead (0.1 mm thick, black on white).
+Do not use a white ring on the yellow rim: both reflect.
+
+**Cable.** The four pigtail wires leave the back of the clip under the core, run back along the underside and up
+through a slot in the back crash-arm root to the module's sensor pads. The module's 3-wire cable (VCC, GND, D0) runs
+up the back of the core (tied with K1 at z 67.5), then behind the MX1508 to the ESP32's lower header row (row A):
+**IO34 is pin 15 from the USB end** (`electronics.md`), with 3V3 and GND from the same row. Every wire stays inside the
+core's width or above the wheels; the check finds nothing in the wheels' swept volume.
+
+**Fitting it (milestone B), after milestone A works.** The core does not come apart.
+
+1. **Module first.** Take the TCRT5000 off its module: cut its legs if you can rather than desoldering, and find which
+   leg and pad is which with a meter before anything moves (`electronics.md`, Milestone B). Solder about 60 mm of four-core wire to the module's
+   sensor pads and, noting which pad is which, to the sensor's four leads; sleeve each joint.
+2. **Wheel off.** Undo the left wheel's screw and pull the wheel off its stub.
+3. **Sensor in.** Thread the pigtail out through the slot at the back of the clip, push the TCRT5000 into the clip
+   lenses first towards the wheel side, until its back sits on the clip floor (its lens face then stands 0.5 mm
+   proud of the clip, 2.5 mm from where the ring will be), and fix it with a dab of hot glue at the back.
+4. **Ring on.** Centre the ring on the wheel's inside face (its inner edge on r 17.5 mm; a printed 35 mm disc or a
+   compass helps), glue it flat with thin CA, and let it set. Nothing may stand proud of the ring.
+5. **Wheel on.** Push the wheel back to the same 5.5 mm on the stub, refit the screw, and spin it: nothing may touch.
+6. **Module and cable.** Lay the module on the rails on the back of the core, trimmer facing you, and tie it through
+   the tunnels at z 17 and 33. Run the pigtail up through the arm slot, plug the 3-wire cable onto the module and the
+   ESP32 (IO34, 3V3, GND), and tie it with K1.
+7. **Set the trimmer.** Power on with the wheels off the ground. Turn the wheel slowly by hand: the module's output
+   LED should change at every window edge, 32 times a turn. Turn the trimmer one way until the LED stays on over a bar,
+   back until it stays off over a window, and set it halfway between. Check that it still switches with the lights
+   on in the room.
+
+**Taking it out again** for milestone A: unplug the 3-pin plug K3 above the module (`electronics.md`). Everything else can stay.
+
 ## Checks (`out/design.md`)
 
-22 PASS, 0 FAIL. Among them:
+28 PASS, 0 FAIL. Among them:
 
 - **Clashes:** no overlap between any two solids (printed parts, motor, wheels, boards, plugs, fasteners, wires, strap).
-- **Wheels through a full turn:** 1.2 mm from the cheeks, 1.4 mm from the bolt heads.
+- **Wheels through a full turn** (with the ring on the left wheel): 1.2 mm from the cheeks and the ring band, 1.4 mm
+  from the pins.
+- **Wheel sensor:** lens 2.50 mm from the ring, read radius inside the window band, trimmer reachable.
 - **Access:** USB plug 0.3 mm from the nearest part (the back-left flange stops just below it; a bulky plug may need
   that corner trimmed), finger on the switch 1.5 mm, charger plug 0.8 mm, K2 grip 2.0 mm, cells lift out with the
   strap off.
@@ -219,8 +294,12 @@ Then print `core_left` first and check the gearbox fit, the pin holes and the wh
 
 - **Every bought-part number is an estimate.** The gearbox and its two holes matter most: if the holes are not at
   x +-8, z 18, the pins will not go in. Measure first, print `core_left` first.
-- **Mass went up.** 347 g against the first pass's 302 g, mostly because more is now counted. `out/sim.md` is rerun
-  with the new mass and centre of mass.
+- **Mass went up.** 352 g (milestone B) against the first pass's 302 g, mostly because more is now counted.
+  `out/model.json` carries the milestone B mass; the simulator owner reruns `sim.py` against it.
+- **Milestone B is the least proven part.** The sensor comes off its module onto a 4-wire pigtail; the ring is 0.6 mm
+  thick and depends on the wheel's inside face being flat and on the contrast between black PLA and the yellow rim,
+  neither of which has been checked. The clip leaves 4.8 mm of ground clearance, so the robot cannot cross a bump
+  taller than that at the axle.
 - **The fall check is a model, not a test.** It assumes PLA strengths [E] and ignores layer adhesion that varies
   with the printer. Side falls onto the tray and onto a wheel are only estimated. Drop-test on carpet first.
 - **The crash-bar ends are the weakest printed feature** (loaded across the layers). If one cracks, reprint the core

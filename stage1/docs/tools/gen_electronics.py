@@ -53,7 +53,15 @@ PARTS = {
     'K1':  ('JST-XH 2-pin wire-to-wire pair: the motor plug, tied to the back of the core', 'XH'),
     'C3':  ('100 nF ceramic, 50 V, across the motor tabs, in the pocket above the can (brush noise)', '100n'),
     'M1':  ('Dual-shaft TT gearmotor 1:48, 3-6 V', ''),
+    # ---- milestone B: wheel sensor (leave all of these out for milestone A)
+    'U7':  ('Milestone B. TCRT5000 module (LM393 comparator, trimmer, LEDs; D0 digital out) on rails on the back of the core, its sensor removed', ''),
+    'U8':  ('Milestone B. The module\'s TCRT5000 sensor, desoldered and moved to the clip under the core, on a 60 mm 4-wire pigtail', ''),
+    'C5':  ('Milestone B. 10 nF ceramic across the module\'s detector pads (C to E): filters noise picked up on the pigtail', '10n'),
+    'K3':  ('Milestone B. JST-XH 3-pin wire-to-wire pair: the wheel-sensor plug, just above the module', 'XH'),
+    'R5':  ('Milestone B. 100 k pull-down on IR_D0, soldered across K3 pins 3 and 2 on the robot side, in heat-shrink', '100k'),
+    'C4':  ('Milestone B. 10 nF ceramic on IR_D0, beside R5 (with the module pull-up: ~0.1 ms low-pass)', '10n'),
 }
+MILESTONE_B = {'U7', 'U8', 'C5', 'K3', 'R5', 'C4'}
 
 # ============================================================================ pins, as printed on each board
 # PINS[ref] = [(key, printed label, net or None, note)]. key is unique on the board; the label is what is printed.
@@ -61,15 +69,16 @@ ROW_A = ['3V3', 'EN', 'SVP', 'SVN', 'IO34', 'IO35', 'IO32', 'IO33', 'IO25', 'IO2
          'IO13', 'SD2', 'SD3', 'CMD', '5V']                      # Espressif DevKitC header J1, antenna end first
 ROW_B = ['GND', 'IO23', 'IO22', 'TXD0', 'RXD0', 'IO21', 'GND', 'IO19', 'IO18', 'IO5', 'IO17', 'IO16', 'IO4', 'IO0',
          'IO2', 'IO15', 'SD1', 'SD0', 'CLK']                     # Espressif DevKitC header J3, antenna end first
-ESP_USE = {('A', 1): ('3V3', 'U6 VCC (GY-521)'), ('A', 3): ('VSENSE', 'battery sense, ADC1_CH0, input only'),
+ESP_USE = {('A', 1): ('3V3', 'U6 VCC (GY-521); (B) also the wheel sensor through the Y-lead W28'), ('A', 3): ('VSENSE', 'battery sense, ADC1_CH0, input only'),
            ('A', 9): ('M_IN1', 'MX1508 IN1'), ('A', 10): ('M_IN2', 'MX1508 IN2'),
-           ('A', 14): ('GND', 'Mini360 OUT-'), ('A', 19): ('5V', 'Mini360 OUT+ (5.0 V in)'),
+           ('A', 5): ('IR_D0', 'milestone B: TCRT5000 D0, input only, no internal pulls: R5 pull-down'),
+           ('A', 14): ('GND', 'Mini360 OUT-; (B) also the wheel sensor through the Y-lead W29'), ('A', 19): ('5V', 'Mini360 OUT+ (5.0 V in)'),
            ('B', 1): ('GND', 'U6 GND (GY-521)'), ('B', 3): ('SCL', 'U6 SCL'), ('B', 6): ('SDA', 'U6 SDA')}
 ESP_NOTE = {'EN': 'reset button', 'IO0': 'BOOT button, strapping', 'IO2': 'on-board LED (firmware), strapping',
             'IO12': 'strapping', 'IO5': 'strapping', 'IO15': 'strapping', 'TXD0': 'USB serial', 'RXD0': 'USB serial',
             'SD2': 'flash', 'SD3': 'flash', 'CMD': 'flash', 'CLK': 'flash', 'SD0': 'flash', 'SD1': 'flash',
             'SVN': 'input only', 'IO34': 'input only', 'IO35': 'input only'}
-ALT = {'IO25': 'D25', 'IO26': 'D26', 'IO21': 'D21', 'IO22': 'D22', 'SVP': 'VP', '5V': 'VIN', 'IO2': 'D2'}
+ALT = {'IO34': 'D34', 'IO25': 'D25', 'IO26': 'D26', 'IO21': 'D21', 'IO22': 'D22', 'SVP': 'VP', '5V': 'VIN', 'IO2': 'D2'}
 
 
 def esp_key(row, k):
@@ -113,6 +122,19 @@ PINS = {
            ('AD0', 'AD0', None, 'not connected: pulled low on the board, address 0x68 (0x69 if tied to 3V3)'),
            ('INT', 'INT', None, 'interrupt out: not connected, the firmware polls')],
     'K1': [('1', '1', 'MOT_1', ''), ('2', '2', 'MOT_2', '')],
+    'U7': [('VCC', 'VCC', '3V3', '3.3 V from the ESP32 (Y-lead W28)'), ('GND', 'GND', 'GND', ''),
+           ('D0', 'D0', 'IR_D0', 'LM393 output with the module pull-up; printed DO on some boards'),
+           ('A0', 'A0', None, 'analog phototransistor output: not connected (printed AO on some boards)'),
+           ('SA', 'sensor pad A', 'IR_A', 'IR LED anode pad: to VCC through the module\'s LED resistor'),
+           ('SK', 'sensor pad K', 'GND', 'IR LED cathode pad: module GND'),
+           ('SC', 'sensor pad C', 'IR_C', 'detector collector pad: to VCC through ~10 k and to the LM393 input'),
+           ('SE', 'sensor pad E', 'GND', 'detector emitter pad: module GND')],
+    'U8': [('A', 'A (anode)', 'IR_A', 'IR LED'), ('K', 'K (cathode)', 'GND', 'IR LED'),
+           ('C', 'C (collector)', 'IR_C', 'phototransistor'), ('E', 'E (emitter)', 'GND', 'phototransistor')],
+    'C5': [('1', '1', 'IR_C', ''), ('2', '2', 'GND', '')],
+    'K3': [('1', '1', '3V3', ''), ('2', '2', 'GND', ''), ('3', '3', 'IR_D0', '')],
+    'R5': [('1', '1', 'IR_D0', ''), ('2', '2', 'GND', '')],
+    'C4': [('1', '1', 'IR_D0', ''), ('2', '2', 'GND', '')],
     'C3': [('1', '1', 'MOT_1', ''), ('2', '2', 'MOT_2', '')],
     'M1': [('1', 'tab 1', 'MOT_1', ''), ('2', 'tab 2', 'MOT_2', '')],
 }
@@ -126,7 +148,8 @@ NETS = dict(NETS)
 # ============================================================================ firmware facts (checked against the .ino)
 FW = dict(PIN_M1=25, PIN_M2=26, PIN_SDA=21, PIN_SCL=22, PIN_BATT=36, PIN_LED=2, MPU=0x68, MOTOR_PWM_HZ=20000,
           MOTOR_BITS=10, V_MOTOR_MAX=6.0, LOW_BATT_MV=6400, R_TOP=100.0, R_BOT=33.0)
-FW_NET = dict(PIN_M1='M_IN1', PIN_M2='M_IN2', PIN_SDA='SDA', PIN_SCL='SCL', PIN_BATT='VSENSE')
+FW_NET = dict(PIN_M1='M_IN1', PIN_M2='M_IN2', PIN_SDA='SDA', PIN_SCL='SCL', PIN_BATT='VSENSE', PIN_IR='IR_D0')
+FW_OPTIONAL = dict(PIN_IR=34)          # milestone B: the firmware may not define it yet
 
 # ============================================================================ physical wires and on-board joins
 WIRES = []
@@ -187,6 +210,28 @@ wire('W22', 'K1.1', 'M1.1', 'red', 22, 60, XH, S, 'motor tab, out of the slot in
 wire('W23', 'K1.2', 'M1.2', 'black', 22, 60, XH, S, 'with W22')
 wire('L7', 'C3.1', 'M1.1', '-', None, 0, 'leg', S, 'C3 across the motor tabs, legs short', 'leg')
 wire('L8', 'C3.2', 'M1.2', '-', None, 0, 'leg', S, '', 'leg')
+# ---- milestone B: wheel sensor. A 3-wire lead from the ESP32 to K3 by the left wheel, and a short pigtail K3 to the module.
+JY = 'F-F jumper 20 cm, made into a Y-lead'
+wire('W28', 'U5.3V3', 'K3.1', 'red', 28, 130, 'Dupont female (Y)', XH,
+     'Y-lead: one Dupont female on the 3V3 pin, splitting 3 cm along into a male pin for W24 and this run. Behind the MX1508, down the back of the core (tied with K1) to K3', kind='wire')
+wire('W29', 'U5.GND.A14', 'K3.2', 'black', 28, 130, 'Dupont female (Y)', XH, 'Y-lead on the row-A GND pin, shared with W16 the same way; with W28', kind='wire')
+wire('W30', 'U5.IO34', 'K3.3', 'green', 28, 130, DUP_F, XH, 'with W28; a 20 cm F-F jumper with its far end cut and crimped into K3', kind='wire')
+wire('W31', 'K3.1', 'U7.VCC', 'red', 26, 40, XH, 'Dupont female', 'module lead: K3 plug to the module header', kind='wire')
+wire('W32', 'K3.2', 'U7.GND', 'black', 26, 40, XH, 'Dupont female', 'module lead', kind='wire')
+wire('W33', 'K3.3', 'U7.D0', 'green', 26, 40, XH, 'Dupont female', 'module lead', kind='wire')
+wire('W34', 'U7.SA', 'U8.A', 'red', 28, 60, S, S, 'sensor pigtail, LED pair (twisted with W35): from the back of the clip under the core, up the slot in the back crash-arm root', kind='wire')
+wire('W35', 'U7.SK', 'U8.K', 'black', 28, 60, S, S, 'sensor pigtail, LED pair', kind='wire')
+wire('W36', 'U7.SC', 'U8.C', 'white', 28, 60, S, S, 'sensor pigtail, detector pair (twisted with W37)', kind='wire')
+wire('W37', 'U7.SE', 'U8.E', 'blue', 28, 60, S, S, 'sensor pigtail, detector pair', kind='wire')
+wire('B11', 'U7.SK', 'U7.GND', '-', None, 0, 'board', 'board', 'module ground track', 'board')
+wire('B12', 'U7.SE', 'U7.GND', '-', None, 0, 'board', 'board', 'module ground track', 'board')
+wire('L13', 'C5.1', 'U7.SC', '-', None, 0, 'leg', S, 'C5 on the module, across the C and E sensor pads', 'leg')
+wire('L14', 'C5.2', 'U7.SE', '-', None, 0, 'leg', S, '', 'leg')
+wire('L9', 'R5.1', 'K3.3', '-', None, 0, 'leg', S, 'R5 across K3 pins 3 and 2, robot side, in heat-shrink', 'leg')
+wire('L10', 'R5.2', 'K3.2', '-', None, 0, 'leg', S, '', 'leg')
+wire('L11', 'C4.1', 'K3.3', '-', None, 0, 'leg', S, 'C4 beside R5', 'leg')
+wire('L12', 'C4.2', 'K3.2', '-', None, 0, 'leg', S, '', 'leg')
+MILESTONE_B_WIRES = {'W28', 'W29', 'W30', 'W31', 'W32', 'W33', 'W34', 'W35', 'W36', 'W37', 'L9', 'L10', 'L11', 'L12', 'B11', 'B12', 'L13', 'L14'}
 # IMU
 wire('W24', 'U5.3V3', 'U6.VCC', 'red', 28, 200, DUP_F, 'Dupont female', JMP20 + ': up the front of the core (ties at z 48 and 63), under the plate to the robot-right side, up outside the flange, round its edge at z 98 to the lower header row')
 wire('W25', 'U5.GND.B1', 'U6.GND', 'black', 28, 200, DUP_F, 'Dupont female', JMP20 + ', with W24, then up beside the antenna end of the ESP32 to the upper header row')
@@ -214,6 +259,7 @@ POWER = [
     ('TT motor, balancing, average |I|', 'motor', 0.44, 1.65, '[S] sim.py nominal runs: mean 0.41-0.44 A, peak 1.55-1.65 A'),
     ('TT motor, stall at 6.0 V average', 'motor', 1.5, 1.5, '[D] Adafruit 3777: 1.5 A stall, 0.16 A no load at 6 V'),
     ('TT motor, full-speed reversal (worst case, not seen in sim)', 'motor', 0, 3.0, '[E] (6 V + 6 V back-EMF) / 4 ohm, tens of ms'),
+    ('Milestone B: TCRT5000 module (IR LED, LM393, two LEDs)', '3V3', 0.02, 0.025, '[E] IR LED 10-20 mA + LM393 ~0.4 mA [D] + power and D0 LEDs ~1-2 mA each'),
 ]
 
 # ============================================================================ SVG writer with text-overlap and wire bookkeeping
@@ -260,7 +306,7 @@ class Svg:
     def circle(self, x, y, r, col=INK, fill='none', sw=1.4):
         self.parts.append(f"<circle cx='{x:.1f}' cy='{y:.1f}' r='{r}' fill='{fill}' stroke='{col}' stroke-width='{sw}'/>")
 
-    def wire(self, wid, pts, col, w=3.0, net=None):
+    def wire(self, wid, pts, col, w=3.0, net=None, dash=None):
         """Orthogonal wire. Where it crosses an earlier wire of another net it hops over it (r = 5 px)."""
         r = 5.0
         d = f'M{pts[0][0]:.1f},{pts[0][1]:.1f}'
@@ -291,7 +337,8 @@ class Svg:
         for (x1, y1), (x2, y2) in zip(pts, pts[1:]):
             self.segs.append((wid, net, x1, y1, x2, y2))
         self.parts.append(f"<path d='{d}' fill='none' stroke='#ffffff' stroke-width='{w + 3.5}' stroke-linejoin='round' stroke-linecap='round'/>")
-        self.parts.append(f"<path d='{d}' fill='none' stroke='{col}' stroke-width='{w}' stroke-linejoin='round' stroke-linecap='round'/>")
+        da = f" stroke-dasharray='{dash}'" if dash else ''
+        self.parts.append(f"<path d='{d}' fill='none' stroke='{col}' stroke-width='{w}' stroke-linejoin='round' stroke-linecap='round'{da}/>")
 
     def save(self, path, name):
         for a, b in itertools.combinations(self.texts, 2):
@@ -532,15 +579,15 @@ def draw_schematic():
     g.text(250, 878, 'GY-521 (to its 3.3 V): add none.', 11, fill=MUTED)
 
     # ---------------- divider (on JB) at SVP
-    dv = 990
-    box(965, 505, 135, 210, None, fill='none', dash='5 4')
-    g.text(1032, 498, 'on JB', 11, 'middle', fill=MUTED)
-    g.line(dv, 530, dv, 545); g.line(dv, 530, 1000, 530); lab(1000, 530, 'VBAT_SW')
+    dv = 1002
+    box(990, 505, 115, 210, None, fill='none', dash='5 4')
+    g.text(1041, 498, 'on JB', 11, 'middle', fill=MUTED)
+    g.line(dv, 530, dv, 545); g.line(dv, 530, 1012, 530); lab(1012, 530, 'VBAT_SW')
     resistor_v(dv, 545, 'R1', '100k'); g.line(dv, 579, dv, py(3)); dot(dv, py(3))
     g.line(ex1, py(3), dv, py(3)); wl(955, py(3) - 6, 'W17')
     g.line(dv, py(3), dv, 640); resistor_v(dv, 640, 'R2', '33k'); g.line(dv, 674, dv, 690); gnd(dv, 690)
-    g.line(dv, py(3), 1048, py(3)); g.line(1048, py(3), 1048, 650); cap_v(1048, 650, 'C2', '100n')
-    g.line(1048, 657, 1048, 680); gnd(1048, 680)
+    g.line(dv, py(3), 1058, py(3)); g.line(1058, py(3), 1058, 650); cap_v(1058, 650, 'C2', '100n')
+    g.line(1058, 657, 1058, 680); gnd(1058, 680)
     for r_, k in (('R1', '1'), ('R1', '2'), ('R2', '1'), ('R2', '2'), ('C2', '1'), ('C2', '2')):
         mark(r_, k)
     mark('U5', 'SVP'); sch_nets['VSENSE'] += 2
@@ -552,6 +599,57 @@ def draw_schematic():
     for r_, k in (('R3', '1'), ('R3', '2'), ('R4', '1'), ('R4', '2')):
         mark(r_, k)
     mark('U5', 'IO25'); mark('U5', 'IO26'); mark('U4', 'IN1'); mark('U4', 'IN2'); sch_nets['M_IN1'] += 2; sch_nets['M_IN2'] += 2
+
+    # ---------------- milestone B: wheel sensor
+    g.line(ex1, py(5), 936, py(5)); mark('U5', 'IO34'); sch_nets['IR_D0'] += 1
+    g.poly([(936, py(5)), (942, py(5) - 8), (984, py(5) - 8), (984, py(5) + 8), (942, py(5) + 8), (936, py(5))], col=BLUE, w=1.2, fill=BLUE_BG)
+    g.text(946, py(5) + 4, 'IR_D0', 10, fill=BLUE_TX)
+    bx0, by0 = 30, 905
+    box(bx0, by0, 556, 300, None, fill='none', dash='6 4')
+    g.text(bx0 + 12, by0 + 20, 'Milestone B: wheel sensor. Leave all of this out for milestone A.', 12, weight='bold')
+    g.text(bx0 + 12, by0 + 37, 'U8 (bare TCRT5000, clip under the core) reads the left-wheel ring; U7 (its module) on the back of the core.', 10, fill=MUTED)
+    yk = {'1': 985, '2': 1015, '3': 1045}
+    box(245, 965, 30, 100, None, fill='#fff'); g.text(260, 958, 'K3', 12, 'middle', 'bold')
+    for k, yy in yk.items():
+        g.text(260, yy + 4, k, 11, 'middle'); mark('K3', k)
+    box(325, 965, 140, 135, None, fill='#f3fbf6')
+    for k, yy in (('VCC', 985), ('GND', 1015), ('D0', 1045), ('A0', 1075)):
+        used = k != 'A0'
+        g.text(333, yy + 4, k + ('  nc' if not used else ''), 11, weight='bold' if used else 'normal', fill=INK if used else NC_COL)
+        if not used:
+            nc(325, yy, 'l')
+        mark('U7', k)
+    for k, yy in (('SA', 985), ('SK', 1015), ('SC', 1045), ('SE', 1075)):
+        g.text(457, yy + 4, k[1], 11, 'end', 'bold'); mark('U7', k)
+    for i, t in enumerate(('U7', 'module', 'LM393')):
+        g.text(410, 1004 + i * 14, t, 11 if i else 12, 'middle', 'bold' if i == 0 else 'normal', fill=INK if i == 0 else MUTED)
+    g.text(395, 1092, 'sensor pads', 9, 'middle', fill=MUTED)
+    for yy, t in ((985, 'W31'), (1015, 'W32'), (1045, 'W33')):
+        g.line(275, yy, 325, yy); wl(300, yy - 6, t)
+    box(530, 965, 50, 135, None, fill='#fbf7ef')
+    for k, yy in (('A', 985), ('K', 1015), ('C', 1045), ('E', 1075)):
+        g.text(537, yy + 4, k, 11, weight='bold'); mark('U8', k)
+    for i, t in enumerate(('U8', 'TCRT', '5000')):
+        g.text(563, 1000 + i * 14, t, 10, 'middle', 'bold' if i == 0 else 'normal')
+    g.text(555, 1093, 'LED / det.', 8, 'middle', fill=MUTED, check=False)
+    for yy, t in ((985, 'W34'), (1015, 'W35'), (1045, 'W36'), (1075, 'W37')):
+        g.line(465, yy, 530, yy); wl(512, yy - 6, t)
+    dot(482, 1045); dot(482, 1075); g.line(482, 1045, 482, 1056); g.line(472, 1056, 492, 1056, w=2.4); g.line(472, 1063, 492, 1063, w=2.4)
+    g.line(482, 1063, 482, 1075); g.text(486, 1095, 'C5 10n', 10, 'middle', 'bold')
+    mark('C5', '1'); mark('C5', '2')
+    sch_nets['IR_A'] += 2; sch_nets['IR_C'] += 2
+    g.line(90, yk['1'], 245, yk['1']); lab(90, yk['1'], '3V3', 'l'); g.text(98, yk['1'] - 6, 'W28: Y-lead on ESP32 3V3 (A1)', 10, fill=MUTED)
+    g.line(220, yk['2'], 245, yk['2']); gnd(220, yk['2']); g.text(42, yk['2'] + 4, 'W29: Y-lead on GND (A14)', 10, fill=MUTED)
+    g.line(90, yk['3'], 245, yk['3']); lab(90, yk['3'], 'IR_D0', 'l'); g.text(98, yk['3'] - 6, 'W30: to IO34 (A5)', 10, fill=MUTED)
+    dot(150, yk['3']); g.line(150, yk['3'], 150, 1055); resistor_v(150, 1055, 'R5', '100k', 'l'); g.line(150, 1089, 150, 1095); gnd(150, 1095)
+    dot(190, yk['3']); g.line(190, yk['3'], 190, 1068); cap_v(190, 1068, 'C4', '10n'); g.line(190, 1075, 190, 1095); gnd(190, 1095)
+    for r_ in ('R5', 'C4'):
+        mark(r_, '1'); mark(r_, '2')
+    sch_nets['3V3'] += 1; sch_nets['IR_D0'] += 1
+    g.text(bx0 + 12, 1140, 'D0: about 0 V and the D0 LED on over a window (yellow rim reflects), about 3.0 V over a black bar.', 10, fill=MUTED)
+    g.text(bx0 + 12, 1154, 'R5 holds IO34 low with the module unplugged. C4 (with the module pull-up) and C5 (on the detector) are', 10, fill=MUTED)
+    g.text(bx0 + 12, 1168, '0.1 ms low-passes against motor noise. Power from 3V3, never 5 V: GPIO34 is a 3.3 V pin.', 10, fill=MUTED)
+    g.text(bx0 + 12, 1182, 'Pigtail: A, K = IR LED (blue lens); C, E = phototransistor (black lens). K and E are module GND.', 10, fill=MUTED)
 
     # ---------------- U1 Mini360 and the ESP32 supply
     box(1030, 1010, 160, 120, None, fill='#eef3fd')
@@ -596,7 +694,7 @@ BX = lambda y: XB0 - (y + 31.0) * SH   # back face: robot left (+y) on the image
 FX = lambda y: XF0 + (y + 31.0) * SH   # front face: robot left (+y) on the image right
 ZTOP, Z0 = 158.0, 142.0                # z at the top of the drawing area, and its y px
 # (z, px/mm above it): piecewise vertical scale, not to scale. Crowded bands (under the ESP32, round K1) get more room.
-ZBREAK = [(158.0, 0.0), (135.0, 4.0), (103.0, 7.0), (90.0, 16.0), (79.0, 7.0), (55.0, 9.0), (-14.0, 3.0)]
+ZBREAK = [(158.0, 0.0), (135.0, 4.0), (103.0, 7.0), (96.0, 24.0), (90.0, 16.0), (79.0, 7.0), (60.0, 9.0), (44.0, 7.0), (14.0, 4.5), (-28.0, 6.0)]
 
 
 def ZY(z):
@@ -624,9 +722,9 @@ def esp_y(k_from_antenna):
 
 PHYS = {('U5', esp_key(r, k)): ('B', esp_y(k), ESP_ROW_Z[r]) for r in 'AB' for k in range(1, 20)}
 PHYS.update({
-    ('U4', '+'): ('B', -10.5, 77.6), ('U4', '-'): ('B', -13.0, 77.6),
+    ('U4', '+'): ('B', -11.3, 77.6), ('U4', '-'): ('B', -13.8, 77.6),
     ('U4', 'IN1'): ('B', -14.12, 96.5), ('U4', 'IN2'): ('B', -11.58, 96.5), ('U4', 'IN3'): ('B', -9.04, 96.5), ('U4', 'IN4'): ('B', -6.5, 96.5),
-    ('U4', 'MA1'): ('B', -5.0, 77.6), ('U4', 'MA2'): ('B', -7.5, 77.6), ('U4', 'MB1'): ('B', -22.0, 77.6), ('U4', 'MB2'): ('B', -24.5, 77.6),
+    ('U4', 'MA1'): ('B', -6.0, 77.6), ('U4', 'MA2'): ('B', -8.5, 77.6), ('U4', 'MB1'): ('B', -22.0, 77.6), ('U4', 'MB2'): ('B', -24.5, 77.6),
     ('U1', 'IN-'): ('B', 5.2, 89.0), ('U1', 'IN+'): ('B', 5.2, 85.5), ('U1', 'OUT-'): ('B', 19.8, 89.0), ('U1', 'OUT+'): ('B', 19.8, 82.5),
     ('K1', '1'): ('B', -1.2, 78.0), ('K1', '2'): ('B', 1.2, 78.0),
     ('M1', '1'): ('B', -1.2, 59.0), ('M1', '2'): ('B', 1.2, 59.0),
@@ -642,18 +740,27 @@ PHYS.update({
     ('U6', 'AD0'): ('F', 6.35, 30.5), ('U6', 'INT'): ('F', 8.9, 30.5),
     ('J1', '+'): ('F', 29.5, 114.0), ('J1', '-'): ('F', 27.5, 114.0),
     ('BT1', '+'): ('F', -34.0, 135.0), ('BT1', '-'): ('F', -36.0, 135.0), ('BT1', 'MID'): ('F', 36.0, 135.0),
+    # milestone B. The mount is the mechanical design's (stage1.py); until it lands, drawn at the core's left side by the
+    # left wheel: module below the axle line, K3 between it and the GY-521.
+    ('U7', 'VCC'): ('B', -3.81, 44.6), ('U7', 'GND'): ('B', -1.27, 44.6), ('U7', 'D0'): ('B', 1.27, 44.6), ('U7', 'A0'): ('B', 3.81, 44.6),
+    ('U7', 'SA'): ('B', 1.2, 16.5), ('U7', 'SK'): ('B', 0.0, 16.5), ('U7', 'SC'): ('B', -1.2, 16.5), ('U7', 'SE'): ('B', -2.4, 16.5),
+    ('U8', 'A'): ('B', 2.9, -16.6), ('U8', 'K'): ('B', 2.9, -19.1), ('U8', 'C'): ('B', 2.9, -21.9), ('U8', 'E'): ('B', 2.9, -24.4),
+    ('K3', '1'): ('B', -4.4, 57.0), ('K3', '2'): ('B', -3.5, 57.0), ('K3', '3'): ('B', -2.6, 57.0),
 })
 BOARDS_W = {   # drawn outlines: face, y0, y1, z0, z1, fill, stroke (boxes from stage1.py; K1 drawn narrower than its 7.5 mm)
     'U5': ('B', -27.5, 27.5, 100.0, 128.0, '#eef3fd', '#2a62d0'), 'U4': ('B', -27.0, -2.3, 76.5, 97.5, '#e3f2ea', '#2f7d5b'),
-    'U1': ('B', 4.0, 21.2, 80.0, 91.2, '#eef3fd', '#2a62d0'), 'K1': ('B', -2.6, 2.6, 60.0, 78.0, '#ffffff', '#1d2433'),
+    'U1': ('B', 4.0, 21.2, 80.0, 91.2, '#eef3fd', '#2a62d0'), 'K1': ('B', -2.0, 2.0, 60.0, 78.0, '#ffffff', '#1d2433'),
     'U3': ('F', -25.0, 25.0, 101.0, 123.0, '#e3f2ea', '#2f7d5b'), 'SW1': ('F', 6.0, 21.2, 77.0, 92.2, '#e9ebef', '#1d2433'),
     'JB': ('F', -25.5, -4.5, 79.0, 92.0, '#f6e7cf', '#8a5a2b'), 'J1': ('F', 25.5, 31.0, 100.0, 114.0, '#d9dde5', '#1d2433'),
     'U6': ('F', -10.5, 10.5, 16.0, 32.0, '#e3f2ea', '#2f7d5b'),
+    'K3': ('B', -5.2, -1.8, 50.0, 57.0, '#ffffff', '#1d2433'), 'U7': ('B', -7.0, 7.0, 14.0, 46.0, '#e3f2ea', '#2f7d5b'),
+    'U8': ('B', 2.9, 9.9, -25.6, -15.4, '#3a3f4b', '#1d2433'),
 }
 PADS = {   # multi-wire pads and plug ends drawn as small rectangles: (face, y0, y1, z0, z1)
     ('U3', 'P+'): ('F', 14.6, 17.8, 101.2, 103.2), ('U3', 'P-'): ('F', 8.0, 12.0, 101.2, 103.2),
-    ('U4', '+'): ('B', -11.4, -9.6, 77.0, 78.2), ('U4', '-'): ('B', -13.9, -12.1, 77.0, 78.2),
+    ('U4', '+'): ('B', -12.2, -10.4, 77.0, 78.2), ('U4', '-'): ('B', -14.7, -12.9, 77.0, 78.2),
     ('K1', '1'): ('B', -1.9, -0.5, 60.0, 78.0), ('K1', '2'): ('B', 0.5, 1.9, 60.0, 78.0),
+    ('K3', '1'): ('B', -4.7, -4.1, 50.0, 57.0), ('K3', '2'): ('B', -3.8, -3.2, 50.0, 57.0), ('K3', '3'): ('B', -2.9, -2.3, 50.0, 57.0),
 }
 
 # Every wire as a full path in (face, y, z), first point on the 'a' pin, last on the 'b' pin. 'B' = back, 'F' = front.
@@ -669,34 +776,48 @@ ROUTES = {
     'W8': [('F', 8.5, 101.2), ('F', 8.5, 100.0), ('F', -10, 100.0), ('F', -10, 94.0)],
     'W9': [('F', 29.5, 114), ('F', 29.5, 115), ('F', 32, 115), ('F', 32, 99.6), ('F', 17.2, 99.6), ('F', 17.2, 101.2)],
     'W10': [('F', 27.5, 114), ('F', 27.5, 116), ('F', 32.8, 116), ('F', 32.8, 99.0), ('F', 11.6, 99.0), ('F', 11.6, 101.2)],
-    'W11': [('F', -24.5, 82.4), ('F', -26.4, 82.4), ('F', -26.4, 73.0), ('F', -31, 73.0), ('B', -31, 73.0), ('B', -10.5, 73.0), ('B', -10.5, 77.0)],
-    'W12': [('F', -24.5, 86.4), ('F', -27.4, 86.4), ('F', -27.4, 74.0), ('F', -31, 74.0), ('B', -31, 74.0), ('B', -13.0, 74.0), ('B', -13.0, 77.0)],
-    'W13': [('B', -10.5, 78.2), ('B', -10.5, 85.5), ('B', 5.2, 85.5)],
-    'W14': [('B', -13.0, 78.2), ('B', -13.0, 89.0), ('B', 5.2, 89.0)],
+    'W11': [('F', -24.5, 82.4), ('F', -26.4, 82.4), ('F', -26.4, 73.0), ('F', -31, 73.0), ('B', -31, 73.0), ('B', -11.3, 73.0), ('B', -11.3, 77.0)],
+    'W12': [('F', -24.5, 86.4), ('F', -27.4, 86.4), ('F', -27.4, 74.0), ('F', -31, 74.0), ('B', -31, 74.0), ('B', -13.8, 74.0), ('B', -13.8, 77.0)],
+    'W13': [('B', -11.3, 78.2), ('B', -11.3, 85.5), ('B', 5.2, 85.5)],
+    'W14': [('B', -13.8, 78.2), ('B', -13.8, 89.0), ('B', 5.2, 89.0)],
     'W15': [('B', 19.8, 82.5), ('B', 22.8, 82.5), ('B', 22.8, 99.0), ('B', esp_y(19), 99.0), ('B', esp_y(19), 102)],
     'W16': [('B', 19.8, 89.0), ('B', 19.8, 98.4), ('B', esp_y(14), 98.4), ('B', esp_y(14), 102)],
-    'W17': [('F', -24.5, 90.4), ('F', -27.6, 90.4), ('F', -27.6, 97.8), ('F', -31, 97.8), ('B', -31, 97.8), ('B', esp_y(3), 97.8), ('B', esp_y(3), 102)],
+    'W17': [('F', -24.5, 90.4), ('F', -27.7, 90.4), ('F', -27.7, 100.0), ('F', -31, 100.0), ('B', -31, 100.0), ('B', esp_y(3), 100.0), ('B', esp_y(3), 102)],
     'W18': [('B', esp_y(9), 102), ('B', esp_y(9), 99.4), ('B', -14.12, 99.4), ('B', -14.12, 96.5)],
     'W19': [('B', esp_y(10), 102), ('B', esp_y(10), 98.9), ('B', -11.58, 98.9), ('B', -11.58, 96.5)],
-    'W20': [('B', -5.0, 77.6), ('B', -5.0, 79.0), ('B', -1.2, 79.0), ('B', -1.2, 78.0)],
-    'W21': [('B', -7.5, 77.6), ('B', -7.5, 79.8), ('B', 1.2, 79.8), ('B', 1.2, 78.0)],
+    'W20': [('B', -6.0, 77.6), ('B', -6.0, 79.0), ('B', -1.2, 79.0), ('B', -1.2, 78.0)],
+    'W21': [('B', -8.5, 77.6), ('B', -8.5, 79.8), ('B', 1.2, 79.8), ('B', 1.2, 78.0)],
     'W22': [('B', -1.2, 60.0), ('B', -1.2, 59.0)],
     'W23': [('B', 1.2, 60.0), ('B', 1.2, 59.0)],
-    'W24': [('B', esp_y(1), 102), ('B', esp_y(1), 98.1), ('B', -31, 98.1), ('F', -31, 98.1), ('F', -30.5, 98.1), ('F', -30.5, 66.5),
+    'W24': [('B', esp_y(1), 102), ('B', esp_y(1), 98.15), ('B', -31, 98.15), ('F', -31, 98.15), ('F', -29.45, 98.15), ('F', -29.45, 66.5),
             ('F', -8.9, 66.5), ('F', -8.9, 30.5)],
     'W25': [('B', esp_y(1), 126), ('B', esp_y(1), 129.0), ('B', -29.1, 129.0), ('B', -29.1, 98.6), ('B', -31, 98.6), ('F', -31, 98.6),
-            ('F', -29.8, 98.6), ('F', -29.8, 67.0), ('F', -6.35, 67.0), ('F', -6.35, 30.5)],
+            ('F', -29.0, 98.6), ('F', -29.0, 67.0), ('F', -6.35, 67.0), ('F', -6.35, 30.5)],
     'W26': [('B', esp_y(3), 126), ('B', esp_y(3), 130.0), ('B', -29.8, 130.0), ('B', -29.8, 99.1), ('B', -31, 99.1), ('F', -31, 99.1),
-            ('F', -29.1, 99.1), ('F', -29.1, 67.5), ('F', -3.8, 67.5), ('F', -3.8, 30.5)],
+            ('F', -28.55, 99.1), ('F', -28.55, 67.5), ('F', -3.8, 67.5), ('F', -3.8, 30.5)],
     'W27': [('B', esp_y(6), 126), ('B', esp_y(6), 131.0), ('B', -30.5, 131.0), ('B', -30.5, 99.6), ('B', -31, 99.6), ('F', -31, 99.6),
-            ('F', -28.4, 99.6), ('F', -28.4, 68.0), ('F', -1.27, 68.0), ('F', -1.27, 30.5)],
+            ('F', -28.1, 99.6), ('F', -28.1, 68.0), ('F', -1.27, 68.0), ('F', -1.27, 30.5)],
+    # milestone B (mechanical.md): module cable up the back of the core, tied with K1, behind the MX1508 to row A
+    'W28': [('B', -4.4, 57.0), ('B', -4.4, 97.75), ('B', esp_y(1), 97.75), ('B', esp_y(1), 102)],
+    'W29': [('B', -3.5, 57.0), ('B', -3.5, 98.55), ('B', esp_y(14), 98.55), ('B', esp_y(14), 102)],
+    'W30': [('B', -2.6, 57.0), ('B', -2.6, 98.15), ('B', esp_y(5), 98.15), ('B', esp_y(5), 102)],
+    'W31': [('B', -4.4, 50.0), ('B', -4.4, 47.8), ('B', -3.81, 47.8), ('B', -3.81, 44.6)],
+    'W32': [('B', -3.5, 50.0), ('B', -3.5, 48.6), ('B', -1.27, 48.6), ('B', -1.27, 44.6)],
+    'W33': [('B', -2.6, 50.0), ('B', -2.6, 49.4), ('B', 1.27, 49.4), ('B', 1.27, 44.6)],
+    # the sensor pigtail: from the leads at the back of the clip, under the core and up the back crash-arm root
+    'W34': [('B', 2.9, -16.6), ('B', 1.2, -16.6), ('B', 1.2, 16.5)],
+    'W35': [('B', 2.9, -19.1), ('B', 0.0, -19.1), ('B', 0.0, 16.5)],
+    'W36': [('B', 2.9, -21.9), ('B', -1.2, -21.9), ('B', -1.2, 16.5)],
+    'W37': [('B', 2.9, -24.4), ('B', -2.4, -24.4), ('B', -2.4, 16.5)],
 }
+for _k in ('W28', 'W29', 'W30', 'W34', 'W35', 'W36', 'W37'):
+    ROUTES[_k] = ROUTES[_k][::-1]          # drawn from the module side; the model runs ESP32 -> K3 and pads -> sensor
 DRAW_ORDER = ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W8', 'W7', 'W9', 'W10', 'W24', 'W25', 'W26', 'W27', 'W11', 'W12', 'W17',
-              'W13', 'W14', 'W15', 'W16', 'W18', 'W19', 'W20', 'W21', 'W22', 'W23']
+              'W13', 'W14', 'W15', 'W16', 'W18', 'W19', 'W20', 'W21', 'W22', 'W23', 'W28', 'W29', 'W30', 'W31', 'W32', 'W33', 'W34', 'W35', 'W36', 'W37']
 
 
 def draw_wiring():
-    W, H = 1780, 1460
+    W, H = 1780, 1900
     g = Svg(W, H, 'Tailwhip stage 1 wiring')
     g.text(30, 40, 'Tailwhip stage 1: every wire, end to end, on the robot (not to scale)', 18, weight='bold')
     g.text(30, 64, 'The mast unfolded about its robot-right (-y) edge: BACK on the left, seen from behind; FRONT on the right, seen from the front. '
@@ -716,8 +837,8 @@ def draw_wiring():
         cx = (xa + xb) / 2
         g.text(cx, 116, title, 14, 'middle', 'bold')
         ca, cb_ = sorted((P(face, -11.8, 0)[0], P(face, 11.8, 0)[0]))
-        g.rect(ca, ZY(72), cb_ - ca, ZY(-12) - ZY(72), col=GRID, fill='#f7f8fb', rx=4)
-        g.text(cx, ZY(-12) + 18, 'core, around the gearbox' + (' (motor inside)' if face == 'B' else ''), 11, 'middle', fill=MUTED)
+        g.rect(ca, ZY(72), cb_ - ca, ZY(-15) - ZY(72), col=GRID, fill='#f7f8fb', rx=4)
+        g.text(cx if face == 'F' else BX(-10.5) + 8, ZY(-15) + 18, 'core, around the gearbox' if face == 'F' else 'core (motor inside)', 11, 'middle' if face == 'F' else 'start', fill=MUTED)
         if face == 'B':
             g.text(xa + 4, ZY(132) + 14, 'robot left (+y)', 10, fill=MUTED)
         else:
@@ -729,6 +850,17 @@ def draw_wiring():
                            'under the plate', 'at y -15.')):
         g.text(gx, ZY(120) + i * 13, t, 10, 'middle', fill=MUTED)
 
+    # motor (dashed: inside the core, behind the back face)
+    ma, mb = sorted((BX(-10), BX(10)))
+    g.rect(ma, ZY(59), mb - ma, ZY(26) - ZY(59), col='#8a6d1f', fill='none', rx=6, dash='5 4')
+    ga, gb_ = sorted((BX(-11.2), BX(11.2)))
+    g.rect(ga, ZY(26), gb_ - ga, ZY(-11) - ZY(26), col='#8a6d1f', fill='none', rx=3, dash='5 4')
+    for i, t in enumerate(('M1 TT motor (dashed:', 'inside the core). Its', 'leads leave by the slot', 'in the back of the core', 'into K1.')):
+        g.text(BX(12.6), ZY(52) + i * 13, t, 10 if i else 11, 'end', 'bold' if i == 0 else 'normal', fill='#6b5418')
+    g.text(BX(12.6), ZY(8), 'gearbox (dashed)', 10, 'end', fill='#6b5418')
+    g.line(BX(-14), ZY(0), BX(14), ZY(0), col='#8a6d1f', w=1, dash='2 3')
+    g.text(BX(-14) + 6, ZY(0) + 4, 'axle', 10, fill='#6b5418')
+
     # boards
     for ref, (face, y0, y1, z0, z1, fill, col) in BOARDS_W.items():
         xa, xb = sorted((P(face, y0, 0)[0], P(face, y1, 0)[0]))
@@ -739,22 +871,9 @@ def draw_wiring():
     g.text((hx0 + hx1) / 2, ZY(147.0), 'red + and black - leads leave through the tray\'s robot-right notch; the strap joining the cells is at the other end',
            11, 'middle', fill=MUTED)
     g.text(hx0 + 30, ZY(138.5), '- lead   + lead', 10, fill=MUTED); g.text(hx1 - 10, ZY(138.5), 'strap = cell middle', 10, 'end', fill=MUTED)
-    # motor (dashed: inside the core, behind the back face)
-    ma, mb = sorted((BX(-10), BX(10)))
-    g.rect(ma, ZY(59), mb - ma, ZY(26) - ZY(59), col='#8a6d1f', fill='none', rx=6, dash='5 4')
-    ga, gb_ = sorted((BX(-11.2), BX(11.2)))
-    g.rect(ga, ZY(26), gb_ - ga, ZY(-11) - ZY(26), col='#8a6d1f', fill='none', rx=3, dash='5 4')
-    g.text(BX(0), ZY(47), 'M1 TT motor can', 12, 'middle', 'bold', fill='#6b5418')
-    g.text(BX(0), ZY(47) + 15, '(inside the core)', 11, 'middle', fill='#6b5418')
-    g.text(BX(0), ZY(47) + 30, 'leads leave by the slot', 10, 'middle', fill='#6b5418')
-    g.text(BX(0), ZY(47) + 43, 'in the back of the core', 10, 'middle', fill='#6b5418')
-    g.text(BX(0), ZY(14), 'gearbox', 11, 'middle', fill='#6b5418')
-    g.line(BX(-14), ZY(0), BX(14), ZY(0), col='#8a6d1f', w=1, dash='2 3')
-    g.text(BX(-14) + 6, ZY(0) + 4, 'axle', 10, fill='#6b5418')
-
     # multi-wire pads
     for (ref, key), (face, y0, y1, z0, z1) in PADS.items():
-        if ref == 'K1':
+        if ref in ('K1', 'K3'):
             continue
         xa, xb = sorted((P(face, y0, 0)[0], P(face, y1, 0)[0]))
         g.rect(xa, ZY(z1), xb - xa, ZY(z0) - ZY(z1), col=INK, fill='#e2c46a', rx=2, sw=1.2)
@@ -777,10 +896,12 @@ def draw_wiring():
             if pts and abs(pts[-1][0] - p_[0]) < 0.01 and abs(pts[-1][1] - p_[1]) < 0.01:
                 continue
             pts.append((round(p_[0], 1), round(p_[1], 1)))
-        g.wire(wid, pts, WIRE_RGB[w['colour']], 3.2 if w['awg'] == 22 else 2.4, net_of(w['a']))
+        g.wire(wid, pts, WIRE_RGB[w['colour']], 3.2 if w['awg'] == 22 else 2.4, net_of(w['a']), dash='8 4' if wid in MILESTONE_B_WIRES else None)
         own = {pin_of(w['a'])[0], pin_of(w['b'])[0]}          # a wire may lie on the boards it is soldered to
         if 'K2' in own:
             own.add('JB')                                     # K2 stands on JB
+        if wid in ('W28', 'W29', 'W30'):
+            own.add('U4')                                     # the sensor cable runs behind the MX1508 (mechanical.md)
         for (x1, y1), (x2, y2) in zip(pts, pts[1:]):
             for (name, rx0, ry0, rx1, ry1) in g.rects:
                 if name in own:
@@ -851,7 +972,7 @@ def draw_wiring():
     pin_dot('M1', '1'); pin_dot('M1', '2')
     g.line(BX(-1.2), ZY(59) + 4, BX(-1.2), ZY(56.5)); g.line(BX(1.2), ZY(59) + 4, BX(1.2), ZY(56.5))
     g.line(BX(-1.2), ZY(56.5), BX(1.2), ZY(56.5), w=2.4)
-    g.text(BX(-2.4), ZY(56.5) + 4, 'C3 100n across the tabs (pocket above the can)', 9, 'start', fill=INK)
+    g.text(BX(2.6), ZY(57.5) + 4, 'C3 100n across the tabs', 9, 'end', fill=INK)
     # ---- BMS
     for key in ('B+', 'BM', 'B-'):
         pin_dot('U3', key)
@@ -895,9 +1016,8 @@ def draw_wiring():
         pin_dot('U6', key)
         x, y = pt('U6', key)
         g.text(x + 4, y + 8, key, 10, 'end', 'bold' if used else 'normal', INK if used else NC_COL, rot=-90)
-    yb = ZY(16)
-    g.text(FX(0), yb + 18, 'U6  GY-521, 2 mm off the core front on two M2.5 screws, chip facing forward,', 11, 'middle', 'bold', fill='#2f7d5b')
-    g.text(FX(0), yb + 33, 'X arrow on the silkscreen pointing up (the mount also takes it 16 wide x 21 tall)', 10, 'middle', fill='#2f7d5b')
+    for i, t in enumerate(('U6  GY-521', '2 mm off the core front,', 'two M2.5 screws,', 'chip forward, X arrow up', '(or 16 wide x 21 tall)')):
+        g.text(FX(-12.0), ZY(31.0) + i * 13, t, 11 if i == 0 else 10, 'end', 'bold' if i == 0 else 'normal', fill='#2f7d5b')
     g.text(FX(12.5), ZY(30.5) + 4, 'XDA XCL AD0 INT:', 10, 'start', fill=NC_COL)
     g.text(FX(12.5), ZY(30.5) + 17, 'not connected', 10, 'start', fill=NC_COL)
     yi = ZY(58)
@@ -906,18 +1026,55 @@ def draw_wiring():
                            'tied at the core-front tunnels (z 48, 63)')):
         g.text(FX(4), yi + i * 15, t, 10, 'start', 'bold' if 0 < i < 5 else 'normal')
 
+    # ---- milestone B: module, K3, R5 C4, the bare sensor and its pigtail (back of the core)
+    for key in ('VCC', 'GND', 'D0', 'A0'):
+        pin_dot('U7', key)
+        x, y = pt('U7', key); used = key != 'A0'
+        g.text(x + 4, y + 8, key, 9, 'end', 'bold' if used else 'normal', INK if used else NC_COL, rot=-90)
+    for key in ('SA', 'SK', 'SC', 'SE'):
+        pin_dot('U7', key)
+        x, y = pt('U7', key)
+        g.text(x + 4, y - 8, key[1], 9, 'start', 'bold', rot=-90)
+    for i, t in enumerate(('U7', 'module', 'LM393,', 'trimmer', 'and LEDs', 'face you')):
+        g.text(BX(-4.6), ZY(36.0) + i * 12, t, 10 if i else 11, 'middle', 'bold' if i == 0 else 'normal', fill='#2f7d5b')
+    g.text(BX(-4.6), ZY(19.0) + 4, 'C5 10n', 9, 'middle', 'bold', fill='#2f7d5b')
+    g.text(BX(-4.6), ZY(19.0) + 15, 'on C-E', 9, 'middle', fill='#2f7d5b')
+    for k in ('A', 'K', 'C', 'E'):
+        x, y = pt('U8', k); g.text(x + 6, y + 3, k, 8, 'start', 'bold', fill='#ffffff', check=False)
+    g.text(BX(10.6), ZY(-17.0) + 4, 'U8 TCRT5000 (bare), in the clip', 10, 'end', 'bold')
+    g.text(BX(10.6), ZY(-17.0) + 17, 'under the core; lenses face the', 10, 'end')
+    g.text(BX(10.6), ZY(-17.0) + 30, 'ring on the left wheel (to the left)', 10, 'end')
+    g.text(BX(10.6), ZY(-17.0) + 43, 'A, K: LED (blue lens). C, E: detector', 10, 'end')
+    g.text(BX(-2.0), ZY(54.0) + 4, 'K3', 10, 'start', 'bold')
+    g.text(BX(-1.4), ZY(52.5), 'R5 100k + C4 10n across', 9, 'end')
+    g.text(BX(-1.4), ZY(52.5) + 11, 'K3 pins 3-2, robot side', 9, 'end')
+    g.text(BX(-3.0), ZY(2.0), 'pigtail: twist A-K and C-E', 9, 'start', fill=INK)
+    bxa, bxb = BX(-10.5), BX(12.6) - 150
+    g.rect(bxb, ZY(58.5), bxa - bxb, ZY(-27.5) - ZY(58.5), col='#6f7787', fill='none', rx=6, sw=1.4, dash='6 4')
+    g.text(bxb + 6, ZY(-6.0), 'Milestone B: wheel sensor', 11, 'start', 'bold', fill='#4a5160')
+    g.text(bxb + 6, ZY(-6.0) + 13, '(dashed wires; leave out for A)', 10, 'start', fill='#4a5160')
+
     # ---- legend: every wire
-    ly = ZY(-12) + 56
+    ly = ZY(-28) + 40
     g.text(30, ly, 'Every wire. Swatch = wire colour. Thick = 22 AWG power and motor wire; thin = 26 AWG or a Dupont jumper. '
                    'Full detail (gauge, length, connector): electronics.md, Wire list.', 13, weight='bold')
-    rows = [w for w in WIRES if w['kind'] == 'wire']
+    rows = [w for w in WIRES if w['kind'] == 'wire' and w['id'] not in MILESTONE_B_WIRES]
     per = math.ceil(len(rows) / 3)
     for i, w in enumerate(rows):
         cx = 30 + (i // per) * 565; cy = ly + 26 + (i % per) * 19
         g.line(cx, cy - 4, cx + 26, cy - 4, col=WIRE_RGB[w['colour']], w=4.5 if w['awg'] == 22 else 3)
         g.text(cx + 34, cy, f"{w['id']}  {desc(w['a'])} -> {desc(w['b'])}", 11)
-    g.text(30, ly + 26 + per * 19 + 6, 'Joins with no wire: C1 legs on the MX1508 + and - pads (stripe to -); R3 from IN1 to - and R4 from IN2 to - under the MX1508; '
-                                     'C3 legs on the motor tabs; R1, R2, C2 and the K2 header on JB.', 11, fill=MUTED)
+    lb = ly + 26 + per * 19 + 34
+    g.text(30, lb, 'Milestone B only (dashed): sensor cable, module lead and sensor pigtail. W28 and W29 are Y-leads sharing the 3V3 pin with W24 and the GND pin with W16.',
+           12, weight='bold')
+    rows = [w for w in WIRES if w['kind'] == 'wire' and w['id'] in MILESTONE_B_WIRES]
+    for i, w in enumerate(rows):
+        cx = 30 + (i // 4) * 565; cy = lb + 24 + (i % 4) * 19
+        g.line(cx, cy - 4, cx + 26, cy - 4, col=WIRE_RGB[w['colour']], w=3)
+        g.add(f"<line x1='{cx + 10}' y1='{cy - 4}' x2='{cx + 14}' y2='{cy - 4}' stroke='#ffffff' stroke-width='5'/>")
+        g.text(cx + 34, cy, f"{w['id']}  {desc(w['a'])} -> {desc(w['b'])}", 11)
+    g.text(30, lb + 24 + 4 * 19 + 6, 'Joins with no wire: C1 legs on the MX1508 + and - pads (stripe to -); R3 from IN1 to - and R4 from IN2 to - under the MX1508; '
+                                     'C3 legs on the motor tabs; R1, R2, C2 and the K2 header on JB; (B) R5, C4 across K3 pins 3-2, C5 on the module C-E pads.', 11, fill=MUTED)
     g.save(DOCS / 'wiring.svg', 'wiring.svg')
     return g
 
@@ -932,7 +1089,7 @@ def desc(end):
             r, k = ('A', ROW_A.index(key) + 1) if key in ROW_A else ('B', ROW_B.index(key) + 1)
         return f'ESP32 {lab_} (row {r}, pin {20 - k} from USB)'
     names = dict(BT1='holder', U3='BMS', J1='jack', F1='F1', SW1='SW1', K2='K2', JB='JB', U4='MX1508', U1='Mini360',
-                 U6='GY-521', K1='K1', M1='motor')
+                 U6='GY-521', K1='K1', M1='motor', K3='K3', U7='module', U8='sensor')
     return f'{names.get(ref, ref)} {lab_}'
 
 
@@ -985,8 +1142,16 @@ for k, v in FW.items():
 m = re.search(r'BATT_DIV\s*=\s*\(([\d.]+)f?\s*\+\s*([\d.]+)f?\)\s*/\s*([\d.]+)f?', src)
 if not m or (float(m.group(1)), float(m.group(2)), float(m.group(3))) != (FW['R_TOP'], FW['R_BOT'], FW['R_BOT']):
     problems.append('firmware: BATT_DIV does not match R1 100k / R2 33k')
+fw_optional_present = {}
+for k, v in FW_OPTIONAL.items():
+    got = const(k)
+    fw_optional_present[k] = got is not None
+    if got is not None and abs(got - v) > 1e-6:
+        problems.append(f'firmware: {k} is {got}, the electronics model says {v}')
 for k, net in FW_NET.items():
-    gp = FW[k]
+    if k in FW_OPTIONAL and not fw_optional_present[k]:
+        continue
+    gp = FW.get(k, FW_OPTIONAL.get(k))
     keys = [kk for (r, kk), (lab_, n, _) in PIN.items() if r == 'U5' and gpio_of(lab_) == gp]
     if not keys or PIN[('U5', keys[0])][1] != net:
         problems.append(f'firmware: {k} = GPIO{gp}, but that ESP32 pin is not on net {net}')
@@ -1012,7 +1177,14 @@ out = dict(
     esp32_pins=pinmap(),
     wires=[{**{k: v for k, v in w.items() if k not in ('a', 'b')}, 'from': w['a'], 'to': w['b'], 'net': net_of(w['a'])}
            for w in WIRES],
-    firmware=dict(file=str(INO.relative_to(STAGE1.parent)), **{k: v for k, v in FW.items()}),
+    firmware=dict(file=str(INO.relative_to(STAGE1.parent)), **{k: v for k, v in FW.items()}, **FW_OPTIONAL,
+                  optional_present=fw_optional_present),
+    milestone_b=dict(about='Wheel sensor, added after the robot balances on the IMU alone (milestone A). Leave these out for milestone A.',
+                     parts=sorted(MILESTONE_B), wires=sorted(MILESTONE_B_WIRES),
+                     ring='16 windows on the inside of the left wheel, both edges counted: 32 edges per turn, 11.25 deg, 6.4 mm of travel',
+                     top_edge_rate_hz=round(21.0 / (2 * math.pi) * 32), edge_period_ms_at_top=round(1000 / (21.0 / (2 * math.pi) * 32), 1),
+                     firmware_lockout_ms_published=1.0, rc_filter='module pull-up ~10 k [E] with C4 10 nF: ~0.1 ms rise',
+                     d0_high_v_with_r5=round(3.3 * 100 / 110, 2)),
     i2c=dict(clock_hz=400000, address='0x68', pullups='on the GY-521, to its own 3.3 V regulator output', timeout_ms=3),
     battery_sense=dict(divider='R1 100k (top) / R2 33k (bottom), C2 100 nF across R2', ratio=round(33 / 133, 4),
                        pin='GPIO36 (SVP, ADC1_CH0), 11 dB attenuation', v_pin_at_8v4=round(8.4 * 33 / 133, 3),
@@ -1025,4 +1197,5 @@ print(f'parts {len(PARTS)}, nets {len(NETS)}, wires {sum(w["kind"] == "wire" for
       f'wiring hops {wir.hops}')
 if problems:
     print('\nPROBLEMS:'); [print(' -', p) for p in problems]; sys.exit(1)
+print('firmware PIN_IR: ' + ('present' if fw_optional_present['PIN_IR'] else 'not defined yet (allowed; checked when it appears)'))
 print('checks passed: nets connected end to end, every pin drawn, firmware pins and constants, no text overlaps, no wire through a board')

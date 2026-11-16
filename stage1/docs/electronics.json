@@ -80,6 +80,30 @@
   "M1": {
    "description": "Dual-shaft TT gearmotor 1:48, 3-6 V",
    "value": ""
+  },
+  "U7": {
+   "description": "Milestone B. TCRT5000 module (LM393 comparator, trimmer, LEDs; D0 digital out) on rails on the back of the core, its sensor removed",
+   "value": ""
+  },
+  "U8": {
+   "description": "Milestone B. The module's TCRT5000 sensor, desoldered and moved to the clip under the core, on a 60 mm 4-wire pigtail",
+   "value": ""
+  },
+  "C5": {
+   "description": "Milestone B. 10 nF ceramic across the module's detector pads (C to E): filters noise picked up on the pigtail",
+   "value": "10n"
+  },
+  "K3": {
+   "description": "Milestone B. JST-XH 3-pin wire-to-wire pair: the wheel-sensor plug, just above the module",
+   "value": "XH"
+  },
+  "R5": {
+   "description": "Milestone B. 100 k pull-down on IR_D0, soldered across K3 pins 3 and 2 on the robot side, in heat-shrink",
+   "value": "100k"
+  },
+  "C4": {
+   "description": "Milestone B. 10 nF ceramic on IR_D0, beside R5 (with the module pull-up: ~0.1 ms low-pass)",
+   "value": "10n"
   }
  },
  "pins": {
@@ -406,7 +430,7 @@
     "key": "3V3",
     "label": "3V3",
     "net": "3V3",
-    "note": "U6 VCC (GY-521)"
+    "note": "U6 VCC (GY-521); (B) also the wheel sensor through the Y-lead W28"
    },
    {
     "key": "EN",
@@ -429,8 +453,8 @@
    {
     "key": "IO34",
     "label": "IO34",
-    "net": null,
-    "note": "input only"
+    "net": "IR_D0",
+    "note": "milestone B: TCRT5000 D0, input only, no internal pulls: R5 pull-down"
    },
    {
     "key": "IO35",
@@ -484,7 +508,7 @@
     "key": "GND.A14",
     "label": "GND",
     "net": "GND",
-    "note": "Mini360 OUT-"
+    "note": "Mini360 OUT-; (B) also the wheel sensor through the Y-lead W29"
    },
    {
     "key": "IO13",
@@ -695,6 +719,144 @@
     "note": ""
    }
   ],
+  "U7": [
+   {
+    "key": "VCC",
+    "label": "VCC",
+    "net": "3V3",
+    "note": "3.3 V from the ESP32 (Y-lead W28)"
+   },
+   {
+    "key": "GND",
+    "label": "GND",
+    "net": "GND",
+    "note": ""
+   },
+   {
+    "key": "D0",
+    "label": "D0",
+    "net": "IR_D0",
+    "note": "LM393 output with the module pull-up; printed DO on some boards"
+   },
+   {
+    "key": "A0",
+    "label": "A0",
+    "net": null,
+    "note": "analog phototransistor output: not connected (printed AO on some boards)"
+   },
+   {
+    "key": "SA",
+    "label": "sensor pad A",
+    "net": "IR_A",
+    "note": "IR LED anode pad: to VCC through the module's LED resistor"
+   },
+   {
+    "key": "SK",
+    "label": "sensor pad K",
+    "net": "GND",
+    "note": "IR LED cathode pad: module GND"
+   },
+   {
+    "key": "SC",
+    "label": "sensor pad C",
+    "net": "IR_C",
+    "note": "detector collector pad: to VCC through ~10 k and to the LM393 input"
+   },
+   {
+    "key": "SE",
+    "label": "sensor pad E",
+    "net": "GND",
+    "note": "detector emitter pad: module GND"
+   }
+  ],
+  "U8": [
+   {
+    "key": "A",
+    "label": "A (anode)",
+    "net": "IR_A",
+    "note": "IR LED"
+   },
+   {
+    "key": "K",
+    "label": "K (cathode)",
+    "net": "GND",
+    "note": "IR LED"
+   },
+   {
+    "key": "C",
+    "label": "C (collector)",
+    "net": "IR_C",
+    "note": "phototransistor"
+   },
+   {
+    "key": "E",
+    "label": "E (emitter)",
+    "net": "GND",
+    "note": "phototransistor"
+   }
+  ],
+  "C5": [
+   {
+    "key": "1",
+    "label": "1",
+    "net": "IR_C",
+    "note": ""
+   },
+   {
+    "key": "2",
+    "label": "2",
+    "net": "GND",
+    "note": ""
+   }
+  ],
+  "K3": [
+   {
+    "key": "1",
+    "label": "1",
+    "net": "3V3",
+    "note": ""
+   },
+   {
+    "key": "2",
+    "label": "2",
+    "net": "GND",
+    "note": ""
+   },
+   {
+    "key": "3",
+    "label": "3",
+    "net": "IR_D0",
+    "note": ""
+   }
+  ],
+  "R5": [
+   {
+    "key": "1",
+    "label": "1",
+    "net": "IR_D0",
+    "note": ""
+   },
+   {
+    "key": "2",
+    "label": "2",
+    "net": "GND",
+    "note": ""
+   }
+  ],
+  "C4": [
+   {
+    "key": "1",
+    "label": "1",
+    "net": "IR_D0",
+    "note": ""
+   },
+   {
+    "key": "2",
+    "label": "2",
+    "net": "GND",
+    "note": ""
+   }
+  ],
   "C3": [
    {
     "key": "1",
@@ -759,7 +921,16 @@
    "U1.OUT-",
    "U5.GND.A14",
    "U5.GND.B1",
-   "U6.GND"
+   "U6.GND",
+   "U7.GND",
+   "U7.SK",
+   "U7.SE",
+   "U8.K",
+   "U8.E",
+   "C5.2",
+   "K3.2",
+   "R5.2",
+   "C4.2"
   ],
   "VBAT_F": [
    "F1.2",
@@ -810,7 +981,16 @@
   ],
   "3V3": [
    "U5.3V3",
-   "U6.VCC"
+   "U6.VCC",
+   "U7.VCC",
+   "K3.1"
+  ],
+  "IR_D0": [
+   "U5.IO34",
+   "U7.D0",
+   "K3.3",
+   "R5.1",
+   "C4.1"
   ],
   "SCL": [
    "U5.IO22",
@@ -819,6 +999,15 @@
   "SDA": [
    "U5.IO21",
    "U6.SDA"
+  ],
+  "IR_A": [
+   "U7.SA",
+   "U8.A"
+  ],
+  "IR_C": [
+   "U7.SC",
+   "U8.C",
+   "C5.1"
   ]
  },
  "esp32_pins": [
@@ -829,7 +1018,7 @@
    "label": "3V3",
    "gpio": null,
    "net": "3V3",
-   "note": "U6 VCC (GY-521)"
+   "note": "U6 VCC (GY-521); (B) also the wheel sensor through the Y-lead W28"
   },
   {
    "row": "A",
@@ -864,8 +1053,8 @@
    "pin_from_usb": 15,
    "label": "IO34",
    "gpio": 34,
-   "net": null,
-   "note": "input only"
+   "net": "IR_D0",
+   "note": "milestone B: TCRT5000 D0, input only, no internal pulls: R5 pull-down"
   },
   {
    "row": "A",
@@ -946,7 +1135,7 @@
    "label": "GND",
    "gpio": null,
    "net": "GND",
-   "note": "Mini360 OUT-"
+   "note": "Mini360 OUT-; (B) also the wheel sensor through the Y-lead W29"
   },
   {
    "row": "A",
@@ -1726,6 +1915,240 @@
    "net": "MOT_2"
   },
   {
+   "id": "W28",
+   "colour": "red",
+   "awg": 28,
+   "length_mm": 130,
+   "end_a": "Dupont female (Y)",
+   "end_b": "JST-XH crimp",
+   "route": "Y-lead: one Dupont female on the 3V3 pin, splitting 3 cm along into a male pin for W24 and this run. Behind the MX1508, down the back of the core (tied with K1) to K3",
+   "kind": "wire",
+   "from": "U5.3V3",
+   "to": "K3.1",
+   "net": "3V3"
+  },
+  {
+   "id": "W29",
+   "colour": "black",
+   "awg": 28,
+   "length_mm": 130,
+   "end_a": "Dupont female (Y)",
+   "end_b": "JST-XH crimp",
+   "route": "Y-lead on the row-A GND pin, shared with W16 the same way; with W28",
+   "kind": "wire",
+   "from": "U5.GND.A14",
+   "to": "K3.2",
+   "net": "GND"
+  },
+  {
+   "id": "W30",
+   "colour": "green",
+   "awg": 28,
+   "length_mm": 130,
+   "end_a": "Dupont female on the pin",
+   "end_b": "JST-XH crimp",
+   "route": "with W28; a 20 cm F-F jumper with its far end cut and crimped into K3",
+   "kind": "wire",
+   "from": "U5.IO34",
+   "to": "K3.3",
+   "net": "IR_D0"
+  },
+  {
+   "id": "W31",
+   "colour": "red",
+   "awg": 26,
+   "length_mm": 40,
+   "end_a": "JST-XH crimp",
+   "end_b": "Dupont female",
+   "route": "module lead: K3 plug to the module header",
+   "kind": "wire",
+   "from": "K3.1",
+   "to": "U7.VCC",
+   "net": "3V3"
+  },
+  {
+   "id": "W32",
+   "colour": "black",
+   "awg": 26,
+   "length_mm": 40,
+   "end_a": "JST-XH crimp",
+   "end_b": "Dupont female",
+   "route": "module lead",
+   "kind": "wire",
+   "from": "K3.2",
+   "to": "U7.GND",
+   "net": "GND"
+  },
+  {
+   "id": "W33",
+   "colour": "green",
+   "awg": 26,
+   "length_mm": 40,
+   "end_a": "JST-XH crimp",
+   "end_b": "Dupont female",
+   "route": "module lead",
+   "kind": "wire",
+   "from": "K3.3",
+   "to": "U7.D0",
+   "net": "IR_D0"
+  },
+  {
+   "id": "W34",
+   "colour": "red",
+   "awg": 28,
+   "length_mm": 60,
+   "end_a": "solder",
+   "end_b": "solder",
+   "route": "sensor pigtail, LED pair (twisted with W35): from the back of the clip under the core, up the slot in the back crash-arm root",
+   "kind": "wire",
+   "from": "U7.SA",
+   "to": "U8.A",
+   "net": "IR_A"
+  },
+  {
+   "id": "W35",
+   "colour": "black",
+   "awg": 28,
+   "length_mm": 60,
+   "end_a": "solder",
+   "end_b": "solder",
+   "route": "sensor pigtail, LED pair",
+   "kind": "wire",
+   "from": "U7.SK",
+   "to": "U8.K",
+   "net": "GND"
+  },
+  {
+   "id": "W36",
+   "colour": "white",
+   "awg": 28,
+   "length_mm": 60,
+   "end_a": "solder",
+   "end_b": "solder",
+   "route": "sensor pigtail, detector pair (twisted with W37)",
+   "kind": "wire",
+   "from": "U7.SC",
+   "to": "U8.C",
+   "net": "IR_C"
+  },
+  {
+   "id": "W37",
+   "colour": "blue",
+   "awg": 28,
+   "length_mm": 60,
+   "end_a": "solder",
+   "end_b": "solder",
+   "route": "sensor pigtail, detector pair",
+   "kind": "wire",
+   "from": "U7.SE",
+   "to": "U8.E",
+   "net": "GND"
+  },
+  {
+   "id": "B11",
+   "colour": "-",
+   "awg": null,
+   "length_mm": 0,
+   "end_a": "board",
+   "end_b": "board",
+   "route": "module ground track",
+   "kind": "board",
+   "from": "U7.SK",
+   "to": "U7.GND",
+   "net": "GND"
+  },
+  {
+   "id": "B12",
+   "colour": "-",
+   "awg": null,
+   "length_mm": 0,
+   "end_a": "board",
+   "end_b": "board",
+   "route": "module ground track",
+   "kind": "board",
+   "from": "U7.SE",
+   "to": "U7.GND",
+   "net": "GND"
+  },
+  {
+   "id": "L13",
+   "colour": "-",
+   "awg": null,
+   "length_mm": 0,
+   "end_a": "leg",
+   "end_b": "solder",
+   "route": "C5 on the module, across the C and E sensor pads",
+   "kind": "leg",
+   "from": "C5.1",
+   "to": "U7.SC",
+   "net": "IR_C"
+  },
+  {
+   "id": "L14",
+   "colour": "-",
+   "awg": null,
+   "length_mm": 0,
+   "end_a": "leg",
+   "end_b": "solder",
+   "route": "",
+   "kind": "leg",
+   "from": "C5.2",
+   "to": "U7.SE",
+   "net": "GND"
+  },
+  {
+   "id": "L9",
+   "colour": "-",
+   "awg": null,
+   "length_mm": 0,
+   "end_a": "leg",
+   "end_b": "solder",
+   "route": "R5 across K3 pins 3 and 2, robot side, in heat-shrink",
+   "kind": "leg",
+   "from": "R5.1",
+   "to": "K3.3",
+   "net": "IR_D0"
+  },
+  {
+   "id": "L10",
+   "colour": "-",
+   "awg": null,
+   "length_mm": 0,
+   "end_a": "leg",
+   "end_b": "solder",
+   "route": "",
+   "kind": "leg",
+   "from": "R5.2",
+   "to": "K3.2",
+   "net": "GND"
+  },
+  {
+   "id": "L11",
+   "colour": "-",
+   "awg": null,
+   "length_mm": 0,
+   "end_a": "leg",
+   "end_b": "solder",
+   "route": "C4 beside R5",
+   "kind": "leg",
+   "from": "C4.1",
+   "to": "K3.3",
+   "net": "IR_D0"
+  },
+  {
+   "id": "L12",
+   "colour": "-",
+   "awg": null,
+   "length_mm": 0,
+   "end_a": "leg",
+   "end_b": "solder",
+   "route": "",
+   "kind": "leg",
+   "from": "C4.2",
+   "to": "K3.2",
+   "net": "GND"
+  },
+  {
    "id": "W24",
    "colour": "red",
    "awg": 28,
@@ -1792,7 +2215,48 @@
   "V_MOTOR_MAX": 6.0,
   "LOW_BATT_MV": 6400,
   "R_TOP": 100.0,
-  "R_BOT": 33.0
+  "R_BOT": 33.0,
+  "PIN_IR": 34,
+  "optional_present": {
+   "PIN_IR": true
+  }
+ },
+ "milestone_b": {
+  "about": "Wheel sensor, added after the robot balances on the IMU alone (milestone A). Leave these out for milestone A.",
+  "parts": [
+   "C4",
+   "C5",
+   "K3",
+   "R5",
+   "U7",
+   "U8"
+  ],
+  "wires": [
+   "B11",
+   "B12",
+   "L10",
+   "L11",
+   "L12",
+   "L13",
+   "L14",
+   "L9",
+   "W28",
+   "W29",
+   "W30",
+   "W31",
+   "W32",
+   "W33",
+   "W34",
+   "W35",
+   "W36",
+   "W37"
+  ],
+  "ring": "16 windows on the inside of the left wheel, both edges counted: 32 edges per turn, 11.25 deg, 6.4 mm of travel",
+  "top_edge_rate_hz": 107,
+  "edge_period_ms_at_top": 9.3,
+  "firmware_lockout_ms_published": 1.0,
+  "rc_filter": "module pull-up ~10 k [E] with C4 10 nF: ~0.1 ms rise",
+  "d0_high_v_with_r5": 3.0
  },
  "i2c": {
   "clock_hz": 400000,
@@ -1860,6 +2324,13 @@
    "typical_A": 0,
    "peak_A": 3.0,
    "source": "[E] (6 V + 6 V back-EMF) / 4 ohm, tens of ms"
+  },
+  {
+   "load": "Milestone B: TCRT5000 module (IR LED, LM393, two LEDs)",
+   "rail": "3V3",
+   "typical_A": 0.02,
+   "peak_A": 0.025,
+   "source": "[E] IR LED 10-20 mA + LM393 ~0.4 mA [D] + power and D0 LEDs ~1-2 mA each"
   }
  ]
 }

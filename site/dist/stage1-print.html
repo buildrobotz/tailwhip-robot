@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Stage 1: print · Tailwhip robot</title>
-<meta name="description" content="Four PLA prints, no supports. Spin the models, download the STLs, measure your motor and boards before you print, then assemble it.">
-<meta property="og:title" content="Stage 1: print and assemble"><meta property="og:description" content="Four PLA prints, no supports. Spin the models, download the STLs, measure your motor and boards before you print, then assemble it.">
+<title>Stage 1 reference · Mechanical · Tailwhip robot</title>
+<meta name="description" content="The printed parts, print settings, board mounts, wire routes, fasteners and the assembly in full.">
+<meta property="og:title" content="Stage 1 reference: Mechanical"><meta property="og:description" content="The printed parts, print settings, board mounts, wire routes, fasteners and the assembly in full.">
 <meta property="og:image" content="https://tailwhip.buildrobotz.com/assets/cad_render_upright.jpg">
 <link rel="icon" href="data:,"><link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -10,21 +10,16 @@
 <body>
 <div class="crumb"><div class="wrap"><a href="https://buildrobotz.com/">BuildRobotz</a><span aria-hidden="true">/</span><a href="https://buildrobotz.com/robots/">Robots</a><span aria-hidden="true">/</span><span>Tailwhip</span></div></div>
 <header class="top"><div class="wrap"><a class="brand" href="index.html">Tailwhip<span>.</span></a><nav aria-label="Project pages"><a href="index.html">Overview</a><a href="stage1.html" aria-current="page">Stage 1</a><a href="build.html">Build plan</a><a href="parts.html">Parts</a><a href="mechanical.html">Mechanical</a><a href="electronics.html">Electronics</a><a href="software.html">Software</a><a href="learning.html">Simulation and RL</a><a href="course.html">Learning path</a><a href="risks.html">Limits</a></nav></div></header>
-<div class="wrap"><main>
-<header><div class="eyebrow">BuildRobotz project · Stage 1: print</div><h1>Stage 1: print and assemble</h1><p class="lede">Four PLA prints, no supports. Spin the models, download the STLs, measure your motor and boards before you print, then assemble it.</p></header>
-<nav class="subnav" aria-label="Stage 1 pages"><a href="stage1.html">1. Why and results</a><a href="stage1-print.html" aria-current="page">2. Print and assemble</a><a href="stage1-wiring.html">3. Circuit and wiring</a><a href="stage1-firmware.html">4. Flash and tune</a></nav><details class="toc"><summary>On this page</summary><ol><li><a href="#the-layout-in-one-paragraph">The layout in one paragraph</a></li><li><a href="#printed-parts">Printed parts</a></li><li><a href="#board-mounts">Board mounts</a></li><li><a href="#wire-routes">Wire routes</a></li><li><a href="#fasteners">Fasteners</a></li><li><a href="#before-you-print-measure-these">Before you print: measure these</a></li><li><a href="#assembly">Assembly</a></li><li><a href="#checks-outdesignmd">Checks (out/design.md)</a></li><li><a href="#limits">Limits</a></li><li><a href="#reference">Reference</a></li></ol></details><div class="note"><b>Read this first: designed and simulated, not built</b>Designed and simulated. Not printed, not built. The firmware compiles for the ESP32 but has not run on hardware. Every motor and mass figure is an estimate carried over from the published Tailwhip. Like the rest of Tailwhip, the design, its code and these pages were generated with AI. Measure what the pages tell you to, check each step with a meter, expect to fix things, and build at your own risk, especially around the 18650 cells.</div>
-<section><div class="viewer" data-models='[{"label": "Core, left half", "file": "models/stage1/core_left.stl", "color": "#e8862a"}, {"label": "Core, right half", "file": "models/stage1/core_right.stl", "color": "#e8862a"}, {"label": "Mast", "file": "models/stage1/mast.stl", "color": "#f2b84b"}, {"label": "Tray", "file": "models/stage1/tray.stl", "color": "#f2b84b"}]'><canvas class="view"></canvas><span class="hint">drag to orbit · scroll to zoom</span></div>
-<div class="bar vbar" style="border:1px solid var(--rule);border-top:0;border-radius:0 0 6px 6px"></div></section>
-<section class="prose"><h4>Download the print files</h4><p><a class="btn" href="models/stage1/core_left.stl" download="tailwhip_stage1_core_left.stl">core_left.stl</a> <a class="btn" href="models/stage1/core_right.stl" download="tailwhip_stage1_core_right.stl">core_right.stl</a> <a class="btn" href="models/stage1/mast.stl" download="tailwhip_stage1_mast.stl">mast.stl</a> <a class="btn" href="models/stage1/tray.stl" download="tailwhip_stage1_tray.stl">tray.stl</a> <a class="btn" href="assets/stage1_design.md">design.md (every design check)</a></p><p>Each STL is in its print orientation, lying on the bed. All four fit a 220 x 220 mm bed.</p></section>
-<div class="gallery"><figure class="fig"><img src="assets/stage1_render_back.jpg" alt="From behind: ESP32, MX1508 and buck on the mast; motor plug K1 on the core" loading="lazy"><figcaption>From behind: ESP32, MX1508 and buck on the mast; motor plug K1 on the core</figcaption></figure><figure class="fig"><img src="assets/stage1_render_views.jpg" alt="Side, fallen forward onto a crash bar, front and back" loading="lazy"><figcaption>Side, fallen forward onto a crash bar, front and back</figcaption></figure><figure class="fig"><img src="assets/stage1_render_parts.jpg" alt="Exploded: core halves, pins and bolts, motor, mast with boards, tray, holder, cells" loading="lazy"><figcaption>Exploded: core halves, pins and bolts, motor, mast with boards, tray, holder, cells</figcaption></figure></div>
-<section class="prose"><blockquote>
+<div class="wrap layout"><aside class="rail"><nav class="onpage" aria-label="On this page"><div class="label">On this page</div><ol><li class="h2"><a href="#the-layout-in-one-paragraph">The layout in one paragraph</a></li><li class="h2"><a href="#printed-parts">Printed parts</a></li><li class="h2"><a href="#board-mounts">Board mounts</a></li><li class="h2"><a href="#wire-routes">Wire routes</a></li><li class="h2"><a href="#fasteners">Fasteners</a></li><li class="h2"><a href="#before-you-print-measure-these">Before you print: measure these</a></li><li class="h2"><a href="#assembly">Assembly</a></li><li class="h2"><a href="#milestone-b-the-wheel-sensor">Milestone B: the wheel sensor</a></li><li class="h2"><a href="#checks-outdesignmd">Checks (out/design.md)</a></li><li class="h2"><a href="#limits">Limits</a></li><li class="h2"><a href="#reference">Reference</a></li></ol></nav></aside><main class="refpage">
+<header><div class="eyebrow">BuildRobotz project · Stage 1 reference · Mechanical</div><h1>Stage 1 reference: Mechanical</h1><p class="lede">The printed parts, print settings, board mounts, wire routes, fasteners and the assembly in full.</p></header>
+<nav class="subnav" aria-label="Stage 1 reference"><a href="stage1.html">&larr; Stage 1: the bare-minimum balancer</a><span>Reference:</span><a href="stage1-print.html" aria-current="page">Mechanical</a> · <a href="stage1-wiring.html">Electronics</a> · <a href="stage1-firmware.html">Firmware and tuning</a> · <a href="stage1-sim.html">Simulation</a> · <a href="stage1-design.html">Design check</a></nav><details class="toc"><summary>On this page</summary><ol><li class="h2"><a href="#the-layout-in-one-paragraph">The layout in one paragraph</a></li><li class="h2"><a href="#printed-parts">Printed parts</a></li><li class="h2"><a href="#board-mounts">Board mounts</a></li><li class="h2"><a href="#wire-routes">Wire routes</a></li><li class="h2"><a href="#fasteners">Fasteners</a></li><li class="h2"><a href="#before-you-print-measure-these">Before you print: measure these</a></li><li class="h2"><a href="#assembly">Assembly</a></li><li class="h2"><a href="#milestone-b-the-wheel-sensor">Milestone B: the wheel sensor</a></li><li class="h2"><a href="#checks-outdesignmd">Checks (out/design.md)</a></li><li class="h2"><a href="#limits">Limits</a></li><li class="h2"><a href="#reference">Reference</a></li></ol></details><div class="note refnote"><b>Reference</b>This page is detail behind the <a href="stage1.html">Stage 1 guide</a>. You can build without reading it: each step of the guide links to the section it needs when something goes wrong. Like everything in Tailwhip, it is designed and simulated, not built.</div><section class="wide"><div class="viewer" data-models='[{"label": "core left", "file": "models/stage1/core_left.stl", "color": "#e8862a"}, {"label": "core right", "file": "models/stage1/core_right.stl", "color": "#e8862a"}, {"label": "encoder ring", "file": "models/stage1/encoder_ring.stl", "color": "#f2b84b"}, {"label": "mast", "file": "models/stage1/mast.stl", "color": "#f2b84b"}, {"label": "tray", "file": "models/stage1/tray.stl", "color": "#2a9ea8"}]'><canvas class="view"></canvas><span class="hint">drag to orbit · scroll to zoom</span></div><div class="bar vbar" style="border:1px solid var(--rule);border-top:0;border-radius:0 0 6px 6px"></div></section><p class="files"><a class="btn" href="models/stage1/core_left.stl" download="tailwhip_stage1_core_left.stl">core_left.stl</a> <a class="btn" href="models/stage1/core_right.stl" download="tailwhip_stage1_core_right.stl">core_right.stl</a> <a class="btn" href="models/stage1/encoder_ring.stl" download="tailwhip_stage1_encoder_ring.stl">encoder_ring.stl</a> <a class="btn" href="models/stage1/mast.stl" download="tailwhip_stage1_mast.stl">mast.stl</a> <a class="btn" href="models/stage1/tray.stl" download="tailwhip_stage1_tray.stl">tray.stl</a></p><section class="prose"><blockquote>
 <p><strong>Unbuilt.</strong> Nothing here has been printed, assembled or measured. Every dimension in <a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/stage1.py"><code>stage1.py</code></a> is tagged
 [D] datasheet, [E] estimate (measure it) or [C] chosen by this design, and every result inherits those tags.
 Measure the parts listed under "Before you print" first; the TT motor and the boards are the biggest unknowns.</p>
 </blockquote>
 <p>Wiring, pins and the power chain are in <a href="stage1-wiring.html"><code>electronics.md</code></a>. The numbers below come from
-<a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/out/design.md"><code>out/design.md</code></a>, which <a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/stage1.py"><code>stage1.py</code></a> writes; rerun it after changing any dimension.</p>
-<p><img alt="Front" src="assets/stage1_render_hero.jpg" /></p>
+<a href="stage1-design.html"><code>out/design.md</code></a>, which <a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/stage1.py"><code>stage1.py</code></a> writes; rerun it after changing any dimension.</p>
+<p><img alt="Front" src="assets/stage1_render_hero.jpg" / width="1100" height="785"></p>
 <h2 id="the-layout-in-one-paragraph">The layout in one paragraph</h2>
 <p>One dual-shaft TT gearmotor sits in a printed <strong>core</strong> with its shaft on the axle and the can pointing up; a 65 mm
 wheel goes on each end of the shaft. The core is a clamshell split down the middle, so its two halves print flat.
@@ -34,6 +29,9 @@ part of the core. A <strong>mast</strong> screws onto the top of the core: a 4 m
 the BMS, switch and junction board on its front and the ESP32, motor driver and buck on its back. A separate
 <strong>tray</strong> on top of the mast holds the battery holder, screwed through to the mast, with a strap over the cells. The
 IMU is on the front of the core, 24 mm above the axle.</p>
+<p>The build has two milestones. <strong>Milestone A</strong> balances on the IMU alone. <strong>Milestone B</strong> adds one wheel sensor so it
+can hold its position: a TCRT5000 under the core reads a printed ring on the left wheel. Every printed part is the
+same for both; milestone B adds the ring, the sensor and its module, and is fitted without opening the core.</p>
 <div class="tablewrap"><table class="stack">
 <thead>
 <tr>
@@ -45,12 +43,12 @@ IMU is on the front of the core, 24 mm above the axle.</p>
 <tbody>
 <tr>
 <td data-label="">Mass</td>
-<td data-label="Value"><strong>347 g</strong> (body 302 g, wheels and shaft 45 g)</td>
-<td data-label="Source">[E], <a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/out/design.md"><code>out/design.md</code></a> section 1</td>
+<td data-label="Value"><strong>352 g</strong> with the wheel sensor (body 306 g, wheels, shaft and ring 45.5 g); milestone A about 346 g</td>
+<td data-label="Source">[E], <a href="stage1-design.html"><code>out/design.md</code></a> section 1</td>
 </tr>
 <tr>
 <td data-label="">Centre of mass</td>
-<td data-label="Value">86.2 mm above the axle, +0.5 mm fore-aft</td>
+<td data-label="Value">85.3 mm above the axle, +0.1 mm fore-aft</td>
 <td data-label="Source">[E]</td>
 </tr>
 <tr>
@@ -70,7 +68,7 @@ IMU is on the front of the core, 24 mm above the axle.</p>
 </tr>
 <tr>
 <td data-label="">Printed</td>
-<td data-label="Value">98 g of PLA in four parts, no supports</td>
+<td data-label="Value">98 g of PLA in four parts, no supports, plus a 0.5 g ring for milestone B</td>
 <td data-label="Source">[E]</td>
 </tr>
 </tbody>
@@ -89,7 +87,7 @@ IMU is on the front of the core, 24 mm above the axle.</p>
 <tbody>
 <tr>
 <td data-label="Part"><code>core_left</code></td>
-<td data-label="Size in print pose (mm)">170 x 87 x 30</td>
+<td data-label="Size in print pose (mm)">170 x 100 x 30</td>
 <td data-label="Mass (g)">35</td>
 <td data-label="Orientation">Flat on the cut face (the y = 0 split), outer cheek up</td>
 <td data-label="Supports">None</td>
@@ -115,10 +113,18 @@ IMU is on the front of the core, 24 mm above the axle.</p>
 <td data-label="Orientation">Floor down</td>
 <td data-label="Supports">None</td>
 </tr>
+<tr>
+<td data-label="Part"><code>encoder_ring</code> (milestone B)</td>
+<td data-label="Size in print pose (mm)">50 x 50 x 0.6</td>
+<td data-label="Mass (g)">0.5</td>
+<td data-label="Orientation">Flat</td>
+<td data-label="Supports">None</td>
+</tr>
 </tbody>
 </table></div>
-<p>All four fit an Ender 3 bed (220 x 220); the core halves can go on one plate.</p>
-<p><img alt="Each part in its print orientation" src="assets/stage1_render_print.jpg" /></p>
+<p>All five fit an Ender 3 bed (220 x 220); the core halves can go on one plate. <code>core_left</code> is 100 mm across in its
+print pose (was 87) because of the sensor clip under the core; it prints for milestone A too and does no harm there.</p>
+<p><img alt="Each part in its print orientation" src="assets/stage1_render_print.jpg" / width="1100" height="570"></p>
 <h3 id="print-settings">Print settings</h3>
 <div class="tablewrap"><table class="stack">
 <thead>
@@ -180,29 +186,110 @@ IMU is on the front of the core, 24 mm above the axle.</p>
   for M2.5, 3.0 mm for the steel pins, 8 mm for the shaft. The pin holes and bolt holes print vertically (round).
   Run a 3.0 mm drill through the pin holes so the pins press in snugly, and a 3.4 mm drill through anything an M3
   must pass freely.</li>
-<li><strong>Walls.</strong> The thinnest real walls are 1.9 mm (IMU pilots), 2.1 mm (nut recesses, mast-screw pilots) and 2.3 mm
-  (the cheeks). The ray-cast check finds nothing under 1.6 mm except the 1.5 mm edges of rails and tie anchors.</li>
+<li><strong>Walls.</strong> The thinnest real walls are 1.7 mm (the left cheek over the gearbox, where it is recessed 0.6 mm under
+  the encoder ring), 1.8 mm (the sensor clip), 1.9 mm (IMU pilots), 2.1 mm (nut recesses, mast-screw pilots) and
+  2.3 mm (the rest of the cheeks). The ray-cast check finds nothing under 1.6 mm except the 1.5 mm edges of rails and
+  tie anchors.</li>
+<li><strong>Encoder ring.</strong> 0.6 mm thick, 3 layers at 0.2 mm, 100 % infill, matte black PLA, on a smooth clean bed. Peel it
+  off gently; it is floppy until it is glued. See milestone B for the contrast it needs.</li>
 <li><strong>Strength direction.</strong> The core's crash arms are loaded along the layers (strong). The mast and the ends of the
-  crash bars are loaded across the layers (weaker); section 6 of <a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/out/design.md"><code>out/design.md</code></a> checks them with that in mind.</li>
+  crash bars are loaded across the layers (weaker); section 6 of <a href="stage1-design.html"><code>out/design.md</code></a> checks them with that in mind.</li>
 </ul>
 <h2 id="board-mounts">Board mounts</h2>
 <p>All board sizes are [E], from typical listings. <strong>Measure yours</strong> before printing; every position is a named
 parameter at the top of <a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/stage1.py"><code>stage1.py</code></a>. Boards without holes sit on 1.6 mm printed rails (so their solder joints clear
 the plastic) and are held by one 2.5 mm zip tie through printed tie anchors.</p>
-<p><img alt="Mounts" src="assets/stage1_render_mounts.jpg" />
-| Board | Where (body frame, mm) | Assumed size | How it is held | Check on yours |
-|---|---|---|---|---|
-| <strong>GY-521 IMU</strong> | Front of the core, y -10.5..10.5, z 16..32, chip forward, 2 mm off the core | 21 x 16 x 1.6 [E], two ~3 mm holes 15 mm apart, 2.5 mm in from the edge opposite the header | Two M2.5 x 8 self-tappers into printed posts. Four pilots: the lower pair (z 18.5) for a board mounted 21 wide x 16 tall, or one side pair (y -7.5 or +7.5, z 18.5 and 33.5) for 16 wide x 21 tall. A small rest pad at the centre clears the header joints either way. | Hole spacing; where the silkscreen X arrow points (below) |
-| <strong>ESP32 DevKit</strong> | Back of the mast, across, y -27.5..27.5, z 100..128, module towards the plate, pins pointing back, USB to the robot's left | 55 x 28 [E] (38-pin, WROOM-32); first header pin 3.35 mm from each end | Four corner pads 6 mm tall under the PCB corners (clear of the module and the pin tails) and two zip ties along the board between the header rows, through holes in the two back flanges and one anchor. No screws: hole patterns vary between clones and most 38-pin boards have none. A 30-pin board (about 51 x 28) also fits; move the pads. | Length, width, where the first and last header pins are, module width (18), the USB end |
-| <strong>MX1508</strong> | Back of the mast, robot right, y -27..-2.3, z 76.5..97.5 | 24.7 x 21 [E], no holes; C1 470 uF on its + / - pads | Two rails, one tie through the flange root and the gusset root | Size, which edge has the motor pads |
-| <strong>Mini360</strong> | Back of the mast, robot left, y 4..21.2, z 80..91.2 | 17.2 x 11.2 [E] | Two rails, one tie through the gusset root and an anchor | Size |
-| <strong>2S BMS</strong> | Front of the mast, top, y -25..25, z 101..123 | 50 x 22 x 3.5 [E] | Two rails, one tie through two anchors | Size |
-| <strong>SW1 switch</strong> | Front of the mast, robot left, y 6..21.2, z 77..92.2, slider forward | 15.2 x 15.2 [E] (Pololu 2810 size) | Two rails, one tie low on the board, clear of the slider. 1.5 mm free round a fingertip on the slider. A KCD11 rocker would need its own panel hole. | Size, slider position |
-| <strong>JB junction board</strong> | Front of the mast, robot right, y -25.5..-4.5, z 79..92 | Perfboard cut to 8 x 5 holes, about 21 x 13 [E] | Two rails, one tie through two anchors. The K2 header stands on it; the mated K2 plug points forward with 2 mm of finger room round it. | Cut size |
-| <strong>K1 motor plug</strong> | Back face of the core, y -3.8..3.8, z 60..78 | JST-XH 2-pin, mated, ~7.5 x 5.8 x 18 [E] | Tied flat to the back of the core through the core's upper back tunnel (z 67.5). The core comes off the mast by unplugging it. | |
-| <strong>J1 charge jack</strong> | Hangs vertically in front of the robot-left front flange, centre (15.8, 28), z 100..114, socket pointing down | 11 mm diameter, 14 mm long [E] | Two ties round the jack and the flange's front edge, through the flange's two tie holes. A 10 mm charger plug comes in from below with 0.8 mm to spare. | Body diameter |
-| <strong>C3, 100 nF</strong> | Across the motor tabs, in the 5 mm pocket above the can | ~7 x 2.6 x 4 [E] | Soldered to the tabs | |
-| <strong>Battery holder</strong> | Tray, z 135..155.5 | 41 x 77.5 x 20.5 [E], two floor holes assumed on its centre line at y +-18 | Two M3 x 16 self-tappers down through the holder floor and the tray into bosses in the mast top (cells out to fit them). If your holder's holes are elsewhere, drill 3.2 mm holes at those two places. A 10 mm hook-and-loop strap round holder and tray holds the cells; it passes under the tray through a groove in the mast top. | Outer size, floor holes, floor thickness |</p>
+<p><img alt="Mounts" src="assets/stage1_render_mounts.jpg" / width="1100" height="855"></p>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>Board</th>
+<th>Where (body frame, mm)</th>
+<th>Assumed size</th>
+<th>How it is held</th>
+<th>Check on yours</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="Board"><strong>GY-521 IMU</strong></td>
+<td data-label="Where (body frame, mm)">Front of the core, y -10.5..10.5, z 16..32, chip forward, 2 mm off the core</td>
+<td data-label="Assumed size">21 x 16 x 1.6 [E], two ~3 mm holes 15 mm apart, 2.5 mm in from the edge opposite the header</td>
+<td data-label="How it is held">Two M2.5 x 8 self-tappers into printed posts. Four pilots: the lower pair (z 18.5) for a board mounted 21 wide x 16 tall, or one side pair (y -7.5 or +7.5, z 18.5 and 33.5) for 16 wide x 21 tall. A small rest pad at the centre clears the header joints either way.</td>
+<td data-label="Check on yours">Hole spacing; where the silkscreen X arrow points (below)</td>
+</tr>
+<tr>
+<td data-label="Board"><strong>ESP32 DevKit</strong></td>
+<td data-label="Where (body frame, mm)">Back of the mast, across, y -27.5..27.5, z 100..128, module towards the plate, pins pointing back, USB to the robot's left</td>
+<td data-label="Assumed size">55 x 28 [E] (38-pin, WROOM-32); first header pin 3.35 mm from each end</td>
+<td data-label="How it is held">Four corner pads 6 mm tall under the PCB corners (clear of the module and the pin tails) and two zip ties along the board between the header rows, through holes in the two back flanges and one anchor. No screws: hole patterns vary between clones and most 38-pin boards have none. A 30-pin board (about 51 x 28) also fits; move the pads.</td>
+<td data-label="Check on yours">Length, width, where the first and last header pins are, module width (18), the USB end</td>
+</tr>
+<tr>
+<td data-label="Board"><strong>MX1508</strong></td>
+<td data-label="Where (body frame, mm)">Back of the mast, robot right, y -27..-2.3, z 76.5..97.5</td>
+<td data-label="Assumed size">24.7 x 21 [E], no holes; C1 470 uF on its + / - pads</td>
+<td data-label="How it is held">Two rails, one tie through the flange root and the gusset root</td>
+<td data-label="Check on yours">Size, which edge has the motor pads</td>
+</tr>
+<tr>
+<td data-label="Board"><strong>Mini360</strong></td>
+<td data-label="Where (body frame, mm)">Back of the mast, robot left, y 4..21.2, z 80..91.2</td>
+<td data-label="Assumed size">17.2 x 11.2 [E]</td>
+<td data-label="How it is held">Two rails, one tie through the gusset root and an anchor</td>
+<td data-label="Check on yours">Size</td>
+</tr>
+<tr>
+<td data-label="Board"><strong>2S BMS</strong></td>
+<td data-label="Where (body frame, mm)">Front of the mast, top, y -25..25, z 101..123</td>
+<td data-label="Assumed size">50 x 22 x 3.5 [E]</td>
+<td data-label="How it is held">Two rails, one tie through two anchors</td>
+<td data-label="Check on yours">Size</td>
+</tr>
+<tr>
+<td data-label="Board"><strong>SW1 switch</strong></td>
+<td data-label="Where (body frame, mm)">Front of the mast, robot left, y 6..21.2, z 77..92.2, slider forward</td>
+<td data-label="Assumed size">15.2 x 15.2 [E] (Pololu 2810 size)</td>
+<td data-label="How it is held">Two rails, one tie low on the board, clear of the slider. 1.5 mm free round a fingertip on the slider. A KCD11 rocker would need its own panel hole.</td>
+<td data-label="Check on yours">Size, slider position</td>
+</tr>
+<tr>
+<td data-label="Board"><strong>JB junction board</strong></td>
+<td data-label="Where (body frame, mm)">Front of the mast, robot right, y -25.5..-4.5, z 79..92</td>
+<td data-label="Assumed size">Perfboard cut to 8 x 5 holes, about 21 x 13 [E]</td>
+<td data-label="How it is held">Two rails, one tie through two anchors. The K2 header stands on it; the mated K2 plug points forward with 2 mm of finger room round it.</td>
+<td data-label="Check on yours">Cut size</td>
+</tr>
+<tr>
+<td data-label="Board"><strong>K1 motor plug</strong></td>
+<td data-label="Where (body frame, mm)">Back face of the core, y -3.8..3.8, z 60..78</td>
+<td data-label="Assumed size">JST-XH 2-pin, mated, ~7.5 x 5.8 x 18 [E]</td>
+<td data-label="How it is held">Tied flat to the back of the core through the core's upper back tunnel (z 67.5). The core comes off the mast by unplugging it.</td>
+<td data-label="Check on yours"></td>
+</tr>
+<tr>
+<td data-label="Board"><strong>J1 charge jack</strong></td>
+<td data-label="Where (body frame, mm)">Hangs vertically in front of the robot-left front flange, centre (15.8, 28), z 100..114, socket pointing down</td>
+<td data-label="Assumed size">11 mm diameter, 14 mm long [E]</td>
+<td data-label="How it is held">Two ties round the jack and the flange's front edge, through the flange's two tie holes. A 10 mm charger plug comes in from below with 0.8 mm to spare.</td>
+<td data-label="Check on yours">Body diameter</td>
+</tr>
+<tr>
+<td data-label="Board"><strong>C3, 100 nF</strong></td>
+<td data-label="Where (body frame, mm)">Across the motor tabs, in the 5 mm pocket above the can</td>
+<td data-label="Assumed size">~7 x 2.6 x 4 [E]</td>
+<td data-label="How it is held">Soldered to the tabs</td>
+<td data-label="Check on yours"></td>
+</tr>
+<tr>
+<td data-label="Board"><strong>Battery holder</strong></td>
+<td data-label="Where (body frame, mm)">Tray, z 135..155.5</td>
+<td data-label="Assumed size">41 x 77.5 x 20.5 [E], two floor holes assumed on its centre line at y +-18</td>
+<td data-label="How it is held">Two M3 x 16 self-tappers down through the holder floor and the tray into bosses in the mast top (cells out to fit them). If your holder's holes are elsewhere, drill 3.2 mm holes at those two places. A 10 mm hook-and-loop strap round holder and tray holds the cells; it passes under the tray through a groove in the mast top.</td>
+<td data-label="Check on yours">Outer size, floor holes, floor thickness</td>
+</tr>
+</tbody>
+</table></div>
 <p><strong>GY-521 orientation.</strong> The firmware wants the chip facing forward and the silkscreen X arrow pointing <strong>up</strong>.
 The model draws the board 21 mm wide and 16 mm tall with its header along the top edge; that is right only if your
 board's X arrow runs across the header. If it runs along the header, X-up turns the board 16 wide by 21 tall with
@@ -268,9 +355,9 @@ its robot-right edge; <a href="stage1-wiring.html"><code>electronics.md</code></
 <tbody>
 <tr>
 <td data-label="Qty">4</td>
-<td data-label="Part">M3 x 20 socket head cap screw (ISO 4762)</td>
+<td data-label="Part">M3 x 20 button head screw (ISO 7380)</td>
 <td data-label="Where">Core clamp, heads in the left half</td>
-<td data-label="Length check">Head top 0.2 mm below the cheek face</td>
+<td data-label="Length check">Head top 1.5 mm below the cheek face. Socket heads (ISO 4762) fit too, but in milestone B the ring then passes the two lower heads with only 0.8 mm (2.15 mm with button heads)</td>
 </tr>
 <tr>
 <td data-label="Qty">4</td>
@@ -311,7 +398,7 @@ its robot-right edge; <a href="stage1-wiring.html"><code>electronics.md</code></
 <tr>
 <td data-label="Qty">about 12</td>
 <td data-label="Part">2.5 mm zip ties, 100 mm</td>
-<td data-label="Where">Boards, K1, J1, wire runs</td>
+<td data-label="Where">Boards, K1, J1, wire runs (2 of them for milestone B)</td>
 <td data-label="Length check"></td>
 </tr>
 <tr>
@@ -322,7 +409,7 @@ its robot-right edge; <a href="stage1-wiring.html"><code>electronics.md</code></
 </tr>
 </tbody>
 </table></div>
-<p>Each fastener hole has at least 1.9 mm of plastic round it (<a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/out/design.md"><code>out/design.md</code></a> section 5).</p>
+<p>Each fastener hole has at least 1.9 mm of plastic round it (<a href="stage1-design.html"><code>out/design.md</code></a> section 5).</p>
 <h2 id="before-you-print-measure-these">Before you print: measure these</h2>
 <ol>
 <li><strong>TT gearmotor.</strong> Gearbox thickness along the shaft (18.8 assumed), width (22.5), length (37), shaft to the near
@@ -332,6 +419,9 @@ its robot-right edge; <a href="stage1-wiring.html"><code>electronics.md</code></
 <li><strong>Wheels.</strong> Outer diameter, width, and how deep the hub goes on the shaft (5.5 mm used); spin one on a stub and
    check the inner face wobbles less than 1 mm (the gap to the cheek is 1.2 mm).</li>
 <li><strong>Boards</strong> in the table above, and the <strong>battery holder</strong>.</li>
+<li><strong>For milestone B:</strong> the left wheel's inside face between radius 17.5 and 25 mm (it must be flat enough to glue a
+   ring to), its colour (a yellow rim reflects infrared well, which is what the windows need), and your TCRT5000
+   module (32 x 14 mm assumed, sensor 10.2 x 5.8 x 7 mm [D]).</li>
 </ol>
 <p>Then print <code>core_left</code> first and check the gearbox fit, the pin holes and the wheel gap before printing the rest.</p>
 <h2 id="assembly">Assembly</h2>
@@ -341,7 +431,7 @@ its robot-right edge; <a href="stage1-wiring.html"><code>electronics.md</code></
 <li><strong>Motor.</strong> Solder about 60 mm of lead and C3 across the two tabs, and crimp or solder the K1 socket on the leads.</li>
 <li><strong>Core.</strong> Lay <code>core_right</code> on the bench, cut face up. Press the four nuts into their hex recesses from the outside.
    Push the pins through the gearbox holes, drop the motor in (shaft in the half-hole, can up, leads out of the
-   back slot), add <code>core_left</code>, and fit the four M3 x 20 bolts from the left. Tighten evenly until the halves meet;
+   back slot), add <code>core_left</code>, and fit the four M3 x 20 button-head bolts from the left. Tighten evenly until the halves meet;
    do not crush the gearbox.</li>
 <li><strong>IMU.</strong> Check the X arrow (above), then fix the GY-521 with two M2.5 x 8 self-tappers on the matching pilots.</li>
 <li><strong>Wheels.</strong> Push a wheel onto each stub until the hub sits 5.5 mm on (1.2 mm from the cheek), then fit the
@@ -356,11 +446,109 @@ its robot-right edge; <a href="stage1-wiring.html"><code>electronics.md</code></
 <li><strong>Cells and strap.</strong> Thread the strap under the tray through the groove, cells in, strap over. Switch on only
    after the checks in <a href="stage1-wiring.html"><code>electronics.md</code></a>.</li>
 </ol>
-<h2 id="checks-outdesignmd">Checks (<a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/out/design.md"><code>out/design.md</code></a>)</h2>
-<p>22 PASS, 0 FAIL. Among them:</p>
+<h2 id="milestone-b-the-wheel-sensor">Milestone B: the wheel sensor</h2>
+<p><img alt="The sensor and the ring" src="assets/stage1_render_sensor.jpg" / width="1100" height="488"></p>
+<p><strong>Why it sits under the core.</strong> The ring goes on the inside face of the left wheel, which faces the core across a
+1.2 mm gap. The core hides that face everywhere except below its bottom edge (z -15), so that is the only place a
+sensor can see the ring. The published robot's TCRT5000 module (32 x 14 mm) does not fit there: lying under the core it
+would be 3 mm too tall and its far end would hit the floor in a fall. So the bare TCRT5000 sensor sits in a clip under
+the core, and the module board, with its trimmer and LEDs, goes on the back of the core, joined by four short wires.
+<strong>That is an electrical change from the published robot: the TCRT5000 comes off its module and goes on a 4-wire
+pigtail</strong> (see <a href="stage1-wiring.html"><code>electronics.md</code></a>). The module's three output wires (VCC, GND, D0) are unchanged.</p>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th></th>
+<th>Value</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="">Sensor</td>
+<td data-label="Value">TCRT5000 in a clip printed under <code>core_left</code>, centred at (x 0, y 6.4, z -20.5) mm, lens face at y 9.9 facing the left wheel. Its long axis (emitter beside detector) is radial, so a window edge crosses both at once</td>
+<td data-label="Source">[D] body 10.2 x 5.8 x 7 mm</td>
+</tr>
+<tr>
+<td data-label="">Gap, lens to ring</td>
+<td data-label="Value"><strong>2.5 mm</strong>, the TCRT5000's peak operating distance (operating range 0.2-15 mm)</td>
+<td data-label="Source">[D] Vishay datasheet</td>
+</tr>
+<tr>
+<td data-label="">Ring</td>
+<td data-label="Value">0.6 mm printed ring, r 17.5-25 mm, 16 sector windows (11.25 deg window, 11.25 deg bar) from r 18.7 to 23.8, glued to the inside face of the left wheel. Sectors give 50 % mark/space at every radius; at the 20.5 mm read radius a window is 4.0 mm long</td>
+<td data-label="Source">[C]</td>
+</tr>
+<tr>
+<td data-label="">Resolution</td>
+<td data-label="Value">32 edges per turn: 6.4 mm of travel per edge</td>
+<td data-label="Source">[C]</td>
+</tr>
+<tr>
+<td data-label="">Ring to the core</td>
+<td data-label="Value">1.2 mm: the left cheek is recessed 0.6 mm in a band under the ring (the published robot's 1.2 mm ring would have touched)</td>
+<td data-label="Source">[C]</td>
+</tr>
+<tr>
+<td data-label="">Module</td>
+<td data-label="Value">TCRT5000 module board on two rails on the back of the core, y -7..7, z 14..46, components facing back; two ties through core tunnels at z 17 and 33</td>
+<td data-label="Source">[E] 32 x 14 mm</td>
+</tr>
+<tr>
+<td data-label="">Trimmer and LEDs</td>
+<td data-label="Value">Face backwards; a screwdriver reaches the trimmer from behind with 6.9 mm to spare</td>
+<td data-label="Source">design check</td>
+</tr>
+<tr>
+<td data-label="">Ground clearance under the clip</td>
+<td data-label="Value">4.8 mm upright. The crash bars still land first in a fall</td>
+<td data-label="Source">design check</td>
+</tr>
+<tr>
+<td data-label="">Mass</td>
+<td data-label="Value">6.1 g (sensor, module, ring, wires, two ties)</td>
+<td data-label="Source">[E]</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Contrast.</strong> The sensor needs the ring's bars dark and its windows bright in infrared. Print the ring in matte black
+PLA: the windows then show the wheel's yellow rim, which reflects well. Some black filaments reflect infrared; if the
+module's output LED will not switch cleanly, colour the ring with a black permanent marker, or print
+<a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/out/encoder_ring_template.svg"><code>out/encoder_ring_template.svg</code></a> at 100 % on plain paper, cut it out and glue that on instead (0.1 mm thick, black on white).
+Do not use a white ring on the yellow rim: both reflect.</p>
+<p><strong>Cable.</strong> The four pigtail wires leave the back of the clip under the core, run back along the underside and up
+through a slot in the back crash-arm root to the module's sensor pads. The module's 3-wire cable (VCC, GND, D0) runs
+up the back of the core (tied with K1 at z 67.5), then behind the MX1508 to the ESP32's lower header row (row A):
+<strong>IO34 is pin 15 from the USB end</strong> (<a href="stage1-wiring.html"><code>electronics.md</code></a>), with 3V3 and GND from the same row. Every wire stays inside the
+core's width or above the wheels; the check finds nothing in the wheels' swept volume.</p>
+<p><strong>Fitting it (milestone B), after milestone A works.</strong> The core does not come apart.</p>
+<ol>
+<li><strong>Module first.</strong> Take the TCRT5000 off its module: cut its legs if you can rather than desoldering, and find which
+   leg and pad is which with a meter before anything moves (<a href="stage1-wiring.html"><code>electronics.md</code></a>, Milestone B). Solder about 60 mm of four-core wire to the module's
+   sensor pads and, noting which pad is which, to the sensor's four leads; sleeve each joint.</li>
+<li><strong>Wheel off.</strong> Undo the left wheel's screw and pull the wheel off its stub.</li>
+<li><strong>Sensor in.</strong> Thread the pigtail out through the slot at the back of the clip, push the TCRT5000 into the clip
+   lenses first towards the wheel side, until its back sits on the clip floor (its lens face then stands 0.5 mm
+   proud of the clip, 2.5 mm from where the ring will be), and fix it with a dab of hot glue at the back.</li>
+<li><strong>Ring on.</strong> Centre the ring on the wheel's inside face (its inner edge on r 17.5 mm; a printed 35 mm disc or a
+   compass helps), glue it flat with thin CA, and let it set. Nothing may stand proud of the ring.</li>
+<li><strong>Wheel on.</strong> Push the wheel back to the same 5.5 mm on the stub, refit the screw, and spin it: nothing may touch.</li>
+<li><strong>Module and cable.</strong> Lay the module on the rails on the back of the core, trimmer facing you, and tie it through
+   the tunnels at z 17 and 33. Run the pigtail up through the arm slot, plug the 3-wire cable onto the module and the
+   ESP32 (IO34, 3V3, GND), and tie it with K1.</li>
+<li><strong>Set the trimmer.</strong> Power on with the wheels off the ground. Turn the wheel slowly by hand: the module's output
+   LED should change at every window edge, 32 times a turn. Turn the trimmer one way until the LED stays on over a bar,
+   back until it stays off over a window, and set it halfway between. Check that it still switches with the lights
+   on in the room.</li>
+</ol>
+<p><strong>Taking it out again</strong> for milestone A: unplug the 3-pin plug K3 above the module (<a href="stage1-wiring.html"><code>electronics.md</code></a>). Everything else can stay.</p>
+<h2 id="checks-outdesignmd">Checks (<a href="stage1-design.html"><code>out/design.md</code></a>)</h2>
+<p>28 PASS, 0 FAIL. Among them:</p>
 <ul>
 <li><strong>Clashes:</strong> no overlap between any two solids (printed parts, motor, wheels, boards, plugs, fasteners, wires, strap).</li>
-<li><strong>Wheels through a full turn:</strong> 1.2 mm from the cheeks, 1.4 mm from the bolt heads.</li>
+<li><strong>Wheels through a full turn</strong> (with the ring on the left wheel): 1.2 mm from the cheeks and the ring band, 1.4 mm
+  from the pins.</li>
+<li><strong>Wheel sensor:</strong> lens 2.50 mm from the ring, read radius inside the window band, trimmer reachable.</li>
 <li><strong>Access:</strong> USB plug 0.3 mm from the nearest part (the back-left flange stops just below it; a bulky plug may need
   that corner trimmed), finger on the switch 1.5 mm, charger plug 0.8 mm, K2 grip 2.0 mm, cells lift out with the
   strap off.</li>
@@ -376,8 +564,12 @@ its robot-right edge; <a href="stage1-wiring.html"><code>electronics.md</code></
 <ul>
 <li><strong>Every bought-part number is an estimate.</strong> The gearbox and its two holes matter most: if the holes are not at
   x +-8, z 18, the pins will not go in. Measure first, print <code>core_left</code> first.</li>
-<li><strong>Mass went up.</strong> 347 g against the first pass's 302 g, mostly because more is now counted. <a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/out/sim.md"><code>out/sim.md</code></a> is rerun
-  with the new mass and centre of mass.</li>
+<li><strong>Mass went up.</strong> 352 g (milestone B) against the first pass's 302 g, mostly because more is now counted.
+  <a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/out/model.json"><code>out/model.json</code></a> carries the milestone B mass; the simulator owner reruns <a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/sim.py"><code>sim.py</code></a> against it.</li>
+<li><strong>Milestone B is the least proven part.</strong> The sensor comes off its module onto a 4-wire pigtail; the ring is 0.6 mm
+  thick and depends on the wheel's inside face being flat and on the contrast between black PLA and the yellow rim,
+  neither of which has been checked. The clip leaves 4.8 mm of ground clearance, so the robot cannot cross a bump
+  taller than that at the axle.</li>
 <li><strong>The fall check is a model, not a test.</strong> It assumes PLA strengths [E] and ignores layer adhesion that varies
   with the printer. Side falls onto the tray and onto a wheel are only estimated. Drop-test on carpet first.</li>
 <li><strong>The crash-bar ends are the weakest printed feature</strong> (loaded across the layers). If one cracks, reprint the core
@@ -400,15 +592,19 @@ its robot-right edge; <a href="stage1-wiring.html"><code>electronics.md</code></
 <tbody>
 <tr>
 <td><a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/stage1.py"><code>stage1.py</code></a></td>
-<td>Every dimension (tagged), the four printed parts, the bought parts, fasteners and main wire runs, the design check, the renders</td>
+<td>Every dimension (tagged), the five printed parts, the bought parts, fasteners and main wire runs, the design check, the renders</td>
 </tr>
 <tr>
-<td><a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/out/design.md"><code>out/design.md</code></a></td>
+<td><a href="stage1-design.html"><code>out/design.md</code></a></td>
 <td>Mass table, balance, falls, clash and access checks, bed fit, manifold check, wall thickness, overhangs, fastener walls, screw lengths, fall loads, PASS/FAIL summary</td>
 </tr>
 <tr>
 <td><code>out/print/*.stl</code></td>
-<td>The four printed parts, each in its print orientation, lying on the bed at z = 0</td>
+<td>The five printed parts (four plus the milestone B encoder ring), each in its print orientation, lying on the bed at z = 0</td>
+</tr>
+<tr>
+<td><a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/out/encoder_ring_template.svg"><code>out/encoder_ring_template.svg</code></a></td>
+<td>The encoder ring 1:1 for paper, if you would rather print it on paper (milestone B)</td>
 </tr>
 <tr>
 <td><a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/out/model.json"><code>out/model.json</code></a>, <a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/out/body.stl"><code>out/body.stl</code></a>, <a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/out/wheels.stl"><code>out/wheels.stl</code></a></td>
@@ -416,7 +612,11 @@ its robot-right edge; <a href="stage1-wiring.html"><code>electronics.md</code></
 </tr>
 <tr>
 <td><code>out/render_*.png</code></td>
-<td>Front, back, orthographic views, exploded view, mounts close-up, each part on the bed</td>
+<td>Front, back, orthographic views, exploded view, mounts close-up, each part on the bed, the wheel sensor (<code>render_sensor.png</code>)</td>
+</tr>
+<tr>
+<td><a href="assets/stage1_step_a.jpg"><code>out/step_a.png</code></a> ... <code>step_e.png</code></td>
+<td>The build in five stages, for the build guide</td>
 </tr>
 </tbody>
 </table></div>
@@ -479,13 +679,15 @@ its robot-right edge; <a href="stage1-wiring.html"><code>electronics.md</code></
 </tr>
 </tbody>
 </table></div></section></details>
-<div class="pager"><a href="stage1.html">&larr; Stage 1</a><a href="stage1-wiring.html">Stage 1: wiring &rarr;</a></div>
+<div class="pager"><a href="stage1.html">&larr; Back to the Stage 1 guide</a><span></span></div>
 </main></div>
-<footer><div class="wrap">Tailwhip is an open robot project from <a href="https://buildrobotz.com/">BuildRobotz</a>. The design was generated with AI and has not yet been built or tested on hardware; performance figures are MuJoCo simulation results. Build at your own risk. Code, CAD and firmware: <a href="https://github.com/buildrobotz/tailwhip-robot">github.com/buildrobotz/tailwhip-robot</a> (code MIT, docs and CAD CC BY-SA 4.0).<br>
-<a href="https://buildrobotz.com/robots/">More robots to build</a> · <a href="https://ouro.buildrobotz.com/">Ouro, its sister project</a> · <a href="https://buildrobotz.com/">Learn robotics with BuildRobotz</a></div></footer>
+<footer><div class="wrap layout"><div></div><div>Tailwhip is an open robot project from <a href="https://buildrobotz.com/">BuildRobotz</a>. The design was generated with AI and has not yet been built or tested on hardware; performance figures are MuJoCo simulation results. Build at your own risk. Code, CAD and firmware: <a href="https://github.com/buildrobotz/tailwhip-robot">github.com/buildrobotz/tailwhip-robot</a> (code MIT, docs and CAD CC BY-SA 4.0).<br>
+<a href="https://buildrobotz.com/robots/">More robots to build</a> · <a href="https://ouro.buildrobotz.com/">Ouro, its sister project</a> · <a href="https://buildrobotz.com/">Learn robotics with BuildRobotz</a></div></div></footer>
 <script>(function(){var a=document.querySelector('nav [aria-current]');if(a&&a.parentNode.scrollWidth>a.parentNode.clientWidth)a.parentNode.scrollLeft=a.offsetLeft-a.parentNode.clientWidth/2+a.offsetWidth/2;
 function op(){var t=location.hash&&document.getElementById(decodeURIComponent(location.hash.slice(1)));for(var e=t;e;e=e.parentElement)if(e.tagName==='DETAILS')e.open=true;if(t)t.scrollIntoView();}
-addEventListener('hashchange',op);op();})();</script>
+addEventListener('hashchange',op);op();
+var ls=[].slice.call(document.querySelectorAll('.onpage a'));if(ls.length&&'IntersectionObserver'in window){var hs=ls.map(function(l){return document.getElementById(decodeURIComponent(l.hash.slice(1)))});
+var on=function(){var k=0;hs.forEach(function(h,i){if(h&&h.getBoundingClientRect().top<120)k=i});ls.forEach(function(l,i){l.classList.toggle('here',i===k)})};addEventListener('scroll',on,{passive:true});on();}})();</script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>

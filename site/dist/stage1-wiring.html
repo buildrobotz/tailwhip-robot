@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Stage 1: wiring · Tailwhip robot</title>
-<meta name="description" content="Every pin of every board and every wire, end to end: the schematic, the wire-by-wire drawing, the IMU wiring, and a power-up checklist with a meter reading at each step.">
-<meta property="og:title" content="Stage 1: circuit and wiring"><meta property="og:description" content="Every pin of every board and every wire, end to end: the schematic, the wire-by-wire drawing, the IMU wiring, and a power-up checklist with a meter reading at each step.">
+<title>Stage 1 reference · Electronics · Tailwhip robot</title>
+<meta name="description" content="The circuit, every wire end to end, the current budget, battery safety and the power-up checklist with a meter reading at each step.">
+<meta property="og:title" content="Stage 1 reference: Electronics"><meta property="og:description" content="The circuit, every wire end to end, the current budget, battery safety and the power-up checklist with a meter reading at each step.">
 <meta property="og:image" content="https://tailwhip.buildrobotz.com/assets/cad_render_upright.jpg">
 <link rel="icon" href="data:,"><link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -10,12 +10,9 @@
 <body>
 <div class="crumb"><div class="wrap"><a href="https://buildrobotz.com/">BuildRobotz</a><span aria-hidden="true">/</span><a href="https://buildrobotz.com/robots/">Robots</a><span aria-hidden="true">/</span><span>Tailwhip</span></div></div>
 <header class="top"><div class="wrap"><a class="brand" href="index.html">Tailwhip<span>.</span></a><nav aria-label="Project pages"><a href="index.html">Overview</a><a href="stage1.html" aria-current="page">Stage 1</a><a href="build.html">Build plan</a><a href="parts.html">Parts</a><a href="mechanical.html">Mechanical</a><a href="electronics.html">Electronics</a><a href="software.html">Software</a><a href="learning.html">Simulation and RL</a><a href="course.html">Learning path</a><a href="risks.html">Limits</a></nav></div></header>
-<div class="wrap"><main>
-<header><div class="eyebrow">BuildRobotz project · Stage 1: wiring</div><h1>Stage 1: circuit and wiring</h1><p class="lede">Every pin of every board and every wire, end to end: the schematic, the wire-by-wire drawing, the IMU wiring, and a power-up checklist with a meter reading at each step.</p></header>
-<nav class="subnav" aria-label="Stage 1 pages"><a href="stage1.html">1. Why and results</a><a href="stage1-print.html">2. Print and assemble</a><a href="stage1-wiring.html" aria-current="page">3. Circuit and wiring</a><a href="stage1-firmware.html">4. Flash and tune</a></nav><details class="toc"><summary>On this page</summary><ol><li><a href="#how-it-works-block-diagram-in-words">How it works (block diagram in words)</a></li><li><a href="#parts-on-this-page">Parts on this page</a></li><li><a href="#battery-safety-and-charging">Battery safety and charging</a></li><li><a href="#power-tree-and-current-budget">Power tree and current budget</a></li><li><a href="#protection-chain-cells-bms-ptc-switch-rail">Protection chain: cells → BMS → PTC → switch → rail</a></li><li><a href="#mini360-setting-it-to-50-v">Mini360: setting it to 5.0 V</a></li><li><a href="#battery-sense-divider-maths-and-adc-range">Battery sense: divider maths and ADC range</a></li><li><a href="#mx1508">MX1508</a></li><li><a href="#imu-wiring">IMU wiring</a></li><li><a href="#esp32-pin-map">ESP32 pin map</a></li><li><a href="#decoupling">Decoupling</a></li><li><a href="#grounds">Grounds</a></li><li><a href="#board-positions">Board positions</a></li><li><a href="#wire-list">Wire list</a></li><li><a href="#connector-plan">Connector plan</a></li><li><a href="#power-up-checklist">Power-up checklist</a></li><li><a href="#troubleshooting">Troubleshooting</a></li><li><a href="#reference">Reference</a></li></ol></details><div class="note"><b>Read this first: designed and simulated, not built</b>Designed and simulated. Not printed, not built. The firmware compiles for the ESP32 but has not run on hardware. Every motor and mass figure is an estimate carried over from the published Tailwhip. Like the rest of Tailwhip, the design, its code and these pages were generated with AI. Measure what the pages tell you to, check each step with a meter, expect to fix things, and build at your own risk, especially around the 18650 cells.</div>
-<figure class="fig"><div class="svgwrap native"><a href="assets/stage1_schematic.svg"><img src="assets/stage1_schematic.svg" alt="Schematic" width="1700" height="1330"></a></div><figcaption><b>SCHEMATIC</b> · full size: scroll inside the frame, or open the image on its own</figcaption></figure><figure class="fig"><div class="svgwrap native"><a href="assets/stage1_wiring.svg"><img src="assets/stage1_wiring.svg" alt="Every wire, on the robot" width="1780" height="1460"></a></div><figcaption><b>EVERY WIRE, ON THE ROBOT</b> · full size: scroll inside the frame, or open the image on its own</figcaption></figure>
-<section class="prose"><h4>Download the drawings</h4><p><a class="btn" href="assets/stage1_schematic.svg" download="tailwhip_stage1_schematic.svg">schematic.svg</a> <a class="btn" href="assets/stage1_wiring.svg" download="tailwhip_stage1_wiring.svg">wiring.svg</a> <a class="btn" href="assets/stage1_electronics.json" download="tailwhip_stage1_electronics.json">electronics.json</a> <a class="btn" href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/docs/tools/gen_electronics.py">gen_electronics.py (makes all three)</a></p></section>
-<section class="prose"><blockquote>
+<div class="wrap layout"><aside class="rail"><nav class="onpage" aria-label="On this page"><div class="label">On this page</div><ol><li class="h2"><a href="#how-it-works-block-diagram-in-words">How it works (block diagram in words)</a></li><li class="h2"><a href="#parts-on-this-page">Parts on this page</a></li><li class="h2"><a href="#battery-safety-and-charging">Battery safety and charging</a></li><li class="h2"><a href="#power-tree-and-current-budget">Power tree and current budget</a></li><li class="h2"><a href="#protection-chain-cells-bms-ptc-switch-rail">Protection chain: cells → BMS → PTC → switch → rail</a></li><li class="h2"><a href="#mini360-setting-it-to-50-v">Mini360: setting it to 5.0 V</a></li><li class="h2"><a href="#battery-sense-divider-maths-and-adc-range">Battery sense: divider maths and ADC range</a></li><li class="h2"><a href="#mx1508">MX1508</a></li><li class="h2"><a href="#imu-wiring">IMU wiring</a></li><li class="h2"><a href="#esp32-pin-map">ESP32 pin map</a></li><li class="h2"><a href="#decoupling">Decoupling</a></li><li class="h2"><a href="#grounds">Grounds</a></li><li class="h2"><a href="#board-positions">Board positions</a></li><li class="h2"><a href="#wire-list">Wire list</a></li><li class="h2"><a href="#connector-plan">Connector plan</a></li><li class="h2"><a href="#power-up-checklist">Power-up checklist</a></li><li class="h2"><a href="#milestone-b-wheel-sensor">Milestone B: wheel sensor</a></li><li class="h2"><a href="#troubleshooting">Troubleshooting</a></li><li class="h2"><a href="#reference">Reference</a></li></ol></nav></aside><main class="refpage">
+<header><div class="eyebrow">BuildRobotz project · Stage 1 reference · Electronics</div><h1>Stage 1 reference: Electronics</h1><p class="lede">The circuit, every wire end to end, the current budget, battery safety and the power-up checklist with a meter reading at each step.</p></header>
+<nav class="subnav" aria-label="Stage 1 reference"><a href="stage1.html">&larr; Stage 1: the bare-minimum balancer</a><span>Reference:</span><a href="stage1-print.html">Mechanical</a> · <a href="stage1-wiring.html" aria-current="page">Electronics</a> · <a href="stage1-firmware.html">Firmware and tuning</a> · <a href="stage1-sim.html">Simulation</a> · <a href="stage1-design.html">Design check</a></nav><details class="toc"><summary>On this page</summary><ol><li class="h2"><a href="#how-it-works-block-diagram-in-words">How it works (block diagram in words)</a></li><li class="h2"><a href="#parts-on-this-page">Parts on this page</a></li><li class="h2"><a href="#battery-safety-and-charging">Battery safety and charging</a></li><li class="h2"><a href="#power-tree-and-current-budget">Power tree and current budget</a></li><li class="h2"><a href="#protection-chain-cells-bms-ptc-switch-rail">Protection chain: cells → BMS → PTC → switch → rail</a></li><li class="h2"><a href="#mini360-setting-it-to-50-v">Mini360: setting it to 5.0 V</a></li><li class="h2"><a href="#battery-sense-divider-maths-and-adc-range">Battery sense: divider maths and ADC range</a></li><li class="h2"><a href="#mx1508">MX1508</a></li><li class="h2"><a href="#imu-wiring">IMU wiring</a></li><li class="h2"><a href="#esp32-pin-map">ESP32 pin map</a></li><li class="h2"><a href="#decoupling">Decoupling</a></li><li class="h2"><a href="#grounds">Grounds</a></li><li class="h2"><a href="#board-positions">Board positions</a></li><li class="h2"><a href="#wire-list">Wire list</a></li><li class="h2"><a href="#connector-plan">Connector plan</a></li><li class="h2"><a href="#power-up-checklist">Power-up checklist</a></li><li class="h2"><a href="#milestone-b-wheel-sensor">Milestone B: wheel sensor</a></li><li class="h2"><a href="#troubleshooting">Troubleshooting</a></li><li class="h2"><a href="#reference">Reference</a></li></ol></details><div class="note refnote"><b>Reference</b>This page is detail behind the <a href="stage1.html">Stage 1 guide</a>. You can build without reading it: each step of the guide links to the section it needs when something goes wrong. Like everything in Tailwhip, it is designed and simulated, not built.</div><section class="prose"><blockquote>
 <p><strong>AI-generated, designed and simulated, not built.</strong> Nothing on this page has been wired, powered or measured.
 Every number is tagged [D] datasheet or seller listing, [E] estimate, [C] chosen by this design, or [S] from the
 stage 1 simulation (<a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/sim.py"><code>sim.py</code></a>). The meter readings in the power-up checklist are gates: do not connect the next
@@ -25,17 +22,23 @@ part until you get the reading the table gives.</p>
 MX1508. It gives you the circuit, where every wire goes on the robot, the current each part draws, and the order to
 power it up in. Board positions, mounts and cable routes follow the final <a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/stage1.py"><code>stage1.py</code></a> and <a href="stage1-print.html"><code>mechanical.md</code></a>. The published Tailwhip's electronics page (<a href="electronics.html"><code>docs/electronics.md</code></a>) uses the same parts and the same
 reference numbers where a part is shared, so stage 1 carries into stage 2 without rewiring the power section.</p>
+<p>Stage 1 is built in two milestones. <strong>Milestone A</strong> balances on the IMU alone: everything on this page except the
+section "Milestone B: wheel sensor". <strong>Milestone B</strong> adds one wheel sensor so the robot can hold its position. It
+plugs in without re-soldering anything on the robot. Every milestone B item is marked (B) in the tables and drawn
+dashed in both drawings.</p>
 <p>Drawings:</p>
 <ul>
-<li><a href="assets/stage1_schematic.svg"><code>schematic.svg</code></a>: the full circuit, every pin of every board by the name printed on it.</li>
-<li><a href="assets/stage1_wiring.svg"><code>wiring.svg</code></a>: the robot itself, both faces of the mast unfolded, with every wire drawn end to end in
+<li><a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/docs/schematic.svg"><code>schematic.svg</code></a>: the full circuit, every pin of every board by the name printed on it.</li>
+<li><a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/docs/wiring.svg"><code>wiring.svg</code></a>: the robot itself, both faces of the mast unfolded, with every wire drawn end to end in
   the colour to use. You should be able to wire the robot from this drawing alone.</li>
-<li><a href="assets/stage1_electronics.json"><code>electronics.json</code></a>: the same model in machine-readable form (parts, every pin, nets, wires,
+<li><a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/docs/electronics.json"><code>electronics.json</code></a>: the same model in machine-readable form (parts, every pin, nets, wires,
   ESP32 pin map, power budget).</li>
 </ul>
 <p>All three come from <a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/docs/tools/gen_electronics.py"><code>tools/gen_electronics.py</code></a>. It checks that every net is joined end to end by a wire or an
 on-board connection (nothing implied), that every pin of every board is drawn, that the pin numbers and constants in
 <a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/firmware/stage1_balance/stage1_balance.ino"><code>../firmware/stage1_balance/stage1_balance.ino</code></a> match the circuit, and that no labels overlap.</p>
+<figure class="fig wide"><div class="svgwrap native"><a href="assets/stage1_schematic.svg"><img src="assets/stage1_schematic.svg" alt="Schematic" width="1700" height="1330"></a></div><figcaption><b>SCHEMATIC</b> · drawn full size: scroll inside the frame, or <a href="assets/stage1_schematic.svg" download="tailwhip_stage1_schematic.svg">download schematic.svg</a></figcaption></figure>
+<figure class="fig wide"><div class="svgwrap native"><a href="assets/stage1_wiring.svg"><img src="assets/stage1_wiring.svg" alt="Wiring" width="1780" height="1900"></a></div><figcaption><b>WIRING</b> · drawn full size: scroll inside the frame, or <a href="assets/stage1_wiring.svg" download="tailwhip_stage1_wiring.svg">download wiring.svg</a></figcaption></figure>
 <hr />
 <h2 id="how-it-works-block-diagram-in-words">How it works (block diagram in words)</h2>
 <pre><code>2 x 18650 (BT1, unprotected) -- B+ / BM / B- --&gt; 2S BMS (U3)
@@ -196,6 +199,12 @@ cap the motor voltage at 6.0 V and stop at a low battery.</p>
 <td data-label="Qty"></td>
 <td data-label="Notes"></td>
 </tr>
+<tr>
+<td data-label="Ref">U7, U8, K3, R5, C4, C5</td>
+<td data-label="Part"><strong>(B)</strong> Wheel sensor parts</td>
+<td data-label="Qty"></td>
+<td data-label="Notes">See "Milestone B: wheel sensor", Parts.</td>
+</tr>
 </tbody>
 </table></div>
 <hr />
@@ -293,6 +302,13 @@ cap the motor voltage at 6.0 V and stop at a low battery.</p>
 <td data-label="Typical (A)"></td>
 <td data-label="Peak (A)">about 3</td>
 <td data-label="Source">[E] (6 V + 6 V back-EMF) / 4 Ω, for tens of ms. Not seen in the simulated runs</td>
+</tr>
+<tr>
+<td data-label="Load"><strong>(B)</strong> TCRT5000 wheel sensor</td>
+<td data-label="Rail">3V3</td>
+<td data-label="Typical (A)">0.02</td>
+<td data-label="Peak (A)">0.025</td>
+<td data-label="Source">[E] IR LED 10-20 mA, LM393 0.4 mA [D], two indicator LEDs. About 10 mA more at the pack</td>
 </tr>
 </tbody>
 </table></div>
@@ -740,6 +756,15 @@ rows, so the pins point back at you and the printed labels are on the far side. 
 <td data-label="Checks">Strapping pin: must be low or open to enter download mode; the LED and its resistor hold it low. Fine.</td>
 </tr>
 <tr>
+<td data-label="GPIO">34</td>
+<td data-label="Printed label">IO34 (D34)</td>
+<td data-label="Row, pin from USB end">A, 15</td>
+<td data-label="Net">IR_D0</td>
+<td data-label="Dir">in</td>
+<td data-label="Use"><strong>(B)</strong> Wheel sensor D0 (W30)</td>
+<td data-label="Checks">Input only, no internal pulls: R5 100k pull-down and C4 10 nF at K3. Not a strapping pin. Open in milestone A (the firmware detects a floating input).</td>
+</tr>
+<tr>
 <td data-label="GPIO">-</td>
 <td data-label="Printed label">5V (VIN)</td>
 <td data-label="Row, pin from USB end">A, 1</td>
@@ -754,7 +779,7 @@ rows, so the pins point back at you and the printed labels are on the far side. 
 <td data-label="Row, pin from USB end">A, 6</td>
 <td data-label="Net">GND</td>
 <td data-label="Dir">pwr</td>
-<td data-label="Use">To Mini360 OUT- (W16)</td>
+<td data-label="Use">To Mini360 OUT- (W16); (B) also the wheel sensor through the Y-lead W29</td>
 <td data-label="Checks"></td>
 </tr>
 <tr>
@@ -763,8 +788,8 @@ rows, so the pins point back at you and the printed labels are on the far side. 
 <td data-label="Row, pin from USB end">A, 19</td>
 <td data-label="Net">3V3</td>
 <td data-label="Dir">pwr</td>
-<td data-label="Use">To GY-521 VCC (W24)</td>
-<td data-label="Checks">The DevKit regulator's output, about 10 mA used.</td>
+<td data-label="Use">To GY-521 VCC (W24); (B) also the wheel sensor through the Y-lead W28</td>
+<td data-label="Checks">The DevKit regulator's output: about 10 mA used, 30 mA with the sensor.</td>
 </tr>
 <tr>
 <td data-label="GPIO">-</td>
@@ -779,7 +804,8 @@ rows, so the pins point back at you and the printed labels are on the far side. 
 </table></div>
 <p><strong>Avoided, and why:</strong> GPIO0, 5, 12 and 15 are strapping pins (GPIO12 in particular sets the flash voltage at reset
 and must stay low); GPIO6-11 (SD0-SD3, CMD, CLK) are the flash; GPIO1 and 3 are the USB serial; GPIO34, 35 and 39 are
-input only. None of them is used. Every unused pin is left open.</p>
+input only. None of them is used, except GPIO34 for the milestone B wheel sensor (input only is right for it). Every
+unused pin is left open.</p>
 <p><strong>30-pin DevKit instead?</strong> Same GPIOs, different positions: wire by the printed label (D25, D26, D21, D22, VP, VIN,
 3V3, GND), not by position. On the common 30-pin DOIT board, VP, D25, D26 and VIN are on one row and D21, D22, GND and
 3V3 on the other.</p>
@@ -1233,6 +1259,7 @@ Refs and pins are as printed on each board. "F-F jumper" = Dupont female-female 
 </tr>
 </tbody>
 </table></div>
+<p>Milestone B wires W28-W37 are listed in "Milestone B: wheel sensor".</p>
 <p><strong>Joins with no wire:</strong> C1's legs on the MX1508 + and - pads (stripe to -); R3 from the IN1 header pin to the - pad
 and R4 from IN2 to -, on the underside of the MX1508; C3's legs on the two motor tabs; on JB, the K2 header, R1 (VB
 to VS), R2 and C2 (VS to GND), joined by solder bridges or tinned wire on the perfboard.</p>
@@ -1292,13 +1319,18 @@ moment while C2 charges); VB to VS about 100 kΩ; VB to GND never under 100 kΩ.
 <td data-label="Why"></td>
 </tr>
 <tr>
+<td data-label="What comes apart"><strong>(B)</strong> Wheel sensor</td>
+<td data-label="How"><strong>K3</strong> JST-XH 3-pin plug just above the module on the back of the core. The cable's ESP32 end is Dupont, with Y-leads on 3V3 and GND</td>
+<td data-label="Why">Milestone B goes on without soldering on the robot. Unplugging K3 takes the robot back to milestone A, with R5 holding GPIO34 low. A keyed plug, because a loose 3-pin Dupont housing on the module header can go on shifted by one and short 3V3 to GND.</td>
+</tr>
+<tr>
 <td data-label="What comes apart">MX1508 power and motor pads, Mini360 pads, BMS pads, switch, fuse</td>
 <td data-label="How">Soldered</td>
 <td data-label="Why">Small pads with no room for connectors. Replace by unsoldering 2-4 wires.</td>
 </tr>
 </tbody>
 </table></div>
-<p>K1 and K2 are polarised, so they cannot go in backwards. Crimp red to pin 1 on both halves of each, and check with
+<p>K1, K2 and K3 are polarised, so they cannot go in backwards. Crimp red to pin 1 on both halves of each, and check with
 the meter at the step that first uses them.</p>
 <hr />
 <h2 id="power-up-checklist">Power-up checklist</h2>
@@ -1366,11 +1398,474 @@ otherwise. Motor unplugged at K1 until step 7.</p>
 <td data-label="#">8</td>
 <td data-label="Connect">Meter in series at K2 (10 A range), robot on the stand.</td>
 <td data-label="Do">Idle, then <code>motor 1 3000</code>.</td>
-<td data-label="Expect">Idle about 0.06 A [E]; no-load full speed about 0.2 A [E: 0.16 A x duty + logic]. <strong>Write both down</strong>, with the no-load wheel speed from bring-up step 3 (<a href="stage1-firmware.html#bring-up">Flash and tune</a>).</td>
+<td data-label="Expect">Idle about 0.06 A [E]; no-load full speed about 0.2 A [E: 0.16 A x duty + logic]. <strong>Write both down</strong>, with the no-load wheel speed from the README's bench step 3.</td>
 </tr>
 </tbody>
 </table></div>
-<p>Then carry on with the <a href="stage1-firmware.html#bring-up">bring-up on the Flash and tune page</a> (gains, trim, <code>stream 1</code>).</p>
+<p>Then carry on with the README's bring-up (gains, trim, <code>stream 1</code>). For milestone B, continue with steps B0-B4 in
+"Milestone B: wheel sensor".</p>
+<hr />
+<h2 id="milestone-b-wheel-sensor">Milestone B: wheel sensor</h2>
+<blockquote>
+<p><strong>Milestone A builders: skip this whole section.</strong> Milestone A balances on the IMU alone, and everything above this
+section is a complete build without it. Milestone B adds one wheel sensor so the robot can hold its position. In
+both drawings the milestone B parts sit inside a dashed outline, and their wires are dashed.</p>
+</blockquote>
+<h3 id="what-it-is">What it is</h3>
+<p>The sensor is a <strong>TCRT5000 reflective IR sensor with its LM393 comparator module</strong>, the part the published Tailwhip
+uses. It reads a printed ring on the inside of the <strong>left</strong> wheel. The ring is 0.6 mm matte black PLA with 16 sector
+windows that show the wheel's yellow rim (<a href="stage1-print.html"><code>mechanical.md</code></a>). The firmware counts both edges of every window: <strong>32
+edges per turn</strong>, 11.25 deg or 6.4 mm of travel each.</p>
+<p>The only place the ring can be seen is under the core, and the module (32 x 14 mm) does not fit there. So the
+mechanical design splits it in two:</p>
+<ul>
+<li><strong>U8</strong>, the bare TCRT5000, is desoldered from the module and pushed into a clip printed under <code>core_left</code>, at
+  (x 0, y 6.4, z -20.5) mm. Its lenses face the ring 2.5 mm away.</li>
+<li><strong>U7</strong>, the module board (comparator, trimmer, LEDs), sits on rails on the <strong>back</strong> of the core (y -7..7,
+  z 14..46), trimmer and LEDs facing back.</li>
+<li>A <strong>60 mm four-wire pigtail</strong> (W34-W37) joins U8's four legs to U7's four sensor pads.</li>
+<li>The module's <strong>three-wire cable</strong> (VCC, GND, D0) goes through the <strong>K3</strong> plug, just above the module. It then runs
+  up the back of the core (tied with K1 at z 67.5), behind the MX1508, to the ESP32's <strong>row A</strong>.</li>
+</ul>
+<p>The firmware (<code>PIN_IR = 34</code>, present in the sketch) counts edges on an interrupt with a 1 ms lockout. It trusts the
+sensor after 8 believable edges, and falls back to milestone A by itself if the sensor goes quiet or is noisy.</p>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>Connection</th>
+<th>From</th>
+<th>To</th>
+<th>Wire</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="Connection">3V3</td>
+<td data-label="From">ESP32 <strong>3V3</strong> (row A, 19th pin from the USB end), Y-lead shared with the IMU's W24</td>
+<td data-label="To">K3 pin 1, then module <strong>VCC</strong></td>
+<td data-label="Wire">W28, W31</td>
+</tr>
+<tr>
+<td data-label="Connection">GND</td>
+<td data-label="From">ESP32 <strong>GND</strong> (row A, 6th pin from the USB end), Y-lead shared with W16</td>
+<td data-label="To">K3 pin 2, then module <strong>GND</strong></td>
+<td data-label="Wire">W29, W32</td>
+</tr>
+<tr>
+<td data-label="Connection">D0</td>
+<td data-label="From">ESP32 <strong>IO34</strong> (D34, GPIO34; row A, 15th pin from the USB end)</td>
+<td data-label="To">K3 pin 3, then module <strong>D0</strong> (printed DO on some boards)</td>
+<td data-label="Wire">W30, W33</td>
+</tr>
+<tr>
+<td data-label="Connection">A0 (AO)</td>
+<td data-label="From">not connected</td>
+<td data-label="To"></td>
+<td data-label="Wire"></td>
+</tr>
+<tr>
+<td data-label="Connection">IR LED anode</td>
+<td data-label="From">module sensor pad <strong>A</strong></td>
+<td data-label="To">U8 leg <strong>A</strong></td>
+<td data-label="Wire">W34 (red)</td>
+</tr>
+<tr>
+<td data-label="Connection">IR LED cathode</td>
+<td data-label="From">module sensor pad <strong>K</strong></td>
+<td data-label="To">U8 leg <strong>K</strong></td>
+<td data-label="Wire">W35 (black)</td>
+</tr>
+<tr>
+<td data-label="Connection">Detector collector</td>
+<td data-label="From">module sensor pad <strong>C</strong></td>
+<td data-label="To">U8 leg <strong>C</strong></td>
+<td data-label="Wire">W36 (white)</td>
+</tr>
+<tr>
+<td data-label="Connection">Detector emitter</td>
+<td data-label="From">module sensor pad <strong>E</strong></td>
+<td data-label="To">U8 leg <strong>E</strong></td>
+<td data-label="Wire">W37 (blue)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="which-leg-goes-to-which-pad">Which leg goes to which pad</h3>
+<p>The TCRT5000 has an IR LED (anode A, cathode K) and a phototransistor (collector C, emitter E) side by side. Vishay
+numbers the legs C, E, A, K [D Vishay TCRT5000]. On the common module the LED side is the one with the clear or blue
+lens, and the detector has the black lens [E]. <strong>Don't go by the lens colour or the silkscreen. Identify both ends with
+the meter before you cut anything:</strong></p>
+<ol>
+<li><strong>The module pads, module unpowered and the sensor still on it.</strong> Diode test from the module's GND pin: the pads
+   that beep to GND are <strong>K</strong> and <strong>E</strong>. Of the other two, the one with a few hundred ohms to the VCC pin is <strong>A</strong> (the
+   LED resistor). The one with about 10 kΩ to VCC is <strong>C</strong> (the detector pull-up) [E typical module]. Mark each pad
+   with a fine pen, on the board, before anything moves.</li>
+<li><strong>The sensor's legs, after it is off the board.</strong> Diode test across each pair. The LED pair reads about 1.1-1.2 V
+   one way (red probe on <strong>A</strong>) and open the other way. The detector pair reads open both ways in the dark. Under a
+   phone torch or daylight it may read a little one way: the red probe on that reading is <strong>C</strong> [E]. Mark the legs.</li>
+<li>Join A to A, K to K, C to C, E to E.</li>
+</ol>
+<p><strong>What a wrong pair does.</strong> At 3.3 V nothing is damaged: the TCRT5000's reverse limits are 5 V for both the LED and
+the detector [D Vishay]. A reversed LED stays dark. A reversed or swapped detector reads nothing. The module then never
+switches, and its D0 LED stays one way whatever is in front of the sensor. Swapped the other way round (LED where the
+detector goes), the LED gets only the 10 kΩ pull-up current and stays dark. So a wrong pair costs you a re-solder, not
+a part. The exception is 5 V: never power the module from 5 V during this test.</p>
+<h3 id="taking-the-sensor-off-and-extending-it-without-cooking-it">Taking the sensor off and extending it without cooking it</h3>
+<ul>
+<li><strong>Cut, don't desolder, if you can.</strong> Snip the four legs close to the module board, leaving the sensor's legs as long
+  as possible. Then clean the four pads with solder wick, or solder the pigtail to the leg stubs left in the board.
+  The sensor never sees the iron for long. If you desolder instead, use a pump or wick, 330-350 °C [E], under
+  3 seconds a joint, and let it cool between joints.</li>
+<li><strong>Joints on the legs.</strong> Solder each pigtail wire at least 2 mm from the body (Vishay's limit is 260 °C for 10 s at
+  2 mm or more [D]). Hold the leg with tweezers between the joint and the body as a heat sink. Tin wire and leg first,
+  then join them in one touch of about 1 s.</li>
+<li><strong>Leg length.</strong> The clip's lead slot lets the legs stick out about 2.5 mm behind the body (<a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/stage1.py"><code>stage1.py</code></a>). Cut each leg
+  to about 4 mm, stagger the four joints along the wires so they cannot touch, and put 1.5 mm heat-shrink over each.
+  Don't bend a leg at the body.</li>
+<li><strong>The wire.</strong> Four-core, 28-30 AWG, about 60 mm. Twist the LED pair (A, K) together and the detector pair (C, E)
+  together, about one turn per centimetre.</li>
+</ul>
+<h3 id="does-the-60-mm-pigtail-beside-the-motor-need-anything">Does the 60 mm pigtail beside the motor need anything?</h3>
+<p>The detector side is the sensitive one. Its collector node feeds the LM393 input through a pull-up of about 10 kΩ
+[E], which is a high-impedance node. A wire beside the motor can couple the motor's PWM edges (8 V in tens of ns) into
+it. 2 pF of coupling [E] at about 160 V/µs gives roughly 0.3 mA [E], a spike of volts on a 10 kΩ node for a fraction
+of a microsecond. The comparator has no hysteresis on most modules [E], so near its threshold that becomes extra
+edges. The run is short and mostly under the core, away from the motor leads, so the risk is modest. The fixes are
+cheap, so this design includes them:</p>
+<ul>
+<li><strong>Twist the detector pair (C, E) and the LED pair (A, K).</strong> Twisting cancels most of the coupled pick-up and costs
+  nothing.</li>
+<li><strong>C5, 10 nF across the module's C and E pads</strong> [C]. With the 10 kΩ pull-up it is a 0.1 ms low-pass on the detector
+  signal. At top speed a window lasts 9.4 ms, so the edges barely move. The TCRT5000 itself is slower than that filter
+  anyway: 10 µs rise and fall, but much slower at the low light levels it sees [D Vishay]. Solder C5 on the module's
+  underside, legs short.</li>
+<li><strong>No shielding is needed</strong> at these lengths [E]. If you still see stray counts with the robot still and the motor
+  running (<code>irw 1</code>), first move the pigtail further from the motor leads. Then double C5 to 22 nF.</li>
+</ul>
+<p>The LED pair carries a steady 10-20 mA and is not sensitive.</p>
+<h3 id="the-alternative-a-bare-tcrt5000-and-two-resistors-into-gpio34">The alternative: a bare TCRT5000 and two resistors into GPIO34</h3>
+<p>You could drop the module entirely. Run the LED from 3V3 through a resistor (about 120 Ω, 17 mA [E]), give the
+phototransistor a pull-up (10-47 kΩ, picked by trial), and wire the collector straight to GPIO34. Fewer parts, no
+desoldering, and only one 4-wire cable.</p>
+<p><strong>I recommend keeping the module</strong>, for a beginner especially:</p>
+<ul>
+<li><strong>It sets its own threshold.</strong> The comparator gives clean digital edges at a threshold you set with the trimmer, and
+  its D0 LED shows you when it switches. That makes the setup in "Adjusting the trimmer" something you can see.</li>
+<li><strong>The bare version has no threshold you can turn.</strong> It depends on the pull-up value, the ring's contrast, the gap and
+  the room light. It is set by changing resistors.</li>
+<li><strong>Slow edges miscount.</strong> The bare collector voltage moves slowly as a window edge crosses the spot, over
+  milliseconds at low wheel speed. GPIO34's input has no Schmitt trigger [E], so a slow edge can fire several
+  interrupts more than 1 ms apart. The firmware's lockout would not catch them, and the count would be wrong at
+  exactly the low speeds where balancing lives. Reading it on the ADC with hysteresis in software would fix that, but
+  it is a firmware change, and the agreed firmware uses an edge interrupt.</li>
+<li><strong>It matches the published robot</strong>, so the same skills, parts and firmware carry into stage 2.</li>
+</ul>
+<p>The bare version is worth it only if you have no module, or the module refuses to switch on your ring.</p>
+<h3 id="design">Design</h3>
+<ul>
+<li><strong>Supply: 3.3 V, from the ESP32's only 3V3 pin.</strong> The D0 pull-up goes to the module's own VCC [E]; on 5 V it would
+  put 5 V on GPIO34, which is a 3.3 V pin.</li>
+<li><strong>Sharing the 3V3 pin (the split).</strong> The IMU's W24 already sits on it. The split is a <strong>Y-lead (W28)</strong> made off the
+  robot, in place of a joint on JB: JB has no 3.3 V, and a splice on the robot would mean soldering there. W28's
+  Dupont female goes on the 3V3 pin. About 3 cm along, the wire splits: one branch ends in a single male header pin
+  that W24's female plugs onto, the other runs to K3. The ground is split the same way (W29) on the row-A GND pin
+  with W16. That keeps the whole sensor cable on row A, as the mechanical route expects. The IMU now reaches 3V3
+  through one more Dupont contact. A contact is good for an amp or more [E] and the IMU draws 5 mA, so the extra
+  contact is a reliability matter, not a current one. Tie the Y-lead to the ESP32's tie so nothing pulls on it.</li>
+<li><strong>3V3 budget.</strong> The module draws about 15-25 mA at 3.3 V [E]: the IR LED through its series resistor (10-20 mA
+  [E]), the LM393 (0.4 mA [D TI LM393]) and its two indicator LEDs (1-2 mA each [E]). The DevKit's AMS1117 regulator
+  is rated 800 mA [D]. With the ESP32 (no radio, 30-68 mA [D]) and the GY-521 (5 mA) it carries under 0.1 A and
+  dissipates about (5.0 - 3.3) V x 0.1 A = 0.17 W [E]. The Mini360 sees about 25 mA more. At the pack it is about
+  10 mA [E].</li>
+<li><strong>Output stage.</strong> The LM393's output is open collector [D] with a pull-up of about 10 kΩ on the module [E]. A
+  strong reflection (a window, showing the yellow rim) drives D0 low and lights the D0 LED [D listings]. A black bar
+  lets it rise. With R5 the high level is 3.3 x 100 / (100 + 10) = <strong>3.0 V</strong>, above the ESP32's 2.5 V logic-high
+  threshold (0.75 x 3.3 V [D]). The low level is under 0.4 V [D LM393].</li>
+<li><strong>R5, 100 kΩ pull-down on GPIO34.</strong> GPIO34 has no internal pull resistors [D ESP32]. With the module unplugged it
+  would float and pick up the motor's PWM as false edges. R5 holds it at 0 V, which the firmware reads as "no
+  sensor". R5 is on the robot side of K3, so it stays when the module is unplugged.</li>
+<li><strong>C4, 10 nF on D0.</strong> The cable is tied with K1, right beside the motor leads. C4 with the module pull-up gives a
+  0.1 ms rise time constant. The fall is fast because the LM393 sinks it. Spikes are filtered and real edges barely
+  move.</li>
+<li><strong>Edge rate against the firmware.</strong> The fastest the wheel turns is no load, about 200 rpm = 21 rad/s [E, the
+  simulator's figure]. That is 3.3 turns/s x 32 = <strong>107 edges/s, one every 9.4 ms</strong>. The simulator's largest
+  balancing speed, 0.64 m/s [S], gives 100 edges/s. The firmware ignores edges closer than <strong>1 ms</strong>
+  (<code>IR_LOCKOUT_US</code>). That is a 9x margin, and it could count up to 1000 edges/s. The two 0.1 ms filters are about 1 %
+  of the shortest edge spacing.</li>
+<li><strong>Chatter.</strong> With no comparator hysteresis, D0 can toggle a few times within microseconds at a window edge. The
+  1 ms lockout drops the repeats. If counts still double, turn the trimmer a little away from the switching point.</li>
+<li><strong>Light.</strong> Sunlight and incandescent light contain IR and can hold D0 one way. The clip shades the sensor. Check the
+  switching with the room lights on.</li>
+<li><strong>Milestone A, no cable fitted.</strong> GPIO34 then floats. The firmware counts edges during the 1 s gyro calibration,
+  when the robot is still. More than 4 edges means a floating input, and it stays on the IMU. If you plan
+  milestone B, you can fit the cable (W28-W30 with R5 and C4) at milestone A: it holds GPIO34 low and changes nothing
+  else.</li>
+</ul>
+<h3 id="parts-milestone-b">Parts (milestone B)</h3>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>Ref</th>
+<th>Part</th>
+<th>Qty</th>
+<th>About</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="Ref">U7, U8</td>
+<td data-label="Part">TCRT5000 IR reflective module, LM393, digital DO, blue trimmer, 3.3-5 V</td>
+<td data-label="Qty">1</td>
+<td data-label="About">$0.80 (10-pack $7.99, published BOM)</td>
+<td data-label="Notes">U8 is its own sensor, moved to the clip</td>
+</tr>
+<tr>
+<td data-label="Ref">K3</td>
+<td data-label="Part">JST-XH 3-pin wire-to-wire pair (pre-crimped plug and socket leads)</td>
+<td data-label="Qty">1</td>
+<td data-label="About">~$0.80 [E]</td>
+<td data-label="Notes">The sensor plug</td>
+</tr>
+<tr>
+<td data-label="Ref">R5</td>
+<td data-label="Part">100 kΩ 1/4 W</td>
+<td data-label="Qty">1</td>
+<td data-label="About">(resistor kit)</td>
+<td data-label="Notes">Pull-down, at K3</td>
+</tr>
+<tr>
+<td data-label="Ref">C4, C5</td>
+<td data-label="Part">10 nF ceramic, 50 V</td>
+<td data-label="Qty">2</td>
+<td data-label="About">~$0.10 each [E]</td>
+<td data-label="Notes">C4 at K3, C5 on the module's C-E pads</td>
+</tr>
+<tr>
+<td data-label="Ref"></td>
+<td data-label="Part">Four-core wire, 28-30 AWG, 10 cm (or four strands of ribbon cable)</td>
+<td data-label="Qty">1</td>
+<td data-label="About">~$0.20 [E]</td>
+<td data-label="Notes">Sensor pigtail W34-W37</td>
+</tr>
+<tr>
+<td data-label="Ref"></td>
+<td data-label="Part">Dupont F-F jumpers, 20 cm</td>
+<td data-label="Qty">3</td>
+<td data-label="About">~$0.15 each [E]</td>
+<td data-label="Notes">W28, W29, W30; two become Y-leads</td>
+</tr>
+<tr>
+<td data-label="Ref"></td>
+<td data-label="Part">Male header pins</td>
+<td data-label="Qty">2</td>
+<td data-label="About">(from the 40-pin strip)</td>
+<td data-label="Notes">The Y-leads' branch pins</td>
+</tr>
+<tr>
+<td data-label="Ref"></td>
+<td data-label="Part">1.5 mm heat-shrink, 26 AWG wire</td>
+<td data-label="Qty"></td>
+<td data-label="About"></td>
+<td data-label="Notes">Leg joints, Y splices, R5/C4</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="wires-milestone-b">Wires (milestone B)</h3>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>Id</th>
+<th>From</th>
+<th>To</th>
+<th>Net</th>
+<th>Colour</th>
+<th>AWG</th>
+<th>mm</th>
+<th>Ends</th>
+<th>Route / note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="Id">W28</td>
+<td data-label="From">ESP32 3V3 (row A, pin 19 from USB)</td>
+<td data-label="To">K3 pin 1</td>
+<td data-label="Net">3V3</td>
+<td data-label="Colour">red</td>
+<td data-label="AWG">jumper</td>
+<td data-label="mm">130</td>
+<td data-label="Ends">Dupont (Y) / XH crimp</td>
+<td data-label="Route / note">Y-lead: one Dupont female on the 3V3 pin, splitting 3 cm along into a male pin for W24 and this run. Behind the MX1508, down the back of the core (tied with K1) to K3</td>
+</tr>
+<tr>
+<td data-label="Id">W29</td>
+<td data-label="From">ESP32 GND (row A, pin 6 from USB)</td>
+<td data-label="To">K3 pin 2</td>
+<td data-label="Net">GND</td>
+<td data-label="Colour">black</td>
+<td data-label="AWG">jumper</td>
+<td data-label="mm">130</td>
+<td data-label="Ends">Dupont (Y) / XH crimp</td>
+<td data-label="Route / note">Y-lead on the row-A GND pin, shared with W16 the same way; with W28</td>
+</tr>
+<tr>
+<td data-label="Id">W30</td>
+<td data-label="From">ESP32 IO34 (row A, pin 15 from USB)</td>
+<td data-label="To">K3 pin 3</td>
+<td data-label="Net">IR_D0</td>
+<td data-label="Colour">green</td>
+<td data-label="AWG">jumper</td>
+<td data-label="mm">130</td>
+<td data-label="Ends">Dupont / XH crimp</td>
+<td data-label="Route / note">With W28; a 20 cm jumper, far end cut and crimped into K3</td>
+</tr>
+<tr>
+<td data-label="Id">W31</td>
+<td data-label="From">K3 pin 1</td>
+<td data-label="To">Module VCC</td>
+<td data-label="Net">3V3</td>
+<td data-label="Colour">red</td>
+<td data-label="AWG">26</td>
+<td data-label="mm">40</td>
+<td data-label="Ends">XH crimp / Dupont</td>
+<td data-label="Route / note">Module lead</td>
+</tr>
+<tr>
+<td data-label="Id">W32</td>
+<td data-label="From">K3 pin 2</td>
+<td data-label="To">Module GND</td>
+<td data-label="Net">GND</td>
+<td data-label="Colour">black</td>
+<td data-label="AWG">26</td>
+<td data-label="mm">40</td>
+<td data-label="Ends">XH crimp / Dupont</td>
+<td data-label="Route / note">Module lead</td>
+</tr>
+<tr>
+<td data-label="Id">W33</td>
+<td data-label="From">K3 pin 3</td>
+<td data-label="To">Module D0</td>
+<td data-label="Net">IR_D0</td>
+<td data-label="Colour">green</td>
+<td data-label="AWG">26</td>
+<td data-label="mm">40</td>
+<td data-label="Ends">XH crimp / Dupont</td>
+<td data-label="Route / note">Module lead. Leave A0 empty</td>
+</tr>
+<tr>
+<td data-label="Id">W34</td>
+<td data-label="From">Module sensor pad A</td>
+<td data-label="To">U8 leg A</td>
+<td data-label="Net">IR_A</td>
+<td data-label="Colour">red</td>
+<td data-label="AWG">28-30</td>
+<td data-label="mm">60</td>
+<td data-label="Ends">solder / solder</td>
+<td data-label="Route / note">Sensor pigtail, LED pair, twisted with W35. Out of the back of the clip, under the core, up the slot in the back crash-arm root</td>
+</tr>
+<tr>
+<td data-label="Id">W35</td>
+<td data-label="From">Module sensor pad K</td>
+<td data-label="To">U8 leg K</td>
+<td data-label="Net">GND</td>
+<td data-label="Colour">black</td>
+<td data-label="AWG">28-30</td>
+<td data-label="mm">60</td>
+<td data-label="Ends">solder / solder</td>
+<td data-label="Route / note">LED pair</td>
+</tr>
+<tr>
+<td data-label="Id">W36</td>
+<td data-label="From">Module sensor pad C</td>
+<td data-label="To">U8 leg C</td>
+<td data-label="Net">IR_C</td>
+<td data-label="Colour">white</td>
+<td data-label="AWG">28-30</td>
+<td data-label="mm">60</td>
+<td data-label="Ends">solder / solder</td>
+<td data-label="Route / note">Detector pair, twisted with W37</td>
+</tr>
+<tr>
+<td data-label="Id">W37</td>
+<td data-label="From">Module sensor pad E</td>
+<td data-label="To">U8 leg E</td>
+<td data-label="Net">GND</td>
+<td data-label="Colour">blue</td>
+<td data-label="AWG">28-30</td>
+<td data-label="mm">60</td>
+<td data-label="Ends">solder / solder</td>
+<td data-label="Route / note">Detector pair</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Joins with no wire:</strong> R5 and C4 across K3 pins 3 and 2 on the robot side, soldered to the wire ends behind the XH
+housing, in heat-shrink. C5 across the module's C and E sensor pads, on its underside.</p>
+<p><strong>Lengths</strong> are estimates from the <a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/stage1.py"><code>stage1.py</code></a> route [E]. From row A down to K3 just above the module is about 10 cm,
+so a 20 cm jumper has plenty to spare.</p>
+<h3 id="fitting-it-no-soldering-on-the-robot">Fitting it: no soldering on the robot</h3>
+<p>Do this after milestone A works, alongside the mechanical steps in <a href="stage1-print.html"><code>mechanical.md</code></a> (Milestone B, steps 1-6).</p>
+<ol>
+<li><strong>Module and sensor, on the bench.</strong> Identify the pads and legs ("Which leg goes to which pad"). Take the sensor off,
+   then solder the pigtail and C5.</li>
+<li><strong>Sensor cable, on the bench.</strong> Make the two Y-leads (W28, W29). Crimp W28, W29 and W30 into the K3 socket in the
+   order 3V3, GND, D0 (pins 1, 2, 3). Solder R5 and C4 across pins 3 and 2 behind the housing, and heat-shrink them.
+   Make the module lead: three Dupont females for the module's VCC, GND and D0, crimped into the K3 plug in the same
+   order.</li>
+<li><strong>On the robot.</strong> Fit the sensor, ring, wheel and module as <a href="stage1-print.html"><code>mechanical.md</code></a> says. Unplug W24 (3V3) and W16 (GND)
+   from the ESP32. Plug the Y-leads' females onto 3V3 (row A, 19th pin from USB) and GND (row A, 6th from USB), and
+   plug W24 and W16 onto the Y-leads' male pins. Plug W30 onto IO34 (row A, 15th from USB). Tie the cable with K1 and
+   plug K3.</li>
+</ol>
+<p><strong>Back to milestone A:</strong> unplug K3. R5 keeps IO34 low, and the firmware falls back to the IMU by itself.</p>
+<h3 id="adjusting-the-trimmer">Adjusting the trimmer</h3>
+<p>With the robot on and the wheels off the ground, turn the left wheel slowly by hand. The D0 LED must follow the ring:
+<strong>on over each window</strong> (yellow rim), off over each bar (black). If it stays one way, turn the blue trimmer slowly
+until it starts to follow. Find the trimmer positions where it stops following on each side, and set it midway between
+them. Check again with the room lights on.</p>
+<h3 id="power-up-milestone-b">Power-up (milestone B)</h3>
+<p>Do these after step 8 of the main checklist, with the robot otherwise working.</p>
+<div class="tablewrap"><table class="stack">
+<thead>
+<tr>
+<th>#</th>
+<th>Connect</th>
+<th>Do</th>
+<th>Expect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="#">B0</td>
+<td data-label="Connect">Module with its sensor still on it, on the bench, powered from a 3.3 V supply (or the ESP32's 3V3 and GND on the bench)</td>
+<td data-label="Do">Hold the black ring material, then the wheel's yellow rim, 2-3 mm in front of the sensor.</td>
+<td data-label="Expect">Power LED on. Yellow rim: D0 LED on, D0 under 0.4 V. Black: D0 LED off, D0 at 3.3 V (no R5 on the bench). If neither changes it, turn the trimmer. This proves the module before you take it apart.</td>
+</tr>
+<tr>
+<td data-label="#">B1</td>
+<td data-label="Connect">SW1 off. Sensor cable fitted, K3 not plugged.</td>
+<td data-label="Do">Ohms on the K3 socket, pin 3 to pin 2. Then SW1 on: volts on pins 1-2 and 3-2.</td>
+<td data-label="Expect">About 100 kΩ (R5; C4 makes it climb for a moment). SW1 on: pins 1-2 = 3.30 ± 0.1 V; pins 3-2 = 0 V. <code>show</code> and balancing work as before: milestone A is unchanged.</td>
+</tr>
+<tr>
+<td data-label="#">B2</td>
+<td data-label="Connect">SW1 off. Sensor in its clip, module on the core, pigtail done. Meter on ohms across the module's A and K pads, then C and E (module unpowered).</td>
+<td data-label="Do">Check the pigtail.</td>
+<td data-label="Expect">A-K: about 1.1-1.2 V in diode test one way, open the other. C-E: open in the dark. No pad shorted to another.</td>
+</tr>
+<tr>
+<td data-label="#">B3</td>
+<td data-label="Connect">Plug K3. SW1 on, wheels off the ground.</td>
+<td data-label="Do">Set the trimmer (above). Type <code>irw 1</code> and turn the left wheel exactly one turn by hand.</td>
+<td data-label="Expect">Power LED on. D0 LED on over each of the 16 windows. The edge count goes up by <strong>32</strong> a turn, with no double counts. D0: under 0.4 V over a window, about 3.0 V over a bar [E].</td>
+</tr>
+<tr>
+<td data-label="#">B4</td>
+<td data-label="Connect">Robot on the stand.</td>
+<td data-label="Do"><code>motor 1 3000</code> with <code>irw 1</code>; then <code>motor 0.3 1000</code> with the wheel held still by hand for a moment.</td>
+<td data-label="Expect">About 100 edges/s at no-load speed [E]. No counts while the wheel is held still with the motor driving: a count then means noise (see the pigtail section). Pack current about 10 mA higher than in step 8 [E].</td>
+</tr>
+</tbody>
+</table></div>
 <hr />
 <h2 id="troubleshooting">Troubleshooting</h2>
 <div class="tablewrap"><table class="stack">
@@ -1421,6 +1916,21 @@ otherwise. Motor unplugged at K1 until step 7.</p>
 <td data-label="Symptom">Robot idles, LED blinking 1 Hz</td>
 <td data-label="Likely cause">Low battery (6.4 V for 2 s)</td>
 <td data-label="Fix">Charge. A reset clears it.</td>
+</tr>
+<tr>
+<td data-label="Symptom"><strong>(B)</strong> No wheel counts while the wheel turns, D0 LED never changes</td>
+<td data-label="Likely cause">Pigtail pair swapped, trimmer, sunlight, or K3 not plugged</td>
+<td data-label="Fix">Steps B2-B3; check A, K, C, E against "Which leg goes to which pad".</td>
+</tr>
+<tr>
+<td data-label="Symptom"><strong>(B)</strong> Counts while the wheel is still, or twice per edge</td>
+<td data-label="Likely cause">Comparator chatter at a window edge, or noise on the pigtail or cable</td>
+<td data-label="Fix">Turn the trimmer a little; check C5 and C4; twist the pigtail pairs; move them from the motor leads.</td>
+</tr>
+<tr>
+<td data-label="Symptom"><strong>(B)</strong> D0 reads 5 V</td>
+<td data-label="Likely cause">Module powered from 5 V</td>
+<td data-label="Fix">VCC must come from 3V3 (W28).</td>
 </tr>
 </tbody>
 </table></div>
@@ -1475,7 +1985,7 @@ otherwise. Motor unplugged at K1 until step 7.</p>
 </tbody>
 </table></div>
 <hr />
-</details><details class="ref" id="firmware-notes-no-change-made"><summary>Firmware notes (no change made)</summary>
+</details><details class="ref" id="firmware-notes-no-change-made-here"><summary>Firmware notes (no change made here)</summary>
 <p>The sketch matches this circuit: IN1/IN2 on GPIO25/26, SDA/SCL on 21/22, battery on GPIO36 through 100k over 33k,
 LED on GPIO2, MPU-6050 at 0x68, 20 kHz 10-bit slow-decay PWM, 6.0 V cap, 6.4 V low-battery stop. Two optional
 changes, for whoever owns the firmware:</p>
@@ -1483,6 +1993,9 @@ changes, for whoever owns the firmware:</p>
 <li>Make the bench <code>motor</code> command refuse to run while <code>lowBatt</code> is set (today it is checked before the low-battery
    branch), so it cannot drive the motor from USB power through the Mini360.</li>
 <li>If step 6 shows the battery reading off by more than 0.1 V, add a <code>BATT_CAL</code> factor as the published robot has.</li>
+<li><strong>(B)</strong> The sketch now has the wheel sensor: <code>PIN_IR = 34</code> (the generator checks it against this circuit), a
+   1 ms lockout, trust after 8 believable edges, and a floating-input check during gyro calibration. Both a steady low
+   (R5, module unplugged) and a floating pin (milestone A, no cable) end up as "no sensor".</li>
 </ol>
 <hr />
 </details><details class="ref" id="sources-for-the-numbers"><summary>Sources for the numbers</summary>
@@ -1547,6 +2060,18 @@ changes, for whoever owns the firmware:</p>
 <td>TI and Toshiba datasheets [D]</td>
 </tr>
 <tr>
+<td>TCRT5000 legs C, E, A, K; reverse limits 5 V; 10 µs response; soldering 260 °C 10 s at 2 mm or more; LM393 0.4 mA supply, open-collector output, under 0.4 V low</td>
+<td>Vishay TCRT5000, TI LM393 datasheets [D]</td>
+</tr>
+<tr>
+<td>TCRT5000 module: D0 low and LED on with a reflection; 3.3-5 V</td>
+<td>Seller listings, published BOM [D listings]</td>
+</tr>
+<tr>
+<td>AMS1117 800 mA</td>
+<td>AMS1117 datasheet [D]</td>
+</tr>
+<tr>
 <td>Motor current while balancing, mean 0.41-0.44 A, peak 1.55-1.65 A</td>
 <td><a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/sim.py"><code>sim.py</code></a> nominal runs, current from the simulator's motor model [S]</td>
 </tr>
@@ -1556,12 +2081,14 @@ changes, for whoever owns the firmware:</p>
 </tr>
 </tbody>
 </table></div></section></details>
-<div class="pager"><a href="stage1-print.html">&larr; Stage 1: print</a><a href="stage1-firmware.html">Stage 1: tune &rarr;</a></div>
+<div class="pager"><a href="stage1.html">&larr; Back to the Stage 1 guide</a><span></span></div>
 </main></div>
-<footer><div class="wrap">Tailwhip is an open robot project from <a href="https://buildrobotz.com/">BuildRobotz</a>. The design was generated with AI and has not yet been built or tested on hardware; performance figures are MuJoCo simulation results. Build at your own risk. Code, CAD and firmware: <a href="https://github.com/buildrobotz/tailwhip-robot">github.com/buildrobotz/tailwhip-robot</a> (code MIT, docs and CAD CC BY-SA 4.0).<br>
-<a href="https://buildrobotz.com/robots/">More robots to build</a> · <a href="https://ouro.buildrobotz.com/">Ouro, its sister project</a> · <a href="https://buildrobotz.com/">Learn robotics with BuildRobotz</a></div></footer>
+<footer><div class="wrap layout"><div></div><div>Tailwhip is an open robot project from <a href="https://buildrobotz.com/">BuildRobotz</a>. The design was generated with AI and has not yet been built or tested on hardware; performance figures are MuJoCo simulation results. Build at your own risk. Code, CAD and firmware: <a href="https://github.com/buildrobotz/tailwhip-robot">github.com/buildrobotz/tailwhip-robot</a> (code MIT, docs and CAD CC BY-SA 4.0).<br>
+<a href="https://buildrobotz.com/robots/">More robots to build</a> · <a href="https://ouro.buildrobotz.com/">Ouro, its sister project</a> · <a href="https://buildrobotz.com/">Learn robotics with BuildRobotz</a></div></div></footer>
 <script>(function(){var a=document.querySelector('nav [aria-current]');if(a&&a.parentNode.scrollWidth>a.parentNode.clientWidth)a.parentNode.scrollLeft=a.offsetLeft-a.parentNode.clientWidth/2+a.offsetWidth/2;
 function op(){var t=location.hash&&document.getElementById(decodeURIComponent(location.hash.slice(1)));for(var e=t;e;e=e.parentElement)if(e.tagName==='DETAILS')e.open=true;if(t)t.scrollIntoView();}
-addEventListener('hashchange',op);op();})();</script>
+addEventListener('hashchange',op);op();
+var ls=[].slice.call(document.querySelectorAll('.onpage a'));if(ls.length&&'IntersectionObserver'in window){var hs=ls.map(function(l){return document.getElementById(decodeURIComponent(l.hash.slice(1)))});
+var on=function(){var k=0;hs.forEach(function(h,i){if(h&&h.getBoundingClientRect().top<120)k=i});ls.forEach(function(l,i){l.classList.toggle('here',i===k)})};addEventListener('scroll',on,{passive:true});on();}})();</script>
 
 </body></html>
