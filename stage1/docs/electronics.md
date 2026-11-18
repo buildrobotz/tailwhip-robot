@@ -410,7 +410,7 @@ routes are in [`mechanical.md`](mechanical.md).
 
 | Board | Where | Box (mm) |
 |---|---|---|
-| U5 ESP32 | Back of the mast, lying across, module toward the plate, pins pointing back, USB to the robot's left; four corner pads, two ties | y -27.5..27.5, z 100..128 |
+| U5 ESP32 | Back of the mast, lying across, module toward the plate, pins pointing back, USB to the robot's left; four corner pads, two ties | y -27.5..27.5, z 101.5..129.5 |
 | U4 MX1508 | Back, below the ESP32, robot-right side, clear of the gusset at y = 0; rails and one tie | y -27..-2.3, z 76.5..97.5 |
 | U1 Mini360 | Back, below the ESP32, robot-left side; rails and one tie | y 4..21.2, z 80..91.2 |
 | K1 motor plug | Back face of the core, lying vertical, tied through the core's upper back tunnel (z 67.5) | y -3.8..3.8, z 60..78 |

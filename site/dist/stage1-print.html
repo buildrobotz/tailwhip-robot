@@ -122,7 +122,7 @@ same for both; milestone B adds the ring, the sensor and its module, and is fitt
 </tr>
 </tbody>
 </table></div>
-<p>All five fit an Ender 3 bed (220 x 220); the core halves can go on one plate. <code>core_left</code> is 100 mm across in its
+<p>All five fit an Ender 3 bed (220 x 220) and a Bambu P1S (256 x 256); the core halves can go on one plate. <code>core_left</code> is 100 mm across in its
 print pose (was 87) because of the sensor clip under the core; it prints for milestone A too and does no harm there.</p>
 <p><img alt="Each part in its print orientation" src="assets/stage1_render_print.jpg" / width="1100" height="570"></p>
 <h3 id="print-settings">Print settings</h3>
@@ -176,9 +176,19 @@ print pose (was 87) because of the sensor clip under the core; it prints for mil
 </table></div>
 <ul>
 <li><strong>Bridges in the core.</strong> The cheek over the gearbox pocket is the part's top: its first layer is a 23 mm bridge,
-  then the rest of the 2.3 mm is solid top layers (7 top layers). The can pocket roof is a 13-15 mm bridge, the
-  solder-tab and lead-slot roofs 4 mm. Let the slicer's bridge detection handle them; a slight sag only tightens
-  the gearbox fit. Everything else that faces down is a hole roof or a ledge of 3.6 mm or less.</li>
+  then the rest of the 2.3 mm is solid top layers (7 top layers). The can and solder-tab pockets share one roof, a
+  13-15 mm bridge; the lead-slot roof is 4 mm. Let the slicer's bridge detection handle them; a slight sag only
+  tightens the gearbox fit. Everything else that faces down is a hole roof, a 45 degree chin or a ledge of 3 mm
+  or less.</li>
+<li><strong>The holes through the pocket roof open in steps.</strong> A round hole in a bridge has nothing under its rim, and
+  Bambu Studio stops with "floating cantilever" when it sees one. So the shaft hole and the two pin holes start as
+  a slot right across the pocket (0.3 mm); the pin holes are round from there, and the 8 mm shaft hole goes through
+  a square (0.3 mm) first. The slicer bridges straight past them. Nothing to cut out afterwards. The cost: the
+  cheek is 0.3 mm thinner in a 3 mm strip at the pins (0.6 mm in an 8 mm strip at the shaft), and each pin sits in
+  1.2 mm of round hole per cheek instead of 1.5.</li>
+<li><strong>Slicer warnings.</strong> Sliced in Bambu Studio 2.9 (P1S, 0.20 mm Standard, supports off), all five parts give no
+  warning. <a href="https://github.com/buildrobotz/tailwhip-robot/blob/main/stage1/stage1.py"><code>stage1.py</code></a> runs the same two tests on every export: the STL file as written has no zero-area or
+  reversed triangles, and no overhang is a floating cantilever by Bambu Studio's rule.</li>
 <li><strong>Elephant's foot.</strong> The core prints on its split face, which is also the mouth of the gearbox pocket. The
   pocket has a 0.4 mm chamfer at that face so a squashed first layer does not pinch the gearbox; also turn on
   elephant's-foot compensation (0.2 mm) if your slicer has it.</li>
@@ -220,7 +230,7 @@ the plastic) and are held by one 2.5 mm zip tie through printed tie anchors.</p>
 </tr>
 <tr>
 <td data-label="Board"><strong>ESP32 DevKit</strong></td>
-<td data-label="Where (body frame, mm)">Back of the mast, across, y -27.5..27.5, z 100..128, module towards the plate, pins pointing back, USB to the robot's left</td>
+<td data-label="Where (body frame, mm)">Back of the mast, across, y -27.5..27.5, z 101.5..129.5, module towards the plate, pins pointing back, USB to the robot's left</td>
 <td data-label="Assumed size">55 x 28 [E] (38-pin, WROOM-32); first header pin 3.35 mm from each end</td>
 <td data-label="How it is held">Four corner pads 6 mm tall under the PCB corners (clear of the module and the pin tails) and two zip ties along the board between the header rows, through holes in the two back flanges and one anchor. No screws: hole patterns vary between clones and most 38-pin boards have none. A 30-pin board (about 51 x 28) also fits; move the pads.</td>
 <td data-label="Check on yours">Length, width, where the first and last header pins are, module width (18), the USB end</td>
@@ -297,7 +307,7 @@ the header on one side: use the two pilots on the side away from the header (y +
 IMU then sits about 7 mm higher and up to 2.5 mm sideways; nothing else changes. Solder the header with its pins on
 the chip side (pointing forward) so the board lies flat on the posts.</p>
 <p><strong>Other changes to the board layout.</strong> These follow <a href="stage1-wiring.html"><code>electronics.md</code></a>'s positions, with these differences:
-the ESP32 moved up 1 mm (z 100..128), the MX1508 is on the robot-right back at y -27..-2.3 (it must clear the 3 mm
+the ESP32 is at z 101.5..129.5 (so the chins under its lower pads clear the MX1508), the MX1508 is on the robot-right back at y -27..-2.3 (it must clear the 3 mm
 gusset at y = 0), the Mini360 is at z 80..91.2, the BMS top at z 101..123, the switch at z 77..92.2, JB at
 y -25.5..-4.5, z 79..92, K1 is on the back of the core rather than above the mast foot, and J1 is tied in front of
 the robot-left flange.</p>

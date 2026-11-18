@@ -64,7 +64,7 @@ Not covered: the model is left-right symmetric, so nothing tests the narrow trac
 
 ## Mechanical
 
-Full write-up: `docs/mechanical.md`. Design check (28 checks, all pass): `out/design.md`. Geometry: `stage1.py`.
+Full write-up: `docs/mechanical.md`. Design check (38 checks, all pass): `out/design.md`. Geometry: `stage1.py`.
 Print files: `out/print/`.
 
 | Quantity | Value |

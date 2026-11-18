@@ -38,6 +38,7 @@ CAN_Z1 = GB_Z1 + W.TT_CAN_LEN      # 59   top of the motor can
 TAB_ROOM = 5.0                     # [E] room above the can for the solder tabs, the leads and C3 (100 nF)
 SHAFT_HOLE_R = 4.0                 # [C] shaft hole in the cheeks: clears the 5.4 shaft and a bearing boss up to 7.4 [E]
 PIN_R, PIN_L = 1.5, 22.0           # [C] 3 mm steel pin through the gearbox's two M3 holes, ends 0.8 below the cheek faces
+ROOF_STEP = 0.3                    # [C] the shaft and pin holes open through the pocket roof in two steps of this depth (slot, square, round)
 # --- core block and crash bars
 CORE_X, CORE_Z0, CORE_Z1, CORE_RND = 23.0, -15.0, 72.0, 4.0   # [C] half length, bottom, top, edge radius
 SKID_X, SKID_Z, SKID_R, SKID_HW = 80.0, 6.5, 5.0, 30.0        # [C] crash bars front and back (the sim uses these)
@@ -66,7 +67,7 @@ HOLDER_SCREWS = [(0.0, -18.0), (0.0, 18.0)]  # [E] holder floor holes on its cen
 # --- boards (all [E] unless tagged: typical listings, measure yours). Positions follow docs/electronics.md.
 ESP = (55.0, 28.0, 1.6)            # [E] ESP32 DevKit (38-pin, WROOM-32) L x W x PCB. 30-pin boards are ~51 x 28
 ESP_GAP = 6.0                      # [C] PCB to plate (module side towards the plate, header pins outwards)
-ESP_Y0, ESP_Z0 = -ESP[0] / 2, 100.0          # back of the mast, across, USB end at y +27.5 (robot left)
+ESP_Y0, ESP_Z0 = -ESP[0] / 2, 101.5          # back of the mast, across, USB end at y +27.5 (robot left)
 ESP_ZC = ESP_Z0 + ESP[1] / 2
 ESP_TIES = (ESP_ZC - 9.5, ESP_ZC + 9.5)      # [C] two ties between the header rows, clear of the USB plug
 BACK_TIE_Z = 86.3                  # [C] MX1508 and Mini360 ties: both pass through the gusset root at this height
@@ -127,11 +128,16 @@ def hexy(x, z, af, y0, y1):
     r = af / np.sqrt(3)
     return Manifold.cylinder(y1 - y0, r, r, 6).rotate([0, 0, 30]).rotate([-90, 0, 0]).translate([x, y0, z])
 
-def anchor(s, xf, yc, zc, axis='y', half=1.3):
+def anchor(s, xf, yc, zc, axis='y', half=1.3, chin=True):
     """Zip-tie anchor on a vertical face: a block 3.6 proud with a 1.8 x 3.0 tunnel at the face, along y or z.
-    Returns (block, tunnel). In an upright print the tunnel roof spans only 1.8 mm."""
+    Returns (block, tunnel). In an upright print the tunnel roof spans only 1.8 mm, and a 45 deg chin under the
+    block (axis 'y') means nothing starts in mid-air. chin=False: no room for one, so the bar is 1.2 mm and the
+    block stands 3.0 proud, inside the 3 mm a slicer lets an overhang reach."""
+    bar = TUN_BAR if chin else 1.2
     if axis == 'y':
-        blk = fb(s, xf, -0.5, TUN_W + TUN_BAR, yc - half, yc + half, zc - 3.5, zc + 3.5)
+        blk = fb(s, xf, -0.5, TUN_W + bar, yc - half, yc + half, zc - 3.5, zc + 3.5)
+        if chin:
+            blk = W.hull(blk, fb(s, xf, -0.5, 0.0, yc - half, yc + half, zc - 3.5 - TUN_W - TUN_BAR, zc + 3.5))
         tun = fb(s, xf, 0.0, TUN_W, yc - 5, yc + 5, zc - TUN_H / 2, zc + TUN_H / 2)
     else:
         blk = fb(s, xf, -0.5, TUN_W + TUN_BAR, yc - 3.5, yc + 3.5, zc - half, zc + half)
@@ -190,7 +196,7 @@ def core():
     cav = W.box(-W.TT_W / 2 - CLR, W.TT_W / 2 + CLR, -POCKET_HW, POCKET_HW, GB_Z0 - CLR, GB_Z1 + CLR)
     flat = W.TT_CAN_FLAT / 2 + CLR
     cav += W.zcyl(0, 0, W.TT_CAN_D / 2 + CLR, GB_Z1, CAN_Z1 + CLR) ^ W.box(-20, 20, -flat, flat, -100, 200)
-    cav += W.zcyl(0, 0, W.TT_CAN_D / 2 + CLR, CAN_Z1, CAN_Z1 + TAB_ROOM) ^ W.box(-20, 20, -6, 6, -100, 200)   # solder tabs
+    cav += W.zcyl(0, 0, W.TT_CAN_D / 2 + CLR, CAN_Z1, CAN_Z1 + TAB_ROOM) ^ W.box(-20, 20, -flat, flat, -100, 200)   # solder tabs: one roof with the can pocket
     cav += W.box(-CORE_X - 1, -6, -3.5, 3.5, CAN_Z1, CAN_Z1 + TAB_ROOM)            # motor leads out of the back
     cav += W.ycyl(0, 0, SHAFT_HOLE_R, -CH_HW - 1, CH_HW + 1)
     cav += W.union([W.ycyl(x, z, PIN_R, -CH_HW - 1, CH_HW + 1) for x, z in W.TT_HOLES])
@@ -217,7 +223,21 @@ def core():
                   W.box(-W.TT_W / 2 - CLR, W.TT_W / 2 + CLR, -e, e, GB_Z0 - CLR, GB_Z1 + CLR))
     cav += W.hull(W.zcyl(0, 0, W.TT_CAN_D / 2 + CLR + e, GB_Z1, CAN_Z1 + CLR) ^ W.box(-30, 30, -0.01, 0.01, -100, 200),
                   W.zcyl(0, 0, W.TT_CAN_D / 2 + CLR, GB_Z1, CAN_Z1 + CLR) ^ W.box(-30, 30, -e, e, -100, 200))
-    return body - cav
+    c = body - cav
+    # The shaft hole and the pin holes come up through the gearbox pocket roof, which prints as a bridge. A round
+    # hole in a bridge has nothing under its rim (slicers call it a floating cantilever), so the holes open in
+    # steps: the first ROOF_STEP of the roof leaves a slot right across the pocket (straight bridges either side).
+    # The 3 mm pin holes are round from there. The 8 mm shaft hole takes a second step, a square (short bridges
+    # across the slot), because its rim would still be more than 3 mm from the slot's edges. Nothing to cut out.
+    px = W.TT_W / 2 + CLR
+    zp = W.TT_HOLES[0][1]
+    for s in (1, -1):
+        ys = lambda a, b: sorted((s * (POCKET_HW + a), s * (POCKET_HW + b)))
+        c += W.box(-px, px, *ys(0, 2 * ROOF_STEP), -SHAFT_HOLE_R, SHAFT_HOLE_R)
+        c -= W.box(-px - 0.01, px + 0.01, *ys(-0.01, ROOF_STEP), -SHAFT_HOLE_R, SHAFT_HOLE_R)
+        c -= W.box(-SHAFT_HOLE_R, SHAFT_HOLE_R, *ys(0, 2 * ROOF_STEP + 0.01), -SHAFT_HOLE_R, SHAFT_HOLE_R)
+        c -= W.box(-px - 0.01, px + 0.01, *ys(-0.01, ROOF_STEP), zp - PIN_R, zp + PIN_R)
+    return c
 
 def core_halves():
     c = core()
@@ -238,7 +258,7 @@ def mast():
     # ESP32: four corner pads under the PCB corners (module side), before the first header pin, 45 deg chins
     pads = Manifold()
     for y0, y1 in ((ESP_Y0 + 0.3, ESP_Y0 + 2.5), (-ESP_Y0 - 2.5, -ESP_Y0 - 0.3)):
-        for z0, z1, ch in ((ESP_Z0 + 0.4, ESP_Z0 + 3.4, 2.0), (ESP_Z0 + ESP[1] - 3.4, ESP_Z0 + ESP[1] - 0.4, ESP_GAP)):
+        for z0, z1, ch in ((ESP_Z0 + 0.4, ESP_Z0 + 3.4, 3.4), (ESP_Z0 + ESP[1] - 3.4, ESP_Z0 + ESP[1] - 0.4, ESP_GAP)):
             pads += W.hull(fb(-1, PF, -0.5, ESP_GAP, y0, y1, z0, z1), fb(-1, PF, -0.5, ESP_GAP - ch, y0, y1, z0 - ch, z1))
     pads -= fb(-1, PF, ESP_GAP - 3.4, ESP_GAP + 0.1, ESP_Y0 - 1, ESP_Y0 + 25.8, ESP_ZC - 9.3, ESP_ZC + 9.3)   # WROOM module
     # rails: 1.6 mm standoffs under the solder side of the boards without holes
@@ -252,8 +272,8 @@ def mast():
     blocks, tuns = [], []
     for args in ((1, PF, -BMS[0] / 2 - 1.6, BMS_Z0 + BMS[1] / 2), (1, PF, BMS[0] / 2 + 1.6, BMS_Z0 + BMS[1] / 2),
                  (1, PF, SW_Y0 - 1.6, SW_Z0 + 3.5), (1, PF, SW_Y0 + SW[0] + 1.6, SW_Z0 + 3.5),
-                 (1, PF, JB_Y0 - 1.6, JB_Z0 + JB[1] / 2), (1, PF, JB_Y0 + JB[0] + 1.6, JB_Z0 + JB[1] / 2),
-                 (-1, PF, MINI_Y0 + MINI[0] + 1.6, BACK_TIE_Z), (-1, PF, -ESP_Y0 + 2.0, ESP_TIES[1])):
+                 (1, PF, JB_Y0 - 1.9, JB_Z0 + JB[1] / 2, 'y', 1.6), (1, PF, JB_Y0 + JB[0] + 1.6, JB_Z0 + JB[1] / 2),   # the first runs into the flange
+                 (-1, PF, MINI_Y0 + MINI[0] + 1.6, BACK_TIE_Z), (-1, PF, -ESP_Y0 + 2.0, ESP_TIES[1], 'y', 1.3, False)):   # the last sits just above the USB plug
         b, t = anchor(*args); blocks.append(b); tuns.append(t)
     m = foot + plate + gus + fl + boss + pads + rails + W.union(blocks)
     m -= W.union(tuns)
@@ -559,6 +579,55 @@ def overhangs(m, min_area=4.0):
         out.append((A, (lo[2] + hi[2]) / 2, hi[0] - lo[0], hi[1] - lo[1], flat))
     return sorted(out, key=lambda r: -r[0])
 
+def cantilevers(m, layer=0.2, line=0.42, angle=30.0):
+    """Bambu Studio's "floating cantilever" test (TreeSupport::detect_overhangs), on slices of the part in its
+    print pose. Per layer, the overhang is what the layer below, grown by layer / tan(angle), does not cover. A
+    patch of it is a cantilever if one of its outlines (a hole counts) touches nothing below, or if a corner of
+    it is more than 3 mm from where it is held. Returns [(z, why, mm, area, (x0, y0, x1, y1))]."""
+    from manifold3d import JoinType
+    def rings(cs):
+        return [np.asarray(r, float) for r in cs.to_polygons()]
+    def inside(rs, q):
+        c = False
+        for r in rs:
+            x, y = r[:, 0], r[:, 1]; x2, y2 = np.roll(x, -1), np.roll(y, -1)
+            c ^= bool((((y > q[1]) != (y2 > q[1])) & (q[0] < (x2 - x) * (q[1] - y) / (y2 - y + 1e-300) + x)).sum() % 2)
+        return c
+    def dist(rs, q):
+        best = 1e9
+        for r in rs:
+            ab = np.roll(r, -1, axis=0) - r
+            t = np.clip(((q - r) * ab).sum(1) / ((ab * ab).sum(1) + 1e-300), 0, 1)
+            best = min(best, np.linalg.norm(r + t[:, None] * ab - q, axis=1).min())
+        return best
+    off = layer / np.tan(np.radians(angle))
+    out, prev = [], None
+    for z in np.arange(layer / 2, W.mesh_np(m)[0][:, 2].max(), layer):
+        cs = m.slice(float(z))
+        if prev is not None and not cs.is_empty():
+            low = prev.offset(off, JoinType.Round)
+            held = rings(prev.offset(line, JoinType.Round))
+            low2 = low.offset(max(line - off, 0) + 0.1, JoinType.Round)
+            for poly in (cs - low).decompose():
+                if poly.area() < 0.05:
+                    continue
+                poly = poly.simplify(1e-3)       # corners only, as the slicer's polygons are
+                rs = rings(poly); why, d = None, 0.0
+                for r in rs:
+                    if not any(inside(held, q) for q in r):
+                        why, d = 'an outline with nothing under it', max(dist(held, q) for q in r); break
+                if why is None:
+                    base = rings(poly ^ low2)
+                    if not base:
+                        continue
+                    area2 = lambda r: abs((r[:, 0] * np.roll(r[:, 1], -1) - np.roll(r[:, 0], -1) * r[:, 1]).sum())
+                    d = max(dist(base, q) for q in max(rs, key=area2))
+                    why = 'reaches more than 3 mm' if d > 3.0 else None
+                if why:
+                    out.append((float(z) - layer / 2, why, d, poly.area(), poly.bounds()))
+        prev = cs
+    return out
+
 def hole_walls(part, centre, axis, r, s0, s1, nsec=5, nang=24):
     """Wall round a hole: rays from the hole wall outwards (perpendicular to its axis) until the next surface.
     centre: a point on the axis; axis: unit vector; the hole runs from s0 to s1 along it. Returns min wall (mm)."""
@@ -732,8 +801,16 @@ def analyse():
         L += [f'| {n} | {s[0]:.0f} x {s[1]:.0f} x {s[2]:.1f} | {m.volume() / 1000 * W.PLA * (1.0 if n == "encoder_ring" else W.FILL):.1f} | {note} | {"yes" if ok else "NO"} | {pieces} | {v[:, 2].min():.2f} | {"yes" if fits else "NO"} |']
         chk(f'{n}: one valid manifold on the bed', ok and pieces == 1 and abs(v[:, 2].min()) < 1e-6, f'{pieces} piece(s), z min {v[:, 2].min():.3f}')
         chk(f'{n}: fits the bed', fits, f'{s[0]:.0f} x {s[1]:.0f} x {s[2]:.0f} mm')
-        W.to_stl(p, os.path.join(OUT, 'print', n + '.stl'))
-    L += ['']
+        path = os.path.join(OUT, 'print', n + '.stl')
+        W.to_stl(p, path, strict=True)
+        deg, bad = W.stl_faults(path)
+        chk(f'{n}: STL file closed, no zero-area or reversed faces', deg == 0 and bad == 0, f'{deg} zero-area triangle(s), {bad} bad edge(s) in the file as written')
+        cant = cantilevers(p)
+        chk(f'{n}: no floating cantilever (slicer rule)', not cant,
+            'none' if not cant else '; '.join(f'z {c[0]:.1f}: {c[1]} ({c[2]:.1f} mm, {c[3]:.0f} mm2)' for c in cant[:4]))
+    L += ['', 'The last two checks per part are what a slicer checks on import: the STL **as written to disk** has no zero-area or '
+          'reversed triangles and every edge is shared by exactly two; and no overhang is a "floating cantilever" by Bambu Studio\'s '
+          'rule (0.2 mm layers, 0.42 mm lines, 30 deg threshold): no outline with nothing under it, no corner more than 3 mm from where it is held.', '']
     # walls
     L += ['### Wall thickness', '', 'Ray-cast from 5000 random surface points straight into the material (print pose, first 0.6 mm above the bed '
           'skipped). Thin readings are listed with where they are.', '', '| Part | Thinnest (mm) | 1st percentile (mm) | Points under 1.6 mm |', '|---|---|---|---|']
@@ -787,8 +864,8 @@ def analyse():
         fw.append((f'  head recess ({x:+.0f}, {z:+.0f})', L_, f'6.2 x {top - CH_HW + REC_DEPTH:.1f} deep', hole_walls(L_, (x, 0, z), (0, 1, 0), HEAD_REC_R, CH_HW - REC_DEPTH, top)))
         fw.append((f'  nut recess ({x:+.0f}, {z:+.0f})', R_, 'hex 5.8 AF x 3.2 deep', hole_walls(R_, (x, 0, z), (0, 1, 0), NUT_REC_AF / np.sqrt(3), -CH_HW, -CH_HW + REC_DEPTH)))
     for x, z in W.TT_HOLES:
-        fw.append((f'pin ({x:+.0f}, {z:+.0f}) in the cheek', L_, '3.0 press fit', hole_walls(L_, (x, 0, z), (0, 1, 0), PIN_R, POCKET_HW, CH_HW)))
-    fw.append(('shaft hole', L_, '8.0', hole_walls(L_, (0, 0, 0), (0, 1, 0), SHAFT_HOLE_R, POCKET_HW, CH_HW)))
+        fw.append((f'pin ({x:+.0f}, {z:+.0f}) in the cheek', L_, '3.0 press fit', hole_walls(L_, (x, 0, z), (0, 1, 0), PIN_R, POCKET_HW + ROOF_STEP, CH_HW)))
+    fw.append(('shaft hole', L_, '8.0', hole_walls(L_, (0, 0, 0), (0, 1, 0), SHAFT_HOLE_R, POCKET_HW + 2 * ROOF_STEP, CH_HW)))
     for x, y in MAST_SCREWS:
         prt = L_ if y > 0 else R_
         fw.append((f'mast screw pilot ({x:+.0f}, {y:+.0f})', prt, 'M3 self-tap 2.5 x 10 deep', hole_walls(prt, (x, y, 0), (0, 0, 1), M3_PILOT_R, CORE_Z1 - 10, CORE_Z1)))
@@ -809,7 +886,7 @@ def analyse():
     L += ['### Screw lengths', '',
           f'- **Clamp bolts M3 x 20**: head seat {seat:.1f} mm from the centre plane, head top {seat + HEAD_H:.1f} (cheek face {CH_HW}); nut from '
           f'{-seat:.1f} to {-seat - NUT_H:.1f}; bolt tip at {seat - BOLT_L:.1f}. Fully through the nut, nothing proud of either cheek.',
-          f'- **Pins 3 x {PIN_L:.0f}**: ends at +-{PIN_L / 2:.1f}, {CH_HW - PIN_L / 2:.1f} mm below the cheek faces; {PIN_L / 2 - POCKET_HW:.1f} mm in each cheek.',
+          f'- **Pins 3 x {PIN_L:.0f}**: ends at +-{PIN_L / 2:.1f}, {CH_HW - PIN_L / 2:.1f} mm below the cheek faces; {PIN_L / 2 - POCKET_HW - ROOF_STEP:.1f} mm of round hole in each cheek (above the {ROOF_STEP} mm slot in the pocket roof).',
           f'- **Mast screws M3 x 12 self-tap**: 4 mm foot, {12 - 4:.0f} mm into a 10 mm pilot.',
           f'- **Holder screws M3 x 16 self-tap**: {HOLDER_FLOOR} mm holder floor [E] + {FLOOR_T} mm tray floor, {16 - HOLDER_FLOOR - FLOOR_T:.1f} mm into a 12 mm pilot.',
           f'- **IMU screws M2.5 x 8 self-tap**: 1.6 mm board, {8 - 1.6:.1f} mm into an 8 mm pilot.', '']
@@ -856,6 +933,8 @@ def explain_thin(n, q):
             return 'TCRT5000 clip wall (1.8 mm) or its edge'
         if abs(abs(x) - SKID_X) < 6 or abs(x) > CORE_X + 1:
             return 'crash bar / arm edge (rounded edge, ray leaves through the adjacent face)'
+        if POCKET_HW - 0.1 < abs(y) and abs(x) < W.TT_W / 2 + CLR + 0.1 and (abs(z) < SHAFT_HOLE_R + 0.6 or abs(z - W.TT_HOLES[0][1]) < PIN_R + 0.6):
+            return f'cheek over a hole slot in the pocket roof: thinner by {ROOF_STEP} mm (pins) or {2 * ROOF_STEP} mm (shaft) in a strip as wide as the hole, by design'
         if abs(y) < 0.7:
             return 'pocket-mouth chamfer at the bed face'
         if abs(abs(y) - CH_HW) < 0.5:
@@ -871,12 +950,12 @@ def explain_thin(n, q):
 
 def explain_overhang(n, z, sx, sy):
     if n.startswith('core'):
-        if abs(z - (POCKET_HW)) < 0.6:
-            return 'gearbox pocket roof: bridge across the pocket (the cheek)'
+        if abs(z - (POCKET_HW)) < 0.25:
+            return 'gearbox pocket roof: bridges across the pocket either side of the hole slots (the cheek)'
+        if POCKET_HW + 0.25 <= z < POCKET_HW + 2 * ROOF_STEP + 0.2:
+            return 'stepped opening of the shaft / pin holes through the roof: short bridges'
         if abs(z - (W.TT_CAN_FLAT / 2 + CLR)) < 0.6:
             return 'can pocket roof: bridge'
-        if abs(z - 6.0) < 0.6:
-            return 'solder-tab pocket roof: bridge'
         if abs(z - 3.5) < 0.6:
             return 'motor-lead slot roof: bridge'
         if abs(z - (CH_HW - REC_DEPTH)) < 0.6:

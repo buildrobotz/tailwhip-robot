@@ -139,9 +139,43 @@ def centroid(m):
     vol6 = np.einsum('ij,ij->i', a, np.cross(b, c))
     return (vol6[:, None] * (a + b + c)).sum(0) / (4 * vol6.sum())
 
-def to_stl(man, path):
-    v, t = mesh_np(man)
-    tri = v[t]; n = np.cross(tri[:, 1] - tri[:, 0], tri[:, 2] - tri[:, 0])
+def stl_clean(v, t):
+    """Vertices rounded to float32 (what an STL stores) and welded; triangles that have no area at that precision
+    dropped. Manifold may leave such triangles in (a pair lying back to back on one line): slicers report them as
+    reversed or non-manifold faces."""
+    v32 = np.asarray(v, np.float32)
+    u, inv = np.unique(v32, axis=0, return_inverse=True)
+    t = inv.reshape(-1)[np.asarray(t)]
+    tri = u[t].astype(float)
+    n = np.cross(tri[:, 1] - tri[:, 0], tri[:, 2] - tri[:, 0])
+    keep = np.linalg.norm(n, axis=1) > 1e-9
+    return u, t[keep]
+
+def mesh_faults(v, t):
+    """(triangles without area, edges not shared by exactly two triangles in opposite directions). (0, 0) = closed."""
+    tri = np.asarray(v, float)[t]
+    n = np.cross(tri[:, 1] - tri[:, 0], tri[:, 2] - tri[:, 0])
+    e = np.concatenate([t[:, [0, 1]], t[:, [1, 2]], t[:, [2, 0]]])
+    key = lambda a: a[:, 0].astype(np.int64) * (len(v) + 1) + a[:, 1]
+    fwd, cf = np.unique(key(e), return_counts=True)
+    bad = int((cf != 1).sum()) + int((~np.isin(key(e[:, ::-1]), fwd)).sum())
+    return int((np.linalg.norm(n, axis=1) <= 1e-9).sum()), bad
+
+def stl_faults(path):
+    """The same two counts for a binary STL as written on disk: what a slicer sees."""
+    raw = np.fromfile(path, dtype=np.dtype([('n', '<f4', 3), ('v', '<f4', (3, 3)), ('a', '<u2')]), offset=84)
+    u, inv = np.unique(raw['v'].reshape(-1, 3), axis=0, return_inverse=True)
+    return mesh_faults(u, inv.reshape(-1, 3))
+
+def to_stl(man, path, strict=False):
+    """Binary STL. Print files pass strict=True: the cleaned mesh must be closed. Display and simulator meshes
+    (unions of bought parts that touch) fall back to the mesh as Manifold gives it."""
+    v, t = stl_clean(*mesh_np(man))
+    if mesh_faults(v, t) != (0, 0):
+        if strict:
+            raise ValueError(f'{path}: mesh is not closed after cleaning: {mesh_faults(v, t)}')
+        v, t = mesh_np(man)
+    tri = v[t].astype(float); n = np.cross(tri[:, 1] - tri[:, 0], tri[:, 2] - tri[:, 0])
     n /= np.linalg.norm(n, axis=1, keepdims=True) + 1e-12
     rec = np.zeros(len(t), dtype=[('n', '<f4', 3), ('v', '<f4', (3, 3)), ('a', '<u2')])
     rec['n'], rec['v'] = n, tri
